@@ -1,3 +1,4 @@
+import EventsSection from "@/components/Events";
 import GetInvolvedSection from "@/components/GetInvolved";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
@@ -11,6 +12,7 @@ export default function Home() {
       <HeroSection />
       <GetInvolvedSection />
       <VisionSection />
+      <EventsSection />
     </main>
   );
 }
