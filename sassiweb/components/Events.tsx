@@ -23,3 +23,46 @@ export default function EventsSection() {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
+                         <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </span>
+                November 12, 2023
+              </div>
+            </div>
+          </div>
+
+          {/* Event Card 2 */}
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="h-48 bg-blue-100"></div>
+            <div className="p-6">
+              <h3 className="text-xl font-bold mb-2">Career Workshop</h3>
+              <p className="text-gray-600 mb-4">
+                Learn about job opportunities in Italy and how to navigate the local job market as an international
+                student.
+              </p>
+              <div className="flex items-center text-sm text-gray-500">
+                <span className="mr-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </span>
+                December 5, 2023
+              </div>
+            </div>
+          </div>
