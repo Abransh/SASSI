@@ -40,3 +40,46 @@ export default function MobileMenu() {
             <X size={24} />
           </button>
         </div>
+
+        <div className="flex flex-col items-center justify-center h-full">
+          <nav className="flex flex-col items-center space-y-6 text-xl">
+            <Link href="#home" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
+              Home
+            </Link>
+            <Link href="#about" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
+              About
+            </Link>
+            <Link
+              href="#life-in-milan"
+              onClick={closeMenu}
+              className="text-gray-800 hover:text-orange-600 transition-colors"
+            >
+              Life in Milan
+            </Link>
+            <Link
+              href="#uni-networks"
+              onClick={closeMenu}
+              className="text-gray-800 hover:text-orange-600 transition-colors"
+            >
+              Uni Networks
+            </Link>
+            <Link href="#events" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
+              Events
+            </Link>
+            <Link href="#join-us" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
+              Join Us
+            </Link>
+            <Link
+              href="#support-us"
+              onClick={closeMenu}
+              className="text-gray-800 hover:text-orange-600 transition-colors"
+            >
+              Support Us
+            </Link>
+            <Link
+              href="#contact-us"
+              onClick={closeMenu}
+              className="text-gray-800 hover:text-orange-600 transition-colors"
+            >
+              Contact Us
+            </Link>
