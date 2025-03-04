@@ -22,13 +22,10 @@ export default function GetInvolvedSection() {
           <div className="absolute right-0 bottom-10 md:right-0 md:bottom-20">
             <Link
               href="/join-us"
-              className="group relative inline-flex items-center justify-center px-0 py-0 text-4xl font-medium transition-all duration-300 ease-in-out"
+              className="font-serif text-5xl md:text-6xl text-yellow-300 hover:text-yellow-200 transition-colors flex items-center"
             >
-              
-              <span className="absolute inset-0 w-full h-full rounded-lg bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <span className="relative text-white group-hover:text-gray-900 transition-colors duration-300">
-                Get Involved
-              </span>
+               Get Involved
+               <span className="ml-2 text-4xl md:text-5xl">→</span>
             </Link>
           </div>
         </div>

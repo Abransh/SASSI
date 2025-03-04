@@ -1,0 +1,7 @@
+here i am gonna write all the important things for future sassi developers//
+
+what tech stack i have used- 
+
+
+hero section
+image background can be a gradient too just add this in class name "bg-gradient-to-b from-blue-900/70 to-orange-700/50"

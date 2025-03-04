@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Instagram, Mail, Twitter } from "lucide-react"
+import Image from "next/image"
 
 export default function Header() {
   return (
@@ -8,8 +9,15 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             {/* Logo placeholder - replace with your actual logo later */}
-            <Link href="/sassiweb/public/assests/SASSI.png" className="font-bold text-2xl">
-              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">Logo</div>
+            <Link href="/#home" className="font-bold text-2xl">
+               <Image
+                 src="/assests/SASSI.png"
+                 alt="Group Diwali Image"
+                 height={200}
+                 width={200}
+                 objectFit="cover"
+                 className="rounded-lg"
+                 />
             </Link>
           </div>
 
