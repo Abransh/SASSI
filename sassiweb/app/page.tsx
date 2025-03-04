@@ -1,5 +1,6 @@
 import CoreInitiativesSection from "@/components/CoreInitiatives";
 import EventsSection from "@/components/Events";
+import Footer from "@/components/Footer";
 import GetInvolvedSection from "@/components/GetInvolved";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
@@ -19,6 +20,7 @@ export default function Home() {
       <EventsSection />
       <CoreInitiativesSection />
       <LifeInMilanSection />
+      <Footer />
     </main>
   );
 }

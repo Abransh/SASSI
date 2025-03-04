@@ -8,7 +8,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             {/* Logo placeholder - replace with your actual logo later */}
-            <Link href="/" className="font-bold text-2xl">
+            <Link href="/sassiweb/public/assests/SASSI.png" className="font-bold text-2xl">
               <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">Logo</div>
             </Link>
           </div>
@@ -57,15 +57,15 @@ export default function Header() {
           {/* Social Media Icons */}
           <div className="hidden md:flex items-center space-x-4">
             <Link
-              href="https://instagram.com"
+              href="https://www.instagram.com/sassi.milan/"
               target="_blank"
               className="text-gray-800 hover:text-pink-600 transition-colors"
             >
               <Instagram size={20} />
             </Link>
             <Link
-              href="mailto:contact@indianstudents.it"
-              className="text-gray-800 hover:text-blue-600 transition-colors"
+              href="mailto:support@sassimilan.com"
+              className="text-gray-800 hover:text-yellow-500 transition-colors"
             >
               <Mail size={20} />
             </Link>

@@ -12,10 +12,10 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="col-span-1 md:col-span-1">
             <Link href="/" className="text-2xl font-bold text-white">
-              ISA POLIMI
+              SASSI
             </Link>
             <p className="mt-4 text-gray-400">
-              Supporting Indian students at Politecnico di Milano since 2021.
+              Supporting Indian students in Milan since ___.
             </p>
             <div className="mt-6 flex space-x-4">
               <SocialIcons />
@@ -37,7 +37,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/events" className="text-gray-400 hover:text-white transition duration-200">
+                <Link href="#events" className="text-gray-400 hover:text-white transition duration-200">
                   Events
                 </Link>
               </li>
@@ -86,7 +86,7 @@ const Footer = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <span className="text-gray-400">
-                  Politecnico di Milano, Milan, Italy
+                  Address 
                 </span>
               </li>
               <li className="flex items-start">
@@ -94,7 +94,7 @@ const Footer = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <span className="text-gray-400">
-                  info@isapolimi.org
+                  support@sassimilan.com
                 </span>
               </li>
             </ul>
@@ -103,7 +103,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-          <p>&copy; {currentYear} ISA POLIMI. All rights reserved.</p>
+          <p>&copy; {currentYear} SASSI. All rights reserved.</p>
         </div>
       </div>
     </footer>
