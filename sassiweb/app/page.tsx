@@ -1,3 +1,4 @@
+import ContactForm from "@/components/ContactForm";
 import CoreInitiativesSection from "@/components/CoreInitiatives";
 import EventsSection from "@/components/Events";
 import Footer from "@/components/Footer";
@@ -20,6 +21,7 @@ export default function Home() {
       <EventsSection />
       <CoreInitiativesSection />
       <LifeInMilanSection />
+      <ContactForm />
       <Footer />
     </main>
   );
