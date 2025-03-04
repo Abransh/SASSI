@@ -1,3 +1,4 @@
+import CoreInitiativesSection from "@/components/CoreInitiatives";
 import EventsSection from "@/components/Events";
 import GetInvolvedSection from "@/components/GetInvolved";
 import Header from "@/components/Header";
@@ -13,6 +14,7 @@ export default function Home() {
       <GetInvolvedSection />
       <VisionSection />
       <EventsSection />
+      <CoreInitiativesSection />
     </main>
   );
 }
