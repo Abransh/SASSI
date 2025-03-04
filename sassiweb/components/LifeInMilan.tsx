@@ -50,3 +50,19 @@ export default function LifeInMilanSection() {
             </Link>
             <p className="text-center text-gray-700">Resources for your next steps after completing your studies.</p>
           </div>
+
+           {/* FAQs */}
+           <div className="flex flex-col items-center">
+            <Link
+              href="#faqs"
+              className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
+            >
+              FAQS
+            </Link>
+            <p className="text-center text-gray-700">Our comprehensive Frequently Asked Questions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
