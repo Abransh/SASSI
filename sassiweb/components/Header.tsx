@@ -1,0 +1,85 @@
+import Link from "next/link"
+import { Instagram, Mail, Twitter } from "lucide-react"
+
+export default function Header() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm shadow-sm">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            {/* Logo placeholder - replace with your actual logo later */}
+            <Link href="/" className="font-bold text-2xl">
+              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">Logo</div>
+            </Link>
+          </div>
+
+          {/* Navigation Menu */}
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link href="#home" className="text-gray-800 hover:text-primary transition-colors">
+              Home
+            </Link>
+            <Link href="#about" className="text-gray-800 hover:text-primary transition-colors">
+              About
+            </Link>
+            <Link href="#life-in-milan" className="text-gray-800 hover:text-primary transition-colors">
+              Life in Milan
+            </Link>
+            <Link href="#uni-networks" className="text-gray-800 hover:text-primary transition-colors">
+              Uni Networks
+            </Link>
+            <Link href="#events" className="text-gray-800 hover:text-primary transition-colors">
+              Events
+            </Link>
+            <Link href="#join-us" className="text-gray-800 hover:text-primary transition-colors">
+              Join Us
+            </Link>
+            <Link href="#support-us" className="text-gray-800 hover:text-primary transition-colors">
+              Support Us
+            </Link>
+            <Link href="#contact-us" className="text-gray-800 hover:text-primary transition-colors">
+              Contact Us
+            </Link>
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <button className="md:hidden text-gray-800">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          {/* Social Media Icons */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Link
+              href="https://instagram.com"
+              target="_blank"
+              className="text-gray-800 hover:text-pink-600 transition-colors"
+            >
+              <Instagram size={20} />
+            </Link>
+            <Link
+              href="mailto:contact@indianstudents.it"
+              className="text-gray-800 hover:text-blue-600 transition-colors"
+            >
+              <Mail size={20} />
+            </Link>
+            <Link
+              href="https://twitter.com"
+              target="_blank"
+              className="text-gray-800 hover:text-blue-400 transition-colors"
+            >
+              <Twitter size={20} />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
+
