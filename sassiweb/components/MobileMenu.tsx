@@ -83,3 +83,34 @@ export default function MobileMenu() {
             >
               Contact Us
             </Link>
+
+             {/* Social Media Icons */}
+             <div className="flex items-center space-x-6 mt-8">
+              <Link
+                href="https://instagram.com"
+                target="_blank"
+                className="text-gray-800 hover:text-pink-600 transition-colors"
+              >
+                <Instagram size={24} />
+              </Link>
+              <Link
+                href="mailto:contact@indianstudents.it"
+                className="text-gray-800 hover:text-blue-600 transition-colors"
+              >
+                <Mail size={24} />
+              </Link>
+              <Link
+                href="https://twitter.com"
+                target="_blank"
+                className="text-gray-800 hover:text-blue-400 transition-colors"
+              >
+                <Twitter size={24} />
+              </Link>
+            </div>
+          </nav>
+        </div>
+      </div>
+    </div>
+  )
+}
+
