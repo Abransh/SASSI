@@ -9,10 +9,9 @@ export default function EventsSection() {
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="h-48 bg-orange-100"></div>
               <div className="p-6">
-                <h3 className="text-xl font-bold mb-2">Diwali Celebration</h3>
+                <h3 className="text-xl font-bold mb-2">XXXXXX</h3>
                 <p className="text-gray-600 mb-4">
-                  Join us for a vibrant celebration of the festival of lights with music, dance, and authentic Indian
-                  cuisine.
+                  XXXXXX
                 </p>
                 <div className="flex items-center text-sm text-gray-500">
                   <span className="mr-2">
@@ -31,7 +30,7 @@ export default function EventsSection() {
                     />
                   </svg>
                 </span>
-                Some day in 2025
+                XXXXXX
               </div>
             </div>
           </div>
@@ -40,10 +39,9 @@ export default function EventsSection() {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="h-48 bg-blue-100"></div>
             <div className="p-6">
-              <h3 className="text-xl font-bold mb-2">Holi</h3>
+              <h3 className="text-xl font-bold mb-2">XXXXXXX</h3>
               <p className="text-gray-600 mb-4">
-                Learn about job opportunities in Italy and how to navigate the local job market as an international
-                student.
+                XXXXXXX
               </p>
               <div className="flex items-center text-sm text-gray-500">
                 <span className="mr-2">
@@ -62,7 +60,7 @@ export default function EventsSection() {
                     />
                   </svg>
                 </span>
-                December 5, 2023
+                XXXXXXXX
               </div>
             </div>
           </div>
@@ -71,10 +69,9 @@ export default function EventsSection() {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="h-48 bg-green-100"></div>
             <div className="p-6">
-              <h3 className="text-xl font-bold mb-2">Cultural Exchange</h3>
+              <h3 className="text-xl font-bold mb-2">XXXXXXXXX</h3>
               <p className="text-gray-600 mb-4">
-                An evening of cultural exchange with Italian students to foster friendship and understanding between
-                cultures.
+                XXXXXXXXX
               </p>
               <div className="flex items-center text-sm text-gray-500">
                 <span className="mr-2">
@@ -93,7 +90,7 @@ export default function EventsSection() {
                     />
                   </svg>
                 </span>
-                January 20, 2024
+                XXXXXXXXXXX
               </div>
             </div>
           </div>

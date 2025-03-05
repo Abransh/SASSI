@@ -1,11 +1,18 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export default function LifeInMilanSection() {
   return (
     <section id="life-in-milan" className="py-20 relative">
       {/* Background image with Milan skyline outline */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
-        {/* This will be replaced with your actual background image */}
+      <Image
+                 src="/assests/milan.png"
+                 alt="Milan"
+                 layout="fill"
+                 objectFit="cover"
+                 className="rounded-lg"
+                 />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">

@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import LifeInMilanSection from "@/components/LifeInMilan";
 import MobileMenu from "@/components/MobileMenu";
+import PlaneAnimation from "@/components/PlaneScroll";
 import VisionSection from "@/components/vision";
 
 
@@ -16,11 +17,12 @@ export default function Home() {
       <Header />
       <MobileMenu />
       <HeroSection />
-      <GetInvolvedSection />
       <VisionSection />
+      <LifeInMilanSection />
+      <PlaneAnimation />
+      <GetInvolvedSection />
       <EventsSection />
       <CoreInitiativesSection />
-      <LifeInMilanSection />
       <ContactForm />
       <Footer />
     </main>
