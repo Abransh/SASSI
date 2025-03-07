@@ -8,6 +8,7 @@ import HeroSection from "@/components/HeroSection";
 import LifeInMilanSection from "@/components/LifeInMilan";
 import MobileMenu from "@/components/MobileMenu";
 import PlaneAnimation from "@/components/PlaneScroll";
+import UniNetworks from "@/components/UniNetworks";
 import VisionSection from "@/components/vision";
 
 
@@ -20,6 +21,7 @@ export default function Home() {
       <VisionSection />
       <LifeInMilanSection />
       <PlaneAnimation />
+      <UniNetworks />
       <GetInvolvedSection />
       <EventsSection />
       <CoreInitiativesSection />

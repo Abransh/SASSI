@@ -10,6 +10,7 @@ var HeroSection_1 = require("@/components/HeroSection");
 var LifeInMilan_1 = require("@/components/LifeInMilan");
 var MobileMenu_1 = require("@/components/MobileMenu");
 var PlaneScroll_1 = require("@/components/PlaneScroll");
+var UniNetworks_1 = require("@/components/UniNetworks");
 var vision_1 = require("@/components/vision");
 function Home() {
     return (React.createElement("main", { className: "min-h-screen" },
@@ -19,6 +20,7 @@ function Home() {
         React.createElement(vision_1["default"], null),
         React.createElement(LifeInMilan_1["default"], null),
         React.createElement(PlaneScroll_1["default"], null),
+        React.createElement(UniNetworks_1["default"], null),
         React.createElement(GetInvolved_1["default"], null),
         React.createElement(Events_1["default"], null),
         React.createElement(CoreInitiatives_1["default"], null),

@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef } from "react"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -41,6 +42,22 @@ export default function HeroSection() {
           Bringing Indian students in Italy together, celebrating our culture, supporting each other, and making every
           step of this journey feel like home
         </p>
+
+        <div className="flex flex-wrap justify-center gap-4 mt-6">
+          <Link
+            href="https://instagram.com"
+            target="_blank"
+            className="px-6 py-3 bg-white text-black border-2 border-black rounded-md font-medium transition-all hover:text-yellow-400 hover:border-yellow-400"
+          >
+            Our Instagram
+          </Link>
+          <Link
+            href="#join-us"
+            className="px-6 py-3 bg-yellow-400 text-black border-2 border-black rounded-md font-medium transition-all hover:bg-black hover:text-yellow-400 hover:border-yellow-400"
+          >
+            Join Us
+          </Link>
+        </div>
       </div>
     </section>
   )
