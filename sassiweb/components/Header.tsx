@@ -47,20 +47,16 @@ export default function Header() {
             <Link href="#contact-us" className="text-gray-800 hover:text-primary transition-colors">
               Contact Us
             </Link>
+            <Link href="/faqs" className="text-gray-800 hover:text-primary transition-colors">
+              FAQs
+            </Link>
           </nav>
 
-          {/* Mobile Menu Button */}
-          <button className="md:hidden text-gray-800">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+        
+
+          {/* Mobile Menu Button will be handled by MobileMenu component */}
+          <div className="md:hidden"></div>
+         
 
           {/* Social Media Icons */}
           <div className="hidden md:flex items-center space-x-4">

@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { Instagram, Mail, Twitter, X } from "lucide-react"
+import { Instagram, Mail, Twitter, X, Menu } from "lucide-react"
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
@@ -16,34 +16,24 @@ export default function MobileMenu() {
 
   return (
     <div className="md:hidden">
-      {/* Menu Button */}
-      <button onClick={toggleMenu} className="text-gray-800 focus:outline-none">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+      {/* Menu Button - positioned in the header */}
+      <button
+        onClick={toggleMenu}
+        className="fixed top-4 right-4 z-50 p-2 text-gray-800 focus:outline-none"
+        aria-label="Toggle menu"
+      >
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed inset-0 bg-white z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-0 bg-white z-40 transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex justify-end p-4">
-          <button onClick={closeMenu} className="text-gray-800">
-            <X size={24} />
-          </button>
-        </div>
-
-        <div className="flex flex-col items-center justify-center h-full">
+        <div className="flex flex-col items-center justify-center h-full pt-16">
           <nav className="flex flex-col items-center space-y-6 text-xl">
-            <Link href="#home" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
+            <Link href="/" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
               Home
             </Link>
             <Link href="#about" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
@@ -83,9 +73,12 @@ export default function MobileMenu() {
             >
               Contact Us
             </Link>
+            <Link href="/faqs" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
+              FAQs
+            </Link>
 
-             {/* Social Media Icons */}
-             <div className="flex items-center space-x-6 mt-8">
+            {/* Social Media Icons */}
+            <div className="flex items-center space-x-6 mt-8">
               <Link
                 href="https://instagram.com"
                 target="_blank"
