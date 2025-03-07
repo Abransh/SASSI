@@ -25,7 +25,7 @@ export default function UniNetworks() {
           
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
           {/*ISA POLIMI HERE */}
           <div className="flex flex-col items-center">
             <Link
@@ -48,28 +48,6 @@ export default function UniNetworks() {
             </Link>
             <p className="text-center text-gray-700">Indian Students Association.</p>
             <p className="text-center text-gray-700">Domus Academy & NABA</p>
-          </div>
-
-          {/* After Graduation */}
-          <div className="flex flex-col items-center">
-            <Link
-              href="#after-graduation"
-              className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
-            >
-              AFTER GRADUATION
-            </Link>
-            <p className="text-center text-gray-700">Resources for your next steps after completing your studies.</p>
-          </div>
-
-           {/* FAQs */}
-           <div className="flex flex-col items-center">
-            <Link
-              href="#faqs"
-              className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
-            >
-              FAQS
-            </Link>
-            <p className="text-center text-gray-700">Our comprehensive Frequently Asked Questions.</p>
           </div>
         </div>
       </div>
