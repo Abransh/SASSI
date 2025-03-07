@@ -6,6 +6,7 @@ var image_1 = require("next/image");
 var link_1 = require("next/link");
 function HeroSection() {
     var sectionRef = react_1.useRef(null);
+    var backgroundRef = react_1.useRef(null);
     react_1.useEffect(function () {
         var section = sectionRef.current;
         if (section) {
@@ -17,6 +18,16 @@ function HeroSection() {
                 section.style.transform = "translateY(0)";
             }, 100);
         }
+        var handleScroll = function () {
+            if (backgroundRef.current) {
+                var scrollPosition = window.scrollY;
+                backgroundRef.current.style.transform = "translateY(" + scrollPosition * 0.4 + "px)";
+            }
+        };
+        window.addEventListener("scroll", handleScroll);
+        return function () {
+            window.removeEventListener("scroll", handleScroll);
+        };
     }, []);
     return (React.createElement("section", { id: "home", className: "relative min-h-screen flex items-center justify-center py-20 px-4", ref: sectionRef },
         React.createElement("div", { className: "absolute inset-0 bg-gray-900/50 z-0" },

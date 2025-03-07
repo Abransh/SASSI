@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+//import Image from "next/image"
 
 export default function UniNetworks() {
   return (
@@ -44,9 +44,10 @@ export default function UniNetworks() {
               href="#welcome-to-italy"
               className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
             >
-              WELCOME TO ITALY
+              ISA DNA
             </Link>
-            <p className="text-center text-gray-700">A guide to settling in and navigating life in Milan.</p>
+            <p className="text-center text-gray-700">Indian Students Association.</p>
+            <p className="text-center text-gray-700">Domus Academy & NABA</p>
           </div>
 
           {/* After Graduation */}

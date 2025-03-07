@@ -1,10 +1,11 @@
-"use client"
+"use client"; 
 import { useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
+  const backgroundRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const section = sectionRef.current
@@ -17,6 +18,18 @@ export default function HeroSection() {
         section.style.opacity = "1"
         section.style.transform = "translateY(0)"
       }, 100)
+    }
+
+    const handleScroll = () => {
+      if(backgroundRef.current)
+      {
+        const scrollPosition = window.scrollY
+        backgroundRef.current.style.transform = `translateY(${scrollPosition * 0.4}px)`
+      }
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
     }
   }, [])
 

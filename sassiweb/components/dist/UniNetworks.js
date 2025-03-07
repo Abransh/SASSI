@@ -1,6 +1,7 @@
 "use strict";
 exports.__esModule = true;
 var link_1 = require("next/link");
+//import Image from "next/image"
 function UniNetworks() {
     return (React.createElement("section", { id: "life-in-milan", className: "py-20 relative" },
         React.createElement("div", { className: "absolute inset-0 opacity-10 pointer-events-none" }),
@@ -15,8 +16,9 @@ function UniNetworks() {
                     React.createElement("p", { className: "text-center text-gray-700" }, "Indian Students Association"),
                     React.createElement("p", { className: "text-center text-gray-700" }, "Politecnico di Milano")),
                 React.createElement("div", { className: "flex flex-col items-center" },
-                    React.createElement(link_1["default"], { href: "#welcome-to-italy", className: "mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors" }, "WELCOME TO ITALY"),
-                    React.createElement("p", { className: "text-center text-gray-700" }, "A guide to settling in and navigating life in Milan.")),
+                    React.createElement(link_1["default"], { href: "#welcome-to-italy", className: "mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors" }, "ISA DNA"),
+                    React.createElement("p", { className: "text-center text-gray-700" }, "Indian Students Association."),
+                    React.createElement("p", { className: "text-center text-gray-700" }, "Domus Academy & NABA")),
                 React.createElement("div", { className: "flex flex-col items-center" },
                     React.createElement(link_1["default"], { href: "#after-graduation", className: "mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors" }, "AFTER GRADUATION"),
                     React.createElement("p", { className: "text-center text-gray-700" }, "Resources for your next steps after completing your studies.")),
