@@ -1,102 +1,104 @@
-export default function EventsSection() {
-    return (
-      <section id="events" className="py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Events</h2>
-  
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Event Card 1 */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="h-48 bg-orange-100"></div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-2">XXXXXX</h3>
-                <p className="text-gray-600 mb-4">
-                  XXXXXX
-                </p>
-                <div className="flex items-center text-sm text-gray-500">
-                  <span className="mr-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                         <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </span>
-                XXXXXX
-              </div>
-            </div>
-          </div>
+import Link from "next/link";
+import { getEvents } from "@/lib/event-service";
+import { format } from "date-fns";
+import Image from "next/image";
+import { Calendar, MapPin } from "lucide-react";
 
-          {/* Event Card 2 */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="h-48 bg-blue-100"></div>
-            <div className="p-6">
-              <h3 className="text-xl font-bold mb-2">XXXXXXX</h3>
-              <p className="text-gray-600 mb-4">
-                XXXXXXX
-              </p>
-              <div className="flex items-center text-sm text-gray-500">
-                <span className="mr-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </span>
-                XXXXXXXX
-              </div>
-            </div>
-          </div>
+export default async function EventsSection() {
+  // Fetch upcoming events
+  const upcomingEvents = await getEvents({ 
+    publishedOnly: true,
+    upcoming: true 
+  });
 
-          {/* Event Card 3 */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="h-48 bg-green-100"></div>
-            <div className="p-6">
-              <h3 className="text-xl font-bold mb-2">XXXXXXXXX</h3>
-              <p className="text-gray-600 mb-4">
-                XXXXXXXXX
-              </p>
-              <div className="flex items-center text-sm text-gray-500">
-                <span className="mr-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+  // If no upcoming events, fetch past events
+  let eventsToDisplay = upcomingEvents;
+  if (upcomingEvents.length === 0) {
+    const pastEvents = await getEvents({ 
+      publishedOnly: true,
+      past: true 
+    });
+    eventsToDisplay = pastEvents.slice(0, 3);
+  } else {
+    eventsToDisplay = upcomingEvents.slice(0, 3);
+  }
+
+  return (
+    <section id="events" className="py-20">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Events</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Join us for cultural celebrations, networking opportunities, and community building events throughout the year.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {eventsToDisplay.length > 0 ? (
+            eventsToDisplay.map((event) => (
+              <div key={event.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                {/* Event Image */}
+                <div className="h-48 relative">
+                  {event.imageUrl ? (
+                    <Image
+                      src={event.imageUrl}
+                      alt={event.title}
+                      layout="fill"
+                      objectFit="cover"
                     />
-                  </svg>
-                </span>
-                XXXXXXXXXXX
+                  ) : (
+                    <div className="w-full h-full bg-orange-100 flex items-center justify-center">
+                      <Calendar size={36} className="text-orange-400" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+                  
+                  <p className="text-gray-600 mb-4 line-clamp-2">
+                    {event.description}
+                  </p>
+                  
+                  <div className="flex items-center text-sm text-gray-500 mb-2">
+                    <span className="mr-2">
+                      <Calendar size={16} />
+                    </span>
+                    {format(new Date(event.startDate), "MMMM d, yyyy • h:mm a")}
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-500 mb-4">
+                    <span className="mr-2">
+                      <MapPin size={16} />
+                    </span>
+                    {event.location}
+                  </div>
+                  
+                  <Link 
+                    href={`/events/${event.id}`}
+                    className="inline-block mt-2 text-orange-600 hover:text-orange-700 font-medium"
+                  >
+                    View Details →
+                  </Link>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-10">
+              <p className="text-gray-500">No upcoming events at the moment. Check back soon!</p>
             </div>
-          </div>
+          )}
+        </div>
+
+        <div className="text-center">
+          <Link
+            href="/events"
+            className="inline-flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md transition-colors"
+          >
+            View All Events
+          </Link>
         </div>
       </div>
     </section>
-  )
+  );
 }
-
