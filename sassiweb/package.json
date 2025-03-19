@@ -9,25 +9,35 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@prisma/client": "^6.5.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-slot": "^1.1.2",
+    "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.4.10",
     "lucide": "^0.477.0",
     "lucide-react": "^0.477.0",
     "next": "15.2.1",
+    "next-auth": "^4.24.11",
+    "next-cloudinary": "^6.16.0",
     "next-themes": "^0.4.4",
+    "nodemailer": "^6.10.0",
     "react": "^19.0.0",
+    "react-big-calendar": "^1.18.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
+    "resend": "^4.1.2",
     "sonner": "^2.0.1",
     "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^5.0.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -35,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
     "postcss": "^8.5.3",
+    "prisma": "^6.5.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }

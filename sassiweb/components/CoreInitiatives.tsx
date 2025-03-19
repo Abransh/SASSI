@@ -45,9 +45,9 @@ export default function CoreInitiativesSection() {
           {/* Right side - fixed containers */}
           <div className="space-y-8">
             {/* Container 1 */}
-            <div className="p-12 rounded-[2rem] bg-[#ABE69E]">
-              <h3 className="text-4xl font-serif mb-6 text-[#4A332F]">Community Outreach</h3>
-              <p className="text-lg text-gray-800 leading-relaxed">
+            <div className="p-12 rounded-[2rem] bg-[#14213D]">
+              <h3 className="text-4xl font-serif mb-6 text-[#FFFFFF]">Community Outreach</h3>
+              <p className="text-lg text-[#FFFFFF]leading-relaxed">
                 We strive to build a vibrant and inclusive community that connects Indian students in Milan with local
                 and global networks. Through cultural events, social initiatives, and collaborative projects, we aim to
                 foster a sense of belonging and mutual support while promoting cross-cultural understanding.
@@ -55,9 +55,9 @@ export default function CoreInitiativesSection() {
             </div>
 
             {/* Container 2 */}
-            <div className="p-12 rounded-[2rem] bg-[#FCFB71]">
-              <h3 className="text-4xl font-serif mb-6 text-[#4A332F]">Academic Excellence</h3>
-              <p className="text-lg text-gray-800 leading-relaxed">
+            <div className="p-12 rounded-[2rem] bg-[#14213D]">
+              <h3 className="text-4xl font-serif mb-6 text-[#FFFFFF]">Academic Excellence</h3>
+              <p className="text-lg text-[#FFFFFF] leading-relaxed">
                 We are committed to supporting the academic journey of Indian students in Milan through mentorship
                 programs, study groups, and resource sharing. Our goal is to help students navigate the Italian
                 education system successfully and achieve their full academic potential.
@@ -65,9 +65,9 @@ export default function CoreInitiativesSection() {
             </div>
 
             {/* Container 3 */}
-            <div className="p-12 rounded-[2rem] bg-[#EBD1FE]">
-              <h3 className="text-4xl font-serif mb-6 text-[#4A332F]">Cultural Integration</h3>
-              <p className="text-lg text-gray-800 leading-relaxed">
+            <div className="p-12 rounded-[2rem] bg-[#14213D]">
+              <h3 className="text-4xl font-serif mb-6 text-[#FFFFFF]">Cultural Integration</h3>
+              <p className="text-lg text-[#FFFFFF] leading-relaxed">
                 We believe in celebrating our Indian heritage while embracing Italian culture. Through language
                 exchanges, cultural workshops, and collaborative events with local communities, we help students
                 integrate into Italian society while maintaining their cultural identity.

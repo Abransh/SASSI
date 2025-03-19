@@ -18,9 +18,10 @@ export default function Home() {
       <Header />
       <MobileMenu />
       <HeroSection />
+      <PlaneAnimation />
       <VisionSection />
       <LifeInMilanSection />
-      <PlaneAnimation />
+      
       <UniNetworks />
       <GetInvolvedSection />
       <EventsSection />

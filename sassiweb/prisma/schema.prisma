@@ -1,0 +1,91 @@
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  events        Event[]   // Events created by this user
+  registrations Registration[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// Event model
+model Event {
+  id            String    @id @default(cuid())
+  title         String
+  description   String
+  content       String?   @db.Text
+  location      String
+  startDate     DateTime
+  endDate       DateTime
+  imageUrl      String?
+  maxAttendees  Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  createdBy     String
+  published     Boolean   @default(false)
+  registrations Registration[]
+  gallery       EventImage[]
+  author        User      @relation(fields: [createdBy], references: [id])
+}
+
+// Registration model for event RSVPs
+model Registration {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  status    RegistrationStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+// EventImage model for event galleries
+model EventImage {
+  id        String   @id @default(cuid())
+  eventId   String
+  imageUrl  String
+  caption   String?
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+// Contact form submissions
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  responded Boolean  @default(false)
+}

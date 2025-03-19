@@ -108,7 +108,7 @@ function FAQsPage() {
         React.createElement("div", { className: "pt-60 pb-20" },
             React.createElement("div", { className: "container mx-auto px-4" },
                 React.createElement("div", { className: "w-full md:w-[70%] mx-auto" },
-                    React.createElement("h1", { className: "text-4xl md:text-5xl font-bold text-[#0a2463] mb-10 text-center" }, "FAQs"),
+                    React.createElement("h1", { className: "text-4xl md:text-5xl font-bold text-[#0a2463] mb-10 text-center" }, "Frequently asked questions"),
                     React.createElement(FaqSection_1["default"], { faqs: generalFAQs }),
                     React.createElement(FaqSection_1["default"], { title: "Living in Milan", subCategories: livingInMilanFAQs }),
                     React.createElement(FaqSection_1["default"], { title: "Academic Questions", faqs: academicFAQs }))))));

@@ -303,7 +303,7 @@ the existing ATM card will be used)
       <div className="pt-60 pb-20">
         <div className="container mx-auto px-4">
           <div className="w-full md:w-[70%] mx-auto">
-            <h1 className="text-4xl md:text-5xl font-bold text-[#0a2463] mb-10 text-center">FAQs</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-[#0a2463] mb-10 text-center">Frequently asked questions</h1>
 
             <FAQSection faqs={generalFAQs} />
 
