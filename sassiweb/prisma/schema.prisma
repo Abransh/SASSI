@@ -1,3 +1,6 @@
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User model for authentication
 model User {
   id            String         @id @default(cuid())
   name          String?
@@ -16,42 +20,97 @@ model User {
   role          Role           @default(USER)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  events        Event[]
+  
+  // Enhanced profile fields
+  university    String?
+  course        String?
+  graduationYear Int?
+  bio           String?        @db.Text
+  phoneNumber   String?
+  city          String?        // City in India
+  linkedinUrl   String?
+  isProfilePublic Boolean      @default(true)
+  isVerified    Boolean        @default(false)
+
+  // Relations
+  events        Event[]        // Events created by this user
   registrations Registration[]
+  profile       Profile?
+  resourceViews ResourceView[]
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+// Extended profile information
+model Profile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Academic information
+  universityInIndia String?
+  degreeInIndia    String?
+  
+  // Experience in Milan
+  yearOfArrival    Int?
+  residenceArea    String?
+  
+  // Interests and skills
+  interests       String?   @db.Text
+  skills          String?   @db.Text
+  
+  // Visibility preferences
+  showEmail       Boolean   @default(false)
+  showPhone       Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Event model
 model Event {
-  id            String         @id @default(cuid())
+  id            String    @id @default(cuid())
   title         String
   description   String
-  content       String?
+  content       String?   @db.Text
   location      String
   startDate     DateTime
   endDate       DateTime
   imageUrl      String?
   maxAttendees  Int?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   createdBy     String
-  published     Boolean        @default(false)
-  author        User           @relation(fields: [createdBy], references: [id])
-  gallery       EventImage[]
+  published     Boolean   @default(false)
   registrations Registration[]
+  gallery       EventImage[]
+  author        User      @relation(fields: [createdBy], references: [id])
 }
 
+// Registration model for event RSVPs
 model Registration {
-  id        String             @id @default(cuid())
+  id        String   @id @default(cuid())
   eventId   String
   userId    String
   status    RegistrationStatus @default(PENDING)
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId])
 }
 
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+// EventImage model for event galleries
 model EventImage {
   id        String   @id @default(cuid())
   eventId   String
@@ -61,23 +120,63 @@ model EventImage {
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
+// Contact form submissions
 model ContactSubmission {
   id        String   @id @default(cuid())
   name      String
   email     String
   subject   String
-  message   String
+  message   String   @db.Text
   createdAt DateTime @default(now())
   responded Boolean  @default(false)
 }
 
-enum Role {
-  USER
-  ADMIN
+// Resource hub models
+model ResourceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  imageUrl    String?
+  order       Int       @default(0)
+  resources   Resource[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
-enum RegistrationStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
+model Resource {
+  id          String    @id @default(cuid())
+  title       String
+  description String    @db.Text
+  fileUrl     String    // URL to downloadable file
+  thumbnailUrl String?  // Preview image
+  categoryId  String
+  category    ResourceCategory @relation(fields: [categoryId], references: [id])
+  featured    Boolean   @default(false)
+  resourceType ResourceType @default(DOCUMENT)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  viewCount   Int       @default(0)
+  downloadCount Int     @default(0)
+  resourceViews ResourceView[]
+}
+
+enum ResourceType {
+  DOCUMENT
+  TEMPLATE
+  GUIDE
+  VIDEO
+  LINK
+}
+
+model ResourceView {
+  id          String    @id @default(cuid())
+  resourceId  String
+  resource    Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewedAt    DateTime  @default(now())
+  downloaded  Boolean   @default(false)
+
+  @@unique([resourceId, userId])
 }
