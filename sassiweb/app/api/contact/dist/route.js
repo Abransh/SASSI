@@ -51,7 +51,7 @@ var contactFormSchema = zod_1.z.object({
 // POST /api/contact - Submit contact form
 function POST(request) {
     return __awaiter(this, void 0, void 0, function () {
-        var json, validatedData, submission, error_1;
+        var json, validatedData, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -60,11 +60,13 @@ function POST(request) {
                 case 1:
                     json = _a.sent();
                     validatedData = contactFormSchema.parse(json);
+                    // Save contact submission to database
                     return [4 /*yield*/, prisma_1["default"].contactSubmission.create({
                             data: validatedData
                         })];
                 case 2:
-                    submission = _a.sent();
+                    // Save contact submission to database
+                    _a.sent();
                     // Send email notification
                     return [4 /*yield*/, email_1.sendContactFormEmail(validatedData.name, validatedData.email, validatedData.subject, validatedData.message)];
                 case 3:

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const validatedData = contactFormSchema.parse(json);
     
     // Save contact submission to database
-    const submission = await prisma.contactSubmission.create({
+    await prisma.contactSubmission.create({
       data: validatedData
     });
     

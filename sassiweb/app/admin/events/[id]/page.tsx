@@ -23,7 +23,7 @@ export default async function EditEventPage({ params }: Props) {
   let event;
   try {
     event = await getEvent(params.id);
-  } catch (error) {
+  } catch {
     notFound();
   }
   

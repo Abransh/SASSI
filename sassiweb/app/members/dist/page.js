@@ -54,16 +54,19 @@ var prisma_1 = require("@/lib/prisma");
 var Header_1 = require("@/components/Header");
 var MobileMenu_1 = require("@/components/MobileMenu");
 var Footer_1 = require("@/components/Footer");
-var MemberCard_1 = require("@/components/MemberCard");
-var input_1 = require("@/components/ui/input");
+var link_1 = require("next/link");
 var lucide_react_1 = require("lucide-react");
+var input_1 = require("@/components/ui/input");
+var UniversityFilter_1 = require("@/components/UniversityFilter");
 function MembersPage(_a) {
     var searchParams = _a.searchParams;
     return __awaiter(this, void 0, void 0, function () {
-        var session, searchQuery, universityFilter, users, universities;
+        var session, searchQuery, universityFilter, users, universities, error_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
-                case 0: return [4 /*yield*/, next_1.getServerSession(route_1.authOptions)];
+                case 0:
+                    _b.trys.push([0, 4, , 5]);
+                    return [4 /*yield*/, next_1.getServerSession(route_1.authOptions)];
                 case 1:
                     session = _b.sent();
                     if (!session) {
@@ -120,14 +123,7 @@ function MembersPage(_a) {
                                                         universityFilter && (React.createElement("input", { type: "hidden", name: "university", value: universityFilter })),
                                                         React.createElement(input_1.Input, { type: "text", name: "query", placeholder: "Search by name, university, or course...", defaultValue: searchQuery, className: "pl-10 pr-4 py-2 w-full" }))),
                                                 React.createElement("div", { className: "md:w-64" },
-                                                    React.createElement("form", { action: "/members", method: "get", id: "universityForm" },
-                                                        searchQuery && (React.createElement("input", { type: "hidden", name: "query", value: searchQuery })),
-                                                        React.createElement("select", { name: "university", className: "w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500", defaultValue: universityFilter, onChange: function (e) {
-                                                                var _a;
-                                                                (_a = document.getElementById("universityForm")) === null || _a === void 0 ? void 0 : _a.submit();
-                                                            } },
-                                                            React.createElement("option", { value: "" }, "All Universities"),
-                                                            universities.map(function (uni, index) { return (React.createElement("option", { key: index, value: uni.university }, uni.university)); }))))),
+                                                    React.createElement(UniversityFilter_1["default"], { universities: universities, currentValue: universityFilter, searchQuery: searchQuery }))),
                                             React.createElement("p", { className: "text-sm text-gray-600" },
                                                 users.length,
                                                 " ",
@@ -135,10 +131,29 @@ function MembersPage(_a) {
                                                 " found",
                                                 searchQuery && " matching \"" + searchQuery + "\"",
                                                 universityFilter && " at " + universityFilter)),
-                                        users.length > 0 ? (React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" }, users.map(function (user) { return (React.createElement(MemberCard_1["default"], { key: user.id, user: user })); }))) : (React.createElement("div", { className: "bg-white p-10 rounded-lg shadow text-center" },
+                                        users.length > 0 ? (React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" }, users.map(function (user) { return (React.createElement("div", { key: user.id, className: "bg-white rounded-lg shadow-md p-6" },
+                                            React.createElement("div", { className: "flex items-center space-x-4" },
+                                                React.createElement("div", { className: "w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" },
+                                                    React.createElement(lucide_react_1.User, { size: 24, className: "text-gray-500" })),
+                                                React.createElement("div", null,
+                                                    React.createElement("h3", { className: "font-bold" }, user.name || "Unnamed User"),
+                                                    React.createElement("p", { className: "text-sm text-gray-600" }, user.university || "No university listed"),
+                                                    user.course && (React.createElement("p", { className: "text-xs text-gray-500" }, user.course)))),
+                                            React.createElement("div", { className: "mt-4" },
+                                                React.createElement(link_1["default"], { href: "/members/" + user.id, className: "text-blue-600 hover:underline text-sm" }, "View Profile")))); }))) : (React.createElement("div", { className: "bg-white p-10 rounded-lg shadow text-center" },
                                             React.createElement("h3", { className: "text-xl font-semibold mb-2" }, "No members found"),
                                             React.createElement("p", { className: "text-gray-600" }, "Try adjusting your search or filters")))))),
                             React.createElement(Footer_1["default"], null)))];
+                case 4:
+                    error_1 = _b.sent();
+                    console.error("Error in MembersPage:", error_1);
+                    return [2 /*return*/, (React.createElement("main", { className: "min-h-screen bg-gray-50 flex items-center justify-center" },
+                            React.createElement("div", { className: "p-6 bg-white rounded shadow-lg max-w-lg" },
+                                React.createElement("h1", { className: "text-xl font-bold mb-4" }, "Error Loading Members"),
+                                React.createElement("p", { className: "text-red-500" }, error_1.message),
+                                React.createElement("div", { className: "mt-6" },
+                                    React.createElement("a", { href: "/", className: "text-blue-600 hover:underline" }, "Return to Homepage")))))];
+                case 5: return [2 /*return*/];
             }
         });
     });

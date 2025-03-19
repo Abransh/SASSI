@@ -26,11 +26,11 @@ export default async function ContactSubmissionsPage() {
   
   // Group submissions by status
   const pendingSubmissions = contactSubmissions.filter(
-    (submission) => !submission.responded
+    (submission: { responded: boolean }) => !submission.responded
   );
   
   const respondedSubmissions = contactSubmissions.filter(
-    (submission) => submission.responded
+    (submission: { responded: boolean }) => submission.responded
   );
   
   return (
@@ -63,7 +63,7 @@ export default async function ContactSubmissionsPage() {
             {/* Submissions List */}
             <div className="divide-y divide-gray-200">
               {pendingSubmissions.length > 0 ? (
-                pendingSubmissions.map((submission) => (
+                pendingSubmissions.map((submission: { id: string; subject: string; name: string; email: string; createdAt: string; message: string; }) => (
                   <div key={submission.id} className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>

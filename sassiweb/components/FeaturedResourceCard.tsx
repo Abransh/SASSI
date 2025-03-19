@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getResourceTypeIcon } from "@/lib/resource-utils";
+import { getResourceTypeIcon } from "../lib/resource-utils";
 
 type FeaturedResourceCardProps = {
   resource: {

@@ -2,7 +2,7 @@
 exports.__esModule = true;
 var link_1 = require("next/link");
 var image_1 = require("next/image");
-var resource_utils_1 = require("@/lib/resource-utils");
+var resource_utils_1 = require("../lib/resource-utils");
 function FeaturedResourceCard(_a) {
     var resource = _a.resource;
     var ResourceIcon = resource_utils_1.getResourceTypeIcon(resource.resourceType);
