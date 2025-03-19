@@ -48,12 +48,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 exports.addEventImage = exports.deleteEvent = exports.updateEvent = exports.createEvent = exports.cancelRegistration = exports.registerForEvent = exports.getEvent = exports.getEvents = void 0;
+// Helper to get the base URL for API calls
+var getBaseUrl = function () {
+    // Check if we're in a browser or server environment
+    if (typeof window !== 'undefined') {
+        // In the browser, use relative URLs
+        return '';
+    }
+    // In server environment, construct the absolute URL
+    var url = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    return url.includes('http') ? url : "https://" + url;
+};
 /**
  * Fetch all events, optionally filtering by published status and timing
  */
 function getEvents(options) {
     return __awaiter(this, void 0, Promise, function () {
-        var params, queryString, response, events;
+        var params, queryString, baseUrl, response, events;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -65,7 +76,8 @@ function getEvents(options) {
                     if (options === null || options === void 0 ? void 0 : options.upcoming)
                         params.set('upcoming', 'true');
                     queryString = params.toString() ? "?" + params.toString() : '';
-                    return [4 /*yield*/, fetch("/api/events" + queryString, {
+                    baseUrl = getBaseUrl();
+                    return [4 /*yield*/, fetch(baseUrl + "/api/events" + queryString, {
                             method: 'GET',
                             cache: 'no-store'
                         })];
@@ -90,13 +102,15 @@ exports.getEvents = getEvents;
 function getEvent(id) {
     var _a;
     return __awaiter(this, void 0, Promise, function () {
-        var response, event;
+        var baseUrl, response, event;
         return __generator(this, function (_b) {
             switch (_b.label) {
-                case 0: return [4 /*yield*/, fetch("/api/events/" + id, {
-                        method: 'GET',
-                        cache: 'no-store'
-                    })];
+                case 0:
+                    baseUrl = getBaseUrl();
+                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + id, {
+                            method: 'GET',
+                            cache: 'no-store'
+                        })];
                 case 1:
                     response = _b.sent();
                     if (!response.ok) {
@@ -117,12 +131,14 @@ exports.getEvent = getEvent;
  */
 function registerForEvent(eventId) {
     return __awaiter(this, void 0, Promise, function () {
-        var response, error;
+        var baseUrl, response, error;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch("/api/events/" + eventId + "/register", {
-                        method: 'POST'
-                    })];
+                case 0:
+                    baseUrl = getBaseUrl();
+                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + eventId + "/register", {
+                            method: 'POST'
+                        })];
                 case 1:
                     response = _a.sent();
                     if (!!response.ok) return [3 /*break*/, 3];
@@ -141,12 +157,14 @@ exports.registerForEvent = registerForEvent;
  */
 function cancelRegistration(eventId) {
     return __awaiter(this, void 0, Promise, function () {
-        var response, error;
+        var baseUrl, response, error;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch("/api/events/" + eventId + "/register", {
-                        method: 'DELETE'
-                    })];
+                case 0:
+                    baseUrl = getBaseUrl();
+                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + eventId + "/register", {
+                            method: 'DELETE'
+                        })];
                 case 1:
                     response = _a.sent();
                     if (!!response.ok) return [3 /*break*/, 3];
@@ -165,16 +183,18 @@ exports.cancelRegistration = cancelRegistration;
  */
 function createEvent(eventData) {
     return __awaiter(this, void 0, Promise, function () {
-        var response, error;
+        var baseUrl, response, error;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch('/api/events', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(eventData)
-                    })];
+                case 0:
+                    baseUrl = getBaseUrl();
+                    return [4 /*yield*/, fetch(baseUrl + "/api/events", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(eventData)
+                        })];
                 case 1:
                     response = _a.sent();
                     if (!!response.ok) return [3 /*break*/, 3];
@@ -193,16 +213,18 @@ exports.createEvent = createEvent;
  */
 function updateEvent(id, eventData) {
     return __awaiter(this, void 0, Promise, function () {
-        var response, error;
+        var baseUrl, response, error;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch("/api/events/" + id, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(eventData)
-                    })];
+                case 0:
+                    baseUrl = getBaseUrl();
+                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + id, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(eventData)
+                        })];
                 case 1:
                     response = _a.sent();
                     if (!!response.ok) return [3 /*break*/, 3];
@@ -221,12 +243,14 @@ exports.updateEvent = updateEvent;
  */
 function deleteEvent(id) {
     return __awaiter(this, void 0, Promise, function () {
-        var response, error;
+        var baseUrl, response, error;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch("/api/events/" + id, {
-                        method: 'DELETE'
-                    })];
+                case 0:
+                    baseUrl = getBaseUrl();
+                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + id, {
+                            method: 'DELETE'
+                        })];
                 case 1:
                     response = _a.sent();
                     if (!!response.ok) return [3 /*break*/, 3];
@@ -245,16 +269,18 @@ exports.deleteEvent = deleteEvent;
  */
 function addEventImage(eventId, imageUrl, caption) {
     return __awaiter(this, void 0, Promise, function () {
-        var response, error;
+        var baseUrl, response, error;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch("/api/events/" + eventId + "/gallery", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ imageUrl: imageUrl, caption: caption })
-                    })];
+                case 0:
+                    baseUrl = getBaseUrl();
+                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + eventId + "/gallery", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ imageUrl: imageUrl, caption: caption })
+                        })];
                 case 1:
                     response = _a.sent();
                     if (!!response.ok) return [3 /*break*/, 3];

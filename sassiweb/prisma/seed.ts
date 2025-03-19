@@ -29,7 +29,7 @@ async function main() {
       location: 'Politecnico di Milano, Aula Magna',
       startDate: new Date('2025-11-01T18:00:00Z'),
       endDate: new Date('2025-11-01T22:00:00Z'),
-      imageUrl: 'https://example.com/placeholder.jpg', // Replace with actual image
+      imageUrl: '/assests/groupimg.jpg', // Replace with actual image
       maxAttendees: 200,
       published: true,
       createdBy: admin.id,

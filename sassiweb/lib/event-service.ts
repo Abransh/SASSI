@@ -1,5 +1,17 @@
 import { Event, EventImage } from '@/types/event';
 
+// Helper to get the base URL for API calls
+const getBaseUrl = () => {
+  // Check if we're in a browser or server environment
+  if (typeof window !== 'undefined') {
+    // In the browser, use relative URLs
+    return '';
+  }
+  // In server environment, construct the absolute URL
+  const url = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  return url.includes('http') ? url : `https://${url}`;
+};
+
 /**
  * Fetch all events, optionally filtering by published status and timing
  */
@@ -15,8 +27,9 @@ export async function getEvents(options?: {
   if (options?.upcoming) params.set('upcoming', 'true');
   
   const queryString = params.toString() ? `?${params.toString()}` : '';
+  const baseUrl = getBaseUrl();
   
-  const response = await fetch(`/api/events${queryString}`, {
+  const response = await fetch(`${baseUrl}/api/events${queryString}`, {
     method: 'GET',
     cache: 'no-store',
   });
@@ -41,7 +54,9 @@ export async function getEvents(options?: {
  * Fetch a single event by ID
  */
 export async function getEvent(id: string): Promise<Event> {
-  const response = await fetch(`/api/events/${id}`, {
+  const baseUrl = getBaseUrl();
+  
+  const response = await fetch(`${baseUrl}/api/events/${id}`, {
     method: 'GET',
     cache: 'no-store',
   });
@@ -70,7 +85,9 @@ export async function getEvent(id: string): Promise<Event> {
  * Register current user for an event
  */
 export async function registerForEvent(eventId: string): Promise<any> {
-  const response = await fetch(`/api/events/${eventId}/register`, {
+  const baseUrl = getBaseUrl();
+  
+  const response = await fetch(`${baseUrl}/api/events/${eventId}/register`, {
     method: 'POST',
   });
   
@@ -86,7 +103,9 @@ export async function registerForEvent(eventId: string): Promise<any> {
  * Cancel registration for an event
  */
 export async function cancelRegistration(eventId: string): Promise<void> {
-  const response = await fetch(`/api/events/${eventId}/register`, {
+  const baseUrl = getBaseUrl();
+  
+  const response = await fetch(`${baseUrl}/api/events/${eventId}/register`, {
     method: 'DELETE',
   });
   
@@ -100,7 +119,9 @@ export async function cancelRegistration(eventId: string): Promise<void> {
  * Create a new event (admin only)
  */
 export async function createEvent(eventData: Partial<Event>): Promise<Event> {
-  const response = await fetch('/api/events', {
+  const baseUrl = getBaseUrl();
+  
+  const response = await fetch(`${baseUrl}/api/events`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -120,7 +141,9 @@ export async function createEvent(eventData: Partial<Event>): Promise<Event> {
  * Update an existing event (admin only)
  */
 export async function updateEvent(id: string, eventData: Partial<Event>): Promise<Event> {
-  const response = await fetch(`/api/events/${id}`, {
+  const baseUrl = getBaseUrl();
+  
+  const response = await fetch(`${baseUrl}/api/events/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -140,7 +163,9 @@ export async function updateEvent(id: string, eventData: Partial<Event>): Promis
  * Delete an event (admin only)
  */
 export async function deleteEvent(id: string): Promise<void> {
-  const response = await fetch(`/api/events/${id}`, {
+  const baseUrl = getBaseUrl();
+  
+  const response = await fetch(`${baseUrl}/api/events/${id}`, {
     method: 'DELETE',
   });
   
@@ -158,7 +183,9 @@ export async function addEventImage(
   imageUrl: string,
   caption?: string
 ): Promise<EventImage> {
-  const response = await fetch(`/api/events/${eventId}/gallery`, {
+  const baseUrl = getBaseUrl();
+  
+  const response = await fetch(`${baseUrl}/api/events/${eventId}/gallery`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
