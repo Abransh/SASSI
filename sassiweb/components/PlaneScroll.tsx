@@ -12,7 +12,7 @@ export default function PlaneAnimation() {
 
       const scrollPercent =
         (window.scrollY /
-          (document.documentElement.scrollHeight - window.innerHeight)) * 250    //change this value to adjust the speed of the plane
+          (document.documentElement.scrollHeight - window.innerHeight)) * 400    //change this value to adjust the speed of the plane
       const translateX = (scrollPercent * window.innerWidth) / 100
 
       planeRef.current.style.transform = `translateX(${translateX}px)`

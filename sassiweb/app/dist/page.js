@@ -17,13 +17,13 @@ function Home() {
         React.createElement(Header_1["default"], null),
         React.createElement(MobileMenu_1["default"], null),
         React.createElement(HeroSection_1["default"], null),
-        React.createElement(PlaneScroll_1["default"], null),
         React.createElement(vision_1["default"], null),
-        React.createElement(LifeInMilan_1["default"], null),
-        React.createElement(UniNetworks_1["default"], null),
-        React.createElement(GetInvolved_1["default"], null),
-        React.createElement(Events_1["default"], null),
         React.createElement(CoreInitiatives_1["default"], null),
+        React.createElement(LifeInMilan_1["default"], null),
+        React.createElement(PlaneScroll_1["default"], null),
+        React.createElement(UniNetworks_1["default"], null),
+        React.createElement(Events_1["default"], null),
+        React.createElement(GetInvolved_1["default"], null),
         React.createElement(ContactForm_1["default"], null),
         React.createElement(Footer_1["default"], null)));
 }

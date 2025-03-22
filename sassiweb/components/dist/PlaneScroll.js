@@ -10,7 +10,7 @@ function PlaneAnimation() {
             if (!planeRef.current)
                 return;
             var scrollPercent = (window.scrollY /
-                (document.documentElement.scrollHeight - window.innerHeight)) * 250; //change this value to adjust the speed of the plane
+                (document.documentElement.scrollHeight - window.innerHeight)) * 400; //change this value to adjust the speed of the plane
             var translateX = (scrollPercent * window.innerWidth) / 100;
             planeRef.current.style.transform = "translateX(" + translateX + "px)";
         };

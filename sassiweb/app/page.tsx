@@ -18,14 +18,16 @@ export default function Home() {
       <Header />
       <MobileMenu />
       <HeroSection />
-      <PlaneAnimation />
       <VisionSection />
+      <CoreInitiativesSection />
       <LifeInMilanSection />
       
+      <PlaneAnimation />
       <UniNetworks />
-      <GetInvolvedSection />
+      
       <EventsSection />
-      <CoreInitiativesSection />
+      
+      <GetInvolvedSection />
       <ContactForm />
       <Footer />
     </main>
