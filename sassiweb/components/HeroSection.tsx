@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import JoinButton from "../components/JoinButton"
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -64,15 +65,9 @@ export default function HeroSection() {
           >
             Our Instagram
           </Link>
-          <Link
-            href="#join-us"
-            className="px-6 py-3 bg-yellow-400 text-black border-2 border-black rounded-md font-medium transition-all hover:bg-black hover:text-yellow-400 hover:border-yellow-400"
-          >
-            Join Us
-          </Link>
+          <JoinButton />
         </div>
       </div>
     </section>
   )
 }
-

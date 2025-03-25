@@ -4,6 +4,7 @@ exports.__esModule = true;
 var react_1 = require("react");
 var image_1 = require("next/image");
 var link_1 = require("next/link");
+var JoinButton_1 = require("../components/JoinButton");
 function HeroSection() {
     var sectionRef = react_1.useRef(null);
     var backgroundRef = react_1.useRef(null);
@@ -39,6 +40,6 @@ function HeroSection() {
             React.createElement("p", { className: "max-w-3xl mx-auto text-lg text-black/80" }, "Bringing Indian students in Italy together, celebrating our culture, supporting each other, and making every step of this journey feel like home"),
             React.createElement("div", { className: "flex flex-wrap justify-center gap-4 mt-6" },
                 React.createElement(link_1["default"], { href: "https://instagram.com", target: "_blank", className: "px-6 py-3 bg-white text-black border-2 border-black rounded-md font-medium transition-all hover:text-yellow-400 hover:border-yellow-400" }, "Our Instagram"),
-                React.createElement(link_1["default"], { href: "#join-us", className: "px-6 py-3 bg-yellow-400 text-black border-2 border-black rounded-md font-medium transition-all hover:bg-black hover:text-yellow-400 hover:border-yellow-400" }, "Join Us")))));
+                React.createElement(JoinButton_1["default"], null)))));
 }
 exports["default"] = HeroSection;

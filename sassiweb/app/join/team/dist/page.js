@@ -233,6 +233,20 @@ function TeamRegistrationPage() {
                                 React.createElement("p", { className: "text-green-800" },
                                     "Signed in as ",
                                     React.createElement("span", { className: "font-medium" }, session.user.email))),
-                            React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" }, DEPARTMENTS.map(function (dept) { return (React.createElement("div", { key: dept.id, className: "border rounded-lg p-4 cursor-pointer hover:border-orange-500 hover:shadow-md transition-all", onClick: function () { return handleDepartmentSelect(dept.id); } })); })))) : )))))));
+                            React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" }, DEPARTMENTS.map(function (dept) { return (React.createElement("div", { key: dept.id, className: "border rounded-lg p-4 cursor-pointer hover:border-orange-500 hover:shadow-md transition-all", onClick: function () { return handleDepartmentSelect(dept.id); } },
+                                React.createElement("h3", { className: "text-lg font-bold flex items-center" },
+                                    React.createElement("span", { className: "text-2xl mr-2" }, dept.icon),
+                                    dept.title),
+                                React.createElement("p", { className: "text-gray-600 mt-2 text-sm" }, dept.description))); })),
+                            React.createElement("div", { className: "text-sm text-gray-600 bg-gray-50 p-4 rounded-md" },
+                                React.createElement("p", null,
+                                    React.createElement("strong", null, "Note:"),
+                                    " By joining the team, you're committing to actively participate in SASSI activities. The time commitment is flexible, but we appreciate your dedication to our community's mission.")))) : (React.createElement("div", { className: "text-center py-8" },
+                            React.createElement("div", { className: "w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4" },
+                                React.createElement(lucide_react_1.ShieldAlert, { size: 32, className: "text-yellow-600" })),
+                            React.createElement("h2", { className: "text-xl font-bold mb-2" }, "Member Registration Required"),
+                            React.createElement("p", { className: "text-gray-600 mb-6 max-w-md mx-auto" }, "To join the SASSI team, you need to be a registered member first. Please complete your membership registration."),
+                            React.createElement(link_1["default"], { href: "/join/member", className: "px-6 py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors inline-block" }, "Register as a Member")))))))),
+        React.createElement(Footer_1["default"], null)));
 }
 exports["default"] = TeamRegistrationPage;
