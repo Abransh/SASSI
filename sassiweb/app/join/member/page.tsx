@@ -19,6 +19,9 @@ const memberSchema = z.object({
   isStudent: z.boolean(),
   university: z.string().min(1, "University selection is required"),
   codiceFiscale: z.string().optional(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 type MemberFormData = z.infer<typeof memberSchema>;
@@ -134,19 +137,31 @@ export default function MemberRegistrationPage() {
     setIsSubmitting(true);
 
     try {
-      // In a real implementation, we would register the user here
-      // For now, let's simulate API call with setTimeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Send the registration data to the API
+      const response = await fetch("/api/join/member", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
       
-      // Redirect to payment
-      window.location.href = "https://revolut.me/harshnj";
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to register");
+      }
       
-      // We would typically store the user info in the database here
-      // And redirect to the dashboard after payment
+      const data = await response.json();
+      
+      // Show success message
+      toast.success("Registration submitted successfully!");
+      
+      // Redirect to payment page
+      window.location.href = data.redirectUrl || "https://revolut.me/harshnj";
       
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error("Failed to register. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Failed to register. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -323,7 +338,7 @@ export default function MemberRegistrationPage() {
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
               <p className="text-xs text-gray-500">
-                This information helps us verify your identity. It's optional but recommended.
+                This information helps us verify your identity. It&apos;s optional but recommended.
               </p>
             </div>
           </div>
@@ -348,13 +363,13 @@ export default function MemberRegistrationPage() {
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <h3 className="font-medium text-lg mb-2">Annual Membership Fee:</h3>
               <p className="text-gray-700">
-                The annual membership fee is <span className="font-bold">€20.00</span>. After clicking "Proceed to Payment", you'll be redirected to our secure payment page.
+                The annual membership fee is <span className="font-bold">€20.00</span>. After clicking &quot;Proceed to Payment&quot;, you&apos;ll be redirected to our secure payment page.
               </p>
             </div>
             
             <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md">
               <p>
-                <strong>Note:</strong> Upon completing payment, your membership will be activated and you'll gain immediate access to all member benefits.
+                <strong>Note:</strong> Upon completing payment, your membership will be activated and you&apos;ll gain immediate access to all member benefits.
               </p>
             </div>
           </div>

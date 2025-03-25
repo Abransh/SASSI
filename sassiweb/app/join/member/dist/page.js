@@ -66,6 +66,9 @@ var memberSchema = zod_1.z.object({
     isStudent: zod_1.z.boolean(),
     university: zod_1.z.string().min(1, "University selection is required"),
     codiceFiscale: zod_1.z.string().optional()
+}).refine(function (data) { return data.password === data.confirmPassword; }, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"]
 });
 var UNIVERSITIES = [
     "Politecnico Di Milano",
@@ -167,7 +170,7 @@ function MemberRegistrationPage() {
         setCurrentStep(currentStep - 1);
     };
     var handleSubmit = function (e) { return __awaiter(_this, void 0, void 0, function () {
-        var error_1;
+        var response, data_1, data, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -178,26 +181,38 @@ function MemberRegistrationPage() {
                     setIsSubmitting(true);
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 3, 4, 5]);
-                    // In a real implementation, we would register the user here
-                    // For now, let's simulate API call with setTimeout
-                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })];
+                    _a.trys.push([1, 6, 7, 8]);
+                    return [4 /*yield*/, fetch("/api/join/member", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(formData)
+                        })];
                 case 2:
-                    // In a real implementation, we would register the user here
-                    // For now, let's simulate API call with setTimeout
-                    _a.sent();
-                    // Redirect to payment
-                    window.location.href = "https://revolut.me/harshnj";
-                    return [3 /*break*/, 5];
+                    response = _a.sent();
+                    if (!!response.ok) return [3 /*break*/, 4];
+                    return [4 /*yield*/, response.json()];
                 case 3:
+                    data_1 = _a.sent();
+                    throw new Error(data_1.error || "Failed to register");
+                case 4: return [4 /*yield*/, response.json()];
+                case 5:
+                    data = _a.sent();
+                    // Show success message
+                    sonner_1.toast.success("Registration submitted successfully!");
+                    // Redirect to payment page
+                    window.location.href = data.redirectUrl || "https://revolut.me/harshnj";
+                    return [3 /*break*/, 8];
+                case 6:
                     error_1 = _a.sent();
                     console.error("Registration error:", error_1);
-                    sonner_1.toast.error("Failed to register. Please try again.");
-                    return [3 /*break*/, 5];
-                case 4:
+                    sonner_1.toast.error(error_1 instanceof Error ? error_1.message : "Failed to register. Please try again.");
+                    return [3 /*break*/, 8];
+                case 7:
                     setIsSubmitting(false);
                     return [7 /*endfinally*/];
-                case 5: return [2 /*return*/];
+                case 8: return [2 /*return*/];
             }
         });
     }); };

@@ -90,22 +90,52 @@ function TeamRegistrationPage() {
     var router = navigation_1.useRouter();
     var _a = react_2.useSession(), session = _a.data, status = _a.status;
     var _b = react_1.useState(null), selectedDepartment = _b[0], setSelectedDepartment = _b[1];
-    var _c = react_1.useState(false), isSubmitting = _c[0], setIsSubmitting = _c[1];
-    var _d = react_1.useState(false), isConfirming = _d[0], setIsConfirming = _d[1];
-    var _e = react_1.useState(false), isSuccess = _e[0], setIsSuccess = _e[1];
+    var _c = react_1.useState(""), motivation = _c[0], setMotivation = _c[1];
+    var _d = react_1.useState(false), isSubmitting = _d[0], setIsSubmitting = _d[1];
+    var _e = react_1.useState(false), isConfirming = _e[0], setIsConfirming = _e[1];
+    var _f = react_1.useState(false), isSuccess = _f[0], setIsSuccess = _f[1];
+    var _g = react_1.useState(false), paymentVerified = _g[0], setPaymentVerified = _g[1];
     react_1.useEffect(function () {
         // Check if user is authenticated once the session loads
         if (status === "unauthenticated") {
             sonner_1.toast.info("Please register or sign in to join the team");
             router.push("/join/member");
         }
-    }, [status, router]);
+        else if (status === "authenticated" && session) {
+            // Check if user's payment is verified
+            checkPaymentStatus();
+        }
+    }, [status, router, session]);
+    var checkPaymentStatus = function () { return __awaiter(_this, void 0, void 0, function () {
+        var response, data, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 4, , 5]);
+                    return [4 /*yield*/, fetch('/api/user/payment-status')];
+                case 1:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 3];
+                    return [4 /*yield*/, response.json()];
+                case 2:
+                    data = _a.sent();
+                    setPaymentVerified(data.paymentVerified);
+                    _a.label = 3;
+                case 3: return [3 /*break*/, 5];
+                case 4:
+                    error_1 = _a.sent();
+                    console.error("Error checking payment status:", error_1);
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
+            }
+        });
+    }); };
     var handleDepartmentSelect = function (departmentId) {
         setSelectedDepartment(departmentId);
         setIsConfirming(true);
     };
     var handleConfirm = function () { return __awaiter(_this, void 0, void 0, function () {
-        var error_1;
+        var response, data, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -114,31 +144,45 @@ function TeamRegistrationPage() {
                     setIsSubmitting(true);
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 3, 4, 5]);
-                    // In a real implementation, we would send this data to the backend
-                    // For now, let's simulate an API call with setTimeout
-                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })];
+                    _a.trys.push([1, 5, 6, 7]);
+                    return [4 /*yield*/, fetch("/api/join/team", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                department: selectedDepartment,
+                                motivation: motivation
+                            })
+                        })];
                 case 2:
-                    // In a real implementation, we would send this data to the backend
-                    // For now, let's simulate an API call with setTimeout
-                    _a.sent();
+                    response = _a.sent();
+                    if (!!response.ok) return [3 /*break*/, 4];
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    data = _a.sent();
+                    throw new Error(data.error || "Failed to submit application");
+                case 4:
                     // Show success screen
                     setIsSuccess(true);
-                    return [3 /*break*/, 5];
-                case 3:
-                    error_1 = _a.sent();
-                    console.error("Error submitting application:", error_1);
-                    sonner_1.toast.error("Failed to submit your application. Please try again.");
-                    return [3 /*break*/, 5];
-                case 4:
+                    return [3 /*break*/, 7];
+                case 5:
+                    error_2 = _a.sent();
+                    console.error("Error submitting application:", error_2);
+                    sonner_1.toast.error(error_2 instanceof Error ? error_2.message : "Failed to submit your application. Please try again.");
+                    return [3 /*break*/, 7];
+                case 6:
                     setIsSubmitting(false);
                     return [7 /*endfinally*/];
-                case 5: return [2 /*return*/];
+                case 7: return [2 /*return*/];
             }
         });
     }); };
     var handleChangeSelection = function () {
         setIsConfirming(false);
+    };
+    var handleMotivationChange = function (e) {
+        setMotivation(e.target.value);
     };
     // If loading session
     if (status === "loading") {
@@ -183,6 +227,29 @@ function TeamRegistrationPage() {
                                     React.createElement(link_1["default"], { href: "/profile", className: "px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors" }, "Go to My Profile"))))))),
             React.createElement(Footer_1["default"], null)));
     }
+    // Show payment required message if not verified
+    if (session && !paymentVerified) {
+        return (React.createElement("main", { className: "min-h-screen bg-gray-50" },
+            React.createElement(Header_1["default"], null),
+            React.createElement(MobileMenu_1["default"], null),
+            React.createElement("div", { className: "pt-32 pb-20" },
+                React.createElement("div", { className: "container mx-auto px-4" },
+                    React.createElement("div", { className: "max-w-2xl mx-auto" },
+                        React.createElement("div", { className: "bg-white rounded-lg shadow-md overflow-hidden" },
+                            React.createElement("div", { className: "p-8 text-center" },
+                                React.createElement("div", { className: "w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4" },
+                                    React.createElement(lucide_react_1.ShieldAlert, { size: 32, className: "text-yellow-600" })),
+                                React.createElement("h1", { className: "text-2xl font-bold mb-4" }, "Complete Your Membership First"),
+                                React.createElement("p", { className: "text-gray-600 mb-6" }, "To join the SASSI team, you need to complete your membership payment first."),
+                                React.createElement("div", { className: "bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left" },
+                                    React.createElement("h3", { className: "font-medium text-blue-800 mb-2" }, "Next Steps:"),
+                                    React.createElement("ol", { className: "list-decimal pl-5 text-sm text-gray-700 space-y-1" },
+                                        React.createElement("li", null, "Complete your membership payment (\u20AC20.00 annual fee)."),
+                                        React.createElement("li", null, "Wait for your payment to be verified by our administrators."),
+                                        React.createElement("li", null, "Return to this page to submit your team application."))),
+                                React.createElement(link_1["default"], { href: "https://revolut.me/harshnj", className: "px-6 py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors inline-block" }, "Complete Payment")))))),
+            React.createElement(Footer_1["default"], null)));
+    }
     // Show confirmation screen
     if (isConfirming && selectedDepartment) {
         var selectedDept = DEPARTMENTS.find(function (dept) { return dept.id === selectedDepartment; });
@@ -202,6 +269,9 @@ function TeamRegistrationPage() {
                                         React.createElement("span", { className: "text-2xl mr-2" }, selectedDept === null || selectedDept === void 0 ? void 0 : selectedDept.icon), selectedDept === null || selectedDept === void 0 ? void 0 :
                                         selectedDept.title),
                                     React.createElement("p", { className: "text-gray-700 mt-2" }, selectedDept === null || selectedDept === void 0 ? void 0 : selectedDept.description)),
+                                React.createElement("div", { className: "mb-6" },
+                                    React.createElement("label", { htmlFor: "motivation", className: "block text-sm font-medium mb-2" }, "Why would you like to join this team? (Optional)"),
+                                    React.createElement("textarea", { id: "motivation", value: motivation, onChange: handleMotivationChange, className: "w-full p-3 border border-gray-300 rounded-md", placeholder: "Share your motivation, skills, and what you hope to contribute to the team...", rows: 4 })),
                                 React.createElement("div", { className: "bg-blue-50 p-4 rounded-lg border border-blue-200" },
                                     React.createElement("h3", { className: "font-medium text-blue-800 mb-2" }, "What to expect:"),
                                     React.createElement("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1" },
