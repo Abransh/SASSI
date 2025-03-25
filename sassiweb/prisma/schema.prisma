@@ -31,12 +31,16 @@ model User {
   linkedinUrl   String?
   isProfilePublic Boolean      @default(true)
   isVerified    Boolean        @default(false)
+  paymentVerified Boolean      @default(false)
+  membershipExpiryDate DateTime?
 
   // Relations
   events        Event[]        // Events created by this user
   registrations Registration[]
   profile       Profile?
   resourceViews ResourceView[]
+  membershipRequests MembershipRequest[]
+  teamApplications TeamApplication[]
 }
 
 enum Role {
@@ -68,6 +72,53 @@ model Profile {
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+// New model for membership requests
+model MembershipRequest {
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String
+  isStudent     Boolean   @default(true)
+  university    String
+  codiceFiscale String?
+  status        RequestStatus @default(PENDING)
+  paymentReference String?
+  notes         String?   @db.Text
+  
+  // Relations
+  userId        String?   // Optional: Will be set once the user is created
+  user          User?     @relation(fields: [userId], references: [id])
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  reviewedBy    String?   // Admin user ID who reviewed this request
+  reviewedAt    DateTime?
+}
+
+// New model for team applications
+model TeamApplication {
+  id            String    @id @default(cuid())
+  department    String    // One of the department options
+  motivation    String?   @db.Text
+  status        RequestStatus @default(PENDING)
+  notes         String?   @db.Text
+  
+  // Relations
+  userId        String    // The user who applied
+  user          User      @relation(fields: [userId], references: [id])
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  reviewedBy    String?   // Admin user ID who reviewed this application
+  reviewedAt    DateTime?
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 // Event model
