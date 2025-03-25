@@ -5,3 +5,17 @@ what tech stack i have used-
 
 hero section
 image background can be a gradient too just add this in class name "bg-gradient-to-b from-blue-900/70 to-orange-700/50"
+
+
+
+remove faqs
+
+same page before, during , after grad 
+
+
+join us is like joinging as member or join a team
+
+get involved joining team 
+
+
+contact us anchor as mail icon 
