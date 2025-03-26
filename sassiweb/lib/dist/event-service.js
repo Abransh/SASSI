@@ -56,7 +56,7 @@ var getBaseUrl = function () {
         return '';
     }
     // In server environment, construct the absolute URL
-    var url = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    var url = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://sassi-emul-1hc92inch-abransh05-gmailcoms-projects.vercel.app/';
     return url.includes('http') ? url : "https://" + url;
 };
 /**
