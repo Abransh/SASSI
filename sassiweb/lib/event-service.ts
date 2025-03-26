@@ -2,14 +2,19 @@ import { Event, EventImage } from '@/types/event';
 
 // Helper to get the base URL for API calls
 const getBaseUrl = () => {
-  // Check if we're in a browser or server environment
+  // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
     // In the browser, use relative URLs
     return '';
   }
+  
   // In server environment, construct the absolute URL
-  const url = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.sassimilan.com/';
-  return url.includes('http') ? url : `https://${url}`;
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Fallback to a configured URL or a default
+  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 };
 
 /**
@@ -20,65 +25,77 @@ export async function getEvents(options?: {
   past?: boolean;
   upcoming?: boolean;
 }): Promise<Event[]> {
-  const params = new URLSearchParams();
-  
-  if (options?.publishedOnly) params.set('published', 'true');
-  if (options?.past) params.set('past', 'true');
-  if (options?.upcoming) params.set('upcoming', 'true');
-  
-  const queryString = params.toString() ? `?${params.toString()}` : '';
-  const baseUrl = getBaseUrl();
-  
-  const response = await fetch(`${baseUrl}/api/events${queryString}`, {
-    method: 'GET',
-    cache: 'no-store',
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch events');
+  try {
+    const params = new URLSearchParams();
+    
+    if (options?.publishedOnly) params.set('published', 'true');
+    if (options?.past) params.set('past', 'true');
+    if (options?.upcoming) params.set('upcoming', 'true');
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const baseUrl = getBaseUrl();
+    
+    const response = await fetch(`${baseUrl}/api/events${queryString}`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error fetching events: ${response.status}`);
+    }
+    
+    const events = await response.json();
+    
+    // Convert date strings to Date objects
+    return events.map((event: any) => ({
+      ...event,
+      startDate: new Date(event.startDate),
+      endDate: new Date(event.endDate),
+      createdAt: new Date(event.createdAt),
+      updatedAt: new Date(event.updatedAt),
+    }));
+  } catch (error) {
+    console.error("Error in getEvents:", error);
+    // Return empty array instead of throwing to avoid breaking the page
+    return [];
   }
-  
-  const events = await response.json();
-  
-  // Convert date strings to Date objects
-  return events.map((event: any) => ({
-    ...event,
-    startDate: new Date(event.startDate),
-    endDate: new Date(event.endDate),
-    createdAt: new Date(event.createdAt),
-    updatedAt: new Date(event.updatedAt),
-  }));
 }
 
-/**
- * Fetch a single event by ID
- */
+// The rest of your event-service.ts file remains the same...
 export async function getEvent(id: string): Promise<Event> {
   const baseUrl = getBaseUrl();
   
-  const response = await fetch(`${baseUrl}/api/events/${id}`, {
-    method: 'GET',
-    cache: 'no-store',
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch event');
+  try {
+    const response = await fetch(`${baseUrl}/api/events/${id}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch event');
+    }
+    
+    const event = await response.json();
+    
+    // Convert date strings to Date objects
+    return {
+      ...event,
+      startDate: new Date(event.startDate),
+      endDate: new Date(event.endDate),
+      createdAt: new Date(event.createdAt),
+      updatedAt: new Date(event.updatedAt),
+      gallery: event.gallery?.map((img: any) => ({
+        ...img,
+        createdAt: new Date(img.createdAt),
+      })),
+    };
+  } catch (error) {
+    console.error("Error in getEvent:", error);
+    throw error;
   }
-  
-  const event = await response.json();
-  
-  // Convert date strings to Date objects
-  return {
-    ...event,
-    startDate: new Date(event.startDate),
-    endDate: new Date(event.endDate),
-    createdAt: new Date(event.createdAt),
-    updatedAt: new Date(event.updatedAt),
-    gallery: event.gallery?.map((img: any) => ({
-      ...img,
-      createdAt: new Date(img.createdAt),
-    })),
-  };
 }
 
 /**

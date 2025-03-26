@@ -50,24 +50,28 @@ exports.__esModule = true;
 exports.addEventImage = exports.deleteEvent = exports.updateEvent = exports.createEvent = exports.cancelRegistration = exports.registerForEvent = exports.getEvent = exports.getEvents = void 0;
 // Helper to get the base URL for API calls
 var getBaseUrl = function () {
-    // Check if we're in a browser or server environment
+    // Check if we're in a browser environment
     if (typeof window !== 'undefined') {
         // In the browser, use relative URLs
         return '';
     }
     // In server environment, construct the absolute URL
-    var url = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.sassimilan.com/';
-    return url.includes('http') ? url : "https://" + url;
+    if (process.env.VERCEL_URL) {
+        return "https://" + process.env.VERCEL_URL;
+    }
+    // Fallback to a configured URL or a default
+    return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 };
 /**
  * Fetch all events, optionally filtering by published status and timing
  */
 function getEvents(options) {
     return __awaiter(this, void 0, Promise, function () {
-        var params, queryString, baseUrl, response, events;
+        var params, queryString, baseUrl, response, events, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    _a.trys.push([0, 3, , 4]);
                     params = new URLSearchParams();
                     if (options === null || options === void 0 ? void 0 : options.publishedOnly)
                         params.set('published', 'true');
@@ -79,48 +83,63 @@ function getEvents(options) {
                     baseUrl = getBaseUrl();
                     return [4 /*yield*/, fetch(baseUrl + "/api/events" + queryString, {
                             method: 'GET',
-                            cache: 'no-store'
+                            cache: 'no-store',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
                         })];
                 case 1:
                     response = _a.sent();
                     if (!response.ok) {
-                        throw new Error('Failed to fetch events');
+                        throw new Error("Error fetching events: " + response.status);
                     }
                     return [4 /*yield*/, response.json()];
                 case 2:
                     events = _a.sent();
                     // Convert date strings to Date objects
                     return [2 /*return*/, events.map(function (event) { return (__assign(__assign({}, event), { startDate: new Date(event.startDate), endDate: new Date(event.endDate), createdAt: new Date(event.createdAt), updatedAt: new Date(event.updatedAt) })); })];
+                case 3:
+                    error_1 = _a.sent();
+                    console.error("Error in getEvents:", error_1);
+                    // Return empty array instead of throwing to avoid breaking the page
+                    return [2 /*return*/, []];
+                case 4: return [2 /*return*/];
             }
         });
     });
 }
 exports.getEvents = getEvents;
-/**
- * Fetch a single event by ID
- */
+// The rest of your event-service.ts file remains the same...
 function getEvent(id) {
     var _a;
     return __awaiter(this, void 0, Promise, function () {
-        var baseUrl, response, event;
+        var baseUrl, response, event, error_2;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     baseUrl = getBaseUrl();
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 4, , 5]);
                     return [4 /*yield*/, fetch(baseUrl + "/api/events/" + id, {
                             method: 'GET',
                             cache: 'no-store'
                         })];
-                case 1:
+                case 2:
                     response = _b.sent();
                     if (!response.ok) {
                         throw new Error('Failed to fetch event');
                     }
                     return [4 /*yield*/, response.json()];
-                case 2:
+                case 3:
                     event = _b.sent();
                     // Convert date strings to Date objects
                     return [2 /*return*/, __assign(__assign({}, event), { startDate: new Date(event.startDate), endDate: new Date(event.endDate), createdAt: new Date(event.createdAt), updatedAt: new Date(event.updatedAt), gallery: (_a = event.gallery) === null || _a === void 0 ? void 0 : _a.map(function (img) { return (__assign(__assign({}, img), { createdAt: new Date(img.createdAt) })); }) })];
+                case 4:
+                    error_2 = _b.sent();
+                    console.error("Error in getEvent:", error_2);
+                    throw error_2;
+                case 5: return [2 /*return*/];
             }
         });
     });
