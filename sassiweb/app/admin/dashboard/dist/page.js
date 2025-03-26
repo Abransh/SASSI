@@ -36,105 +36,195 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var navigation_1 = require("next/navigation");
-var next_1 = require("next-auth/next");
-var route_1 = require("@/app/api/auth/[...nextauth]/route");
-var link_1 = require("next/link");
-var event_service_1 = require("@/lib/event-service");
 var prisma_1 = require("@/lib/prisma");
 var date_fns_1 = require("date-fns");
-var Header_1 = require("@/components/Header");
-var MobileMenu_1 = require("@/components/MobileMenu");
-var Footer_1 = require("@/components/Footer");
+var link_1 = require("next/link");
+var event_service_1 = require("@/lib/event-service");
+var lucide_react_1 = require("lucide-react");
 function AdminDashboard() {
     return __awaiter(this, void 0, void 0, function () {
-        var session, events, contactSubmissions;
+        var events, contactSubmissions, pendingMembershipRequests, pendingTeamApplications, userStats, now, upcomingEvents, resourcesCount;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, next_1.getServerSession(route_1.authOptions)];
+                case 0: return [4 /*yield*/, event_service_1.getEvents()];
                 case 1:
-                    session = _a.sent();
-                    if (!session || session.user.role !== "ADMIN") {
-                        navigation_1.redirect("/auth/signin?callbackUrl=/admin/dashboard");
-                    }
-                    return [4 /*yield*/, event_service_1.getEvents()];
-                case 2:
                     events = _a.sent();
                     return [4 /*yield*/, prisma_1["default"].contactSubmission.findMany({
+                            where: {
+                                responded: false
+                            },
                             orderBy: {
                                 createdAt: "desc"
                             },
-                            take: 10
+                            take: 5
+                        })];
+                case 2:
+                    contactSubmissions = _a.sent();
+                    return [4 /*yield*/, prisma_1["default"].membershipRequest.count({
+                            where: {
+                                status: "PENDING"
+                            }
                         })];
                 case 3:
-                    contactSubmissions = _a.sent();
-                    return [2 /*return*/, (React.createElement("main", { className: "min-h-screen bg-gray-50" },
-                            React.createElement(Header_1["default"], null),
-                            React.createElement(MobileMenu_1["default"], null),
-                            React.createElement("section", { className: "pt-32 pb-20" },
-                                React.createElement("div", { className: "container mx-auto px-4" },
-                                    React.createElement("div", { className: "mb-8" },
-                                        React.createElement("h1", { className: "text-3xl font-bold mb-2" }, "Admin Dashboard"),
-                                        React.createElement("p", { className: "text-gray-600" },
-                                            "Welcome back, ",
-                                            session.user.name || session.user.email)),
-                                    React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-8 mb-12" },
-                                        React.createElement("div", { className: "bg-white rounded-lg shadow p-6" },
-                                            React.createElement("h2", { className: "text-xl font-bold mb-4" }, "Quick Stats"),
-                                            React.createElement("div", { className: "grid grid-cols-2 gap-4" },
-                                                React.createElement("div", { className: "bg-orange-50 p-4 rounded-lg" },
-                                                    React.createElement("p", { className: "text-sm text-gray-600" }, "Total Events"),
-                                                    React.createElement("p", { className: "text-2xl font-bold" }, events.length)),
-                                                React.createElement("div", { className: "bg-green-50 p-4 rounded-lg" },
-                                                    React.createElement("p", { className: "text-sm text-gray-600" }, "Published Events"),
-                                                    React.createElement("p", { className: "text-2xl font-bold" }, events.filter(function (event) { return event.published; }).length)),
-                                                React.createElement("div", { className: "bg-blue-50 p-4 rounded-lg" },
-                                                    React.createElement("p", { className: "text-sm text-gray-600" }, "Upcoming Events"),
-                                                    React.createElement("p", { className: "text-2xl font-bold" }, events.filter(function (event) { return new Date(event.startDate) > new Date(); }).length)),
-                                                React.createElement("div", { className: "bg-purple-50 p-4 rounded-lg" },
-                                                    React.createElement("p", { className: "text-sm text-gray-600" }, "New Messages"),
-                                                    React.createElement("p", { className: "text-2xl font-bold" }, contactSubmissions.filter(function (submission) { return !submission.responded; }).length)))),
-                                        React.createElement("div", { className: "bg-white rounded-lg shadow p-6" },
-                                            React.createElement("h2", { className: "text-xl font-bold mb-4" }, "Quick Actions"),
-                                            React.createElement("div", { className: "space-y-2" },
-                                                React.createElement(link_1["default"], { href: "/admin/events/new", className: "block w-full p-3 bg-orange-600 hover:bg-orange-700 text-white text-center rounded-md" }, "Create New Event"),
-                                                React.createElement(link_1["default"], { href: "/admin/events", className: "block w-full p-3 bg-gray-800 hover:bg-gray-900 text-white text-center rounded-md" }, "Manage Events"),
-                                                React.createElement(link_1["default"], { href: "/admin/contact", className: "block w-full p-3 bg-blue-600 hover:bg-blue-700 text-white text-center rounded-md" }, "View Contact Submissions")))),
-                                    React.createElement("div", { className: "bg-white rounded-lg shadow overflow-hidden mb-8" },
-                                        React.createElement("div", { className: "p-4 bg-gray-50 border-b" },
-                                            React.createElement("h2", { className: "text-xl font-bold" }, "Recent Events")),
-                                        React.createElement("div", { className: "overflow-x-auto" },
-                                            React.createElement("table", { className: "w-full" },
-                                                React.createElement("thead", { className: "bg-gray-100" },
-                                                    React.createElement("tr", null,
-                                                        React.createElement("th", { className: "px-4 py-3 text-left text-sm font-medium text-gray-700" }, "Title"),
-                                                        React.createElement("th", { className: "px-4 py-3 text-left text-sm font-medium text-gray-700" }, "Date"),
-                                                        React.createElement("th", { className: "px-4 py-3 text-left text-sm font-medium text-gray-700" }, "Location"),
-                                                        React.createElement("th", { className: "px-4 py-3 text-left text-sm font-medium text-gray-700" }, "Status"),
-                                                        React.createElement("th", { className: "px-4 py-3 text-right text-sm font-medium text-gray-700" }, "Actions"))),
-                                                React.createElement("tbody", { className: "divide-y divide-gray-200" }, events.slice(0, 5).map(function (event) { return (React.createElement("tr", { key: event.id },
-                                                    React.createElement("td", { className: "px-4 py-3 text-sm text-gray-900" }, event.title),
-                                                    React.createElement("td", { className: "px-4 py-3 text-sm text-gray-600" }, date_fns_1.format(new Date(event.startDate), "MMM d, yyyy")),
-                                                    React.createElement("td", { className: "px-4 py-3 text-sm text-gray-600" }, event.location),
-                                                    React.createElement("td", { className: "px-4 py-3 text-sm" }, event.published ? (React.createElement("span", { className: "px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs" }, "Published")) : (React.createElement("span", { className: "px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs" }, "Draft"))),
-                                                    React.createElement("td", { className: "px-4 py-3 text-sm text-right" },
-                                                        React.createElement(link_1["default"], { href: "/admin/events/" + event.id, className: "text-orange-600 hover:text-orange-800" }, "Edit")))); })))),
-                                        events.length > 5 && (React.createElement("div", { className: "p-4 border-t" },
-                                            React.createElement(link_1["default"], { href: "/admin/events", className: "text-orange-600 hover:text-orange-800" }, "View all events \u2192")))),
-                                    React.createElement("div", { className: "bg-white rounded-lg shadow overflow-hidden" },
-                                        React.createElement("div", { className: "p-4 bg-gray-50 border-b" },
-                                            React.createElement("h2", { className: "text-xl font-bold" }, "Recent Contact Submissions")),
-                                        React.createElement("div", { className: "divide-y divide-gray-200" }, contactSubmissions.slice(0, 3).map(function (submission) { return (React.createElement("div", { key: submission.id, className: "p-4" },
-                                            React.createElement("div", { className: "flex justify-between items-start mb-2" },
-                                                React.createElement("div", null,
-                                                    React.createElement("h3", { className: "font-medium" }, submission.name),
-                                                    React.createElement("p", { className: "text-sm text-gray-600" }, submission.email)),
-                                                React.createElement("span", { className: "text-xs text-gray-500" }, date_fns_1.format(new Date(submission.createdAt), "MMM d, yyyy"))),
-                                            React.createElement("p", { className: "text-sm font-medium text-gray-700 mb-1" }, submission.subject),
-                                            React.createElement("p", { className: "text-sm text-gray-600 line-clamp-2" }, submission.message))); })),
-                                        contactSubmissions.length > 3 && (React.createElement("div", { className: "p-4 border-t" },
-                                            React.createElement(link_1["default"], { href: "/admin/contact", className: "text-orange-600 hover:text-orange-800" }, "View all messages \u2192")))))),
-                            React.createElement(Footer_1["default"], null)))];
+                    pendingMembershipRequests = _a.sent();
+                    return [4 /*yield*/, prisma_1["default"].teamApplication.count({
+                            where: {
+                                status: "PENDING"
+                            }
+                        })];
+                case 4:
+                    pendingTeamApplications = _a.sent();
+                    return [4 /*yield*/, prisma_1["default"].$transaction([
+                            prisma_1["default"].user.count(),
+                            prisma_1["default"].user.count({
+                                where: {
+                                    paymentVerified: true
+                                }
+                            }),
+                            prisma_1["default"].user.count({
+                                where: {
+                                    membershipExpiryDate: {
+                                        lt: new Date()
+                                    }
+                                }
+                            }),
+                        ])];
+                case 5:
+                    userStats = _a.sent();
+                    now = new Date();
+                    upcomingEvents = events.filter(function (event) { return new Date(event.startDate) > now; }).length;
+                    return [4 /*yield*/, prisma_1["default"].resource.count()];
+                case 6:
+                    resourcesCount = _a.sent();
+                    return [2 /*return*/, (React.createElement("div", null,
+                            React.createElement("h1", { className: "text-2xl font-bold mb-6" }, "Admin Dashboard"),
+                            (pendingMembershipRequests > 0 || pendingTeamApplications > 0) && (React.createElement("div", { className: "bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6" },
+                                React.createElement("div", { className: "flex" },
+                                    React.createElement("div", { className: "flex-shrink-0" },
+                                        React.createElement(lucide_react_1.AlertTriangle, { className: "h-5 w-5 text-yellow-400" })),
+                                    React.createElement("div", { className: "ml-3" },
+                                        React.createElement("p", { className: "text-sm text-yellow-700" },
+                                            "You have pending requests that need attention:",
+                                            pendingMembershipRequests > 0 && (React.createElement("span", { className: "font-medium ml-1" },
+                                                pendingMembershipRequests,
+                                                " membership ",
+                                                pendingMembershipRequests === 1 ? 'request' : 'requests')),
+                                            pendingMembershipRequests > 0 && pendingTeamApplications > 0 && (React.createElement("span", null, " and ")),
+                                            pendingTeamApplications > 0 && (React.createElement("span", { className: "font-medium" },
+                                                pendingTeamApplications,
+                                                " team ",
+                                                pendingTeamApplications === 1 ? 'application' : 'applications'))))))),
+                            React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" },
+                                React.createElement("div", { className: "bg-white rounded-lg shadow p-6" },
+                                    React.createElement("div", { className: "flex items-start" },
+                                        React.createElement("div", { className: "p-3 rounded-full bg-orange-100 text-orange-600 mr-4" },
+                                            React.createElement(lucide_react_1.UserPlus, { className: "h-6 w-6" })),
+                                        React.createElement("div", null,
+                                            React.createElement("p", { className: "text-sm text-gray-600 mb-1" }, "Members"),
+                                            React.createElement("div", { className: "flex items-baseline" },
+                                                React.createElement("p", { className: "text-2xl font-bold" }, userStats[0]),
+                                                React.createElement("p", { className: "text-sm text-gray-600 ml-2" },
+                                                    "(",
+                                                    userStats[1],
+                                                    " verified)")),
+                                            userStats[2] > 0 && (React.createElement("p", { className: "text-xs text-red-500 mt-1" },
+                                                userStats[2],
+                                                " expired memberships"))))),
+                                React.createElement("div", { className: "bg-white rounded-lg shadow p-6" },
+                                    React.createElement("div", { className: "flex items-start" },
+                                        React.createElement("div", { className: "p-3 rounded-full bg-purple-100 text-purple-600 mr-4" },
+                                            React.createElement(lucide_react_1.Calendar, { className: "h-6 w-6" })),
+                                        React.createElement("div", null,
+                                            React.createElement("p", { className: "text-sm text-gray-600 mb-1" }, "Events"),
+                                            React.createElement("div", { className: "flex items-baseline" },
+                                                React.createElement("p", { className: "text-2xl font-bold" }, events.length),
+                                                React.createElement("p", { className: "text-sm text-gray-600 ml-2" },
+                                                    "(",
+                                                    upcomingEvents,
+                                                    " upcoming)"))))),
+                                React.createElement("div", { className: "bg-white rounded-lg shadow p-6" },
+                                    React.createElement("div", { className: "flex items-start" },
+                                        React.createElement("div", { className: "p-3 rounded-full bg-blue-100 text-blue-600 mr-4" },
+                                            React.createElement(lucide_react_1.FileText, { className: "h-6 w-6" })),
+                                        React.createElement("div", null,
+                                            React.createElement("p", { className: "text-sm text-gray-600 mb-1" }, "Resources"),
+                                            React.createElement("div", { className: "flex items-baseline" },
+                                                React.createElement("p", { className: "text-2xl font-bold" }, resourcesCount))))),
+                                React.createElement("div", { className: "bg-white rounded-lg shadow p-6" },
+                                    React.createElement("div", { className: "flex items-start" },
+                                        React.createElement("div", { className: "p-3 rounded-full bg-red-100 text-red-600 mr-4" },
+                                            React.createElement(lucide_react_1.Bell, { className: "h-6 w-6" })),
+                                        React.createElement("div", null,
+                                            React.createElement("p", { className: "text-sm text-gray-600 mb-1" }, "Notifications"),
+                                            React.createElement("div", { className: "flex items-baseline" },
+                                                React.createElement("p", { className: "text-2xl font-bold" }, contactSubmissions.length),
+                                                React.createElement("p", { className: "text-sm text-gray-600 ml-2" }, "unread messages")))))),
+                            React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" },
+                                React.createElement("div", { className: "bg-white rounded-lg shadow overflow-hidden" },
+                                    React.createElement("div", { className: "p-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white flex justify-between items-center" },
+                                        React.createElement("h2", { className: "font-bold text-lg" }, "Pending Membership Requests"),
+                                        React.createElement("span", { className: "bg-white text-orange-600 text-sm font-bold px-2 py-1 rounded-full" }, pendingMembershipRequests)),
+                                    React.createElement("div", { className: "p-5" },
+                                        pendingMembershipRequests > 0 ? (React.createElement("p", { className: "text-gray-600 mb-4" },
+                                            "You have ",
+                                            pendingMembershipRequests,
+                                            " membership ",
+                                            pendingMembershipRequests === 1 ? 'request' : 'requests',
+                                            " waiting for your review.")) : (React.createElement("p", { className: "text-gray-600 mb-4" }, "No pending membership requests at this time.")),
+                                        React.createElement(link_1["default"], { href: "/admin/membership-requests", className: "inline-flex items-center px-4 py-2 bg-orange-100 text-orange-800 rounded-md hover:bg-orange-200 transition-colors text-sm" },
+                                            "View All Requests",
+                                            React.createElement(lucide_react_1.ArrowRight, { size: 16, className: "ml-2" })))),
+                                React.createElement("div", { className: "bg-white rounded-lg shadow overflow-hidden" },
+                                    React.createElement("div", { className: "p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex justify-between items-center" },
+                                        React.createElement("h2", { className: "font-bold text-lg" }, "Pending Team Applications"),
+                                        React.createElement("span", { className: "bg-white text-blue-600 text-sm font-bold px-2 py-1 rounded-full" }, pendingTeamApplications)),
+                                    React.createElement("div", { className: "p-5" },
+                                        pendingTeamApplications > 0 ? (React.createElement("p", { className: "text-gray-600 mb-4" },
+                                            "You have ",
+                                            pendingTeamApplications,
+                                            " team ",
+                                            pendingTeamApplications === 1 ? 'application' : 'applications',
+                                            " waiting for your review.")) : (React.createElement("p", { className: "text-gray-600 mb-4" }, "No pending team applications at this time.")),
+                                        React.createElement(link_1["default"], { href: "/admin/team-applications", className: "inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors text-sm" },
+                                            "View All Applications",
+                                            React.createElement(lucide_react_1.ArrowRight, { size: 16, className: "ml-2" }))))),
+                            React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-6" },
+                                React.createElement("div", { className: "bg-white rounded-lg shadow overflow-hidden" },
+                                    React.createElement("div", { className: "p-4 bg-gray-50 border-b flex justify-between items-center" },
+                                        React.createElement("h2", { className: "font-bold text-lg" }, "Recent Messages"),
+                                        React.createElement(link_1["default"], { href: "/admin/contact", className: "text-sm text-blue-600 hover:text-blue-800" }, "View All")),
+                                    React.createElement("div", { className: "divide-y" }, contactSubmissions.length > 0 ? (contactSubmissions.map(function (submission) { return (React.createElement("div", { key: submission.id, className: "p-4 hover:bg-gray-50" },
+                                        React.createElement("div", { className: "flex justify-between items-start mb-1" },
+                                            React.createElement("h3", { className: "font-medium" }, submission.subject),
+                                            React.createElement("span", { className: "text-xs text-gray-500" }, date_fns_1.format(new Date(submission.createdAt), "MMM d, yyyy"))),
+                                        React.createElement("p", { className: "text-sm text-gray-600 mb-1" },
+                                            "From: ",
+                                            submission.name,
+                                            " (",
+                                            submission.email,
+                                            ")"),
+                                        React.createElement("p", { className: "text-sm text-gray-800 line-clamp-1" }, submission.message))); })) : (React.createElement("div", { className: "p-6 text-center text-gray-500" },
+                                        React.createElement(lucide_react_1.MessageCircle, { className: "h-10 w-10 mx-auto opacity-25 mb-2" }),
+                                        React.createElement("p", null, "No pending messages"))))),
+                                React.createElement("div", { className: "bg-white rounded-lg shadow overflow-hidden" },
+                                    React.createElement("div", { className: "p-4 bg-gray-50 border-b flex justify-between items-center" },
+                                        React.createElement("h2", { className: "font-bold text-lg" }, "Upcoming Events"),
+                                        React.createElement(link_1["default"], { href: "/admin/events", className: "text-sm text-blue-600 hover:text-blue-800" }, "View All")),
+                                    React.createElement("div", { className: "divide-y" },
+                                        events
+                                            .filter(function (event) { return new Date(event.startDate) > now; })
+                                            .slice(0, 5)
+                                            .map(function (event) { return (React.createElement("div", { key: event.id, className: "p-4 hover:bg-gray-50" },
+                                            React.createElement("div", { className: "flex justify-between items-start mb-1" },
+                                                React.createElement("h3", { className: "font-medium" }, event.title),
+                                                React.createElement("span", { className: "text-xs px-2 py-0.5 rounded-full " + (event.published
+                                                        ? "bg-green-100 text-green-800"
+                                                        : "bg-gray-100 text-gray-800") }, event.published ? "Published" : "Draft")),
+                                            React.createElement("p", { className: "text-sm text-gray-600 mb-1" }, date_fns_1.format(new Date(event.startDate), "MMMM d, yyyy 'at' h:mm a")),
+                                            React.createElement("p", { className: "text-sm text-gray-600" }, event.location))); }),
+                                        events.filter(function (event) { return new Date(event.startDate) > now; }).length === 0 && (React.createElement("div", { className: "p-6 text-center text-gray-500" },
+                                            React.createElement(lucide_react_1.Calendar, { className: "h-10 w-10 mx-auto opacity-25 mb-2" }),
+                                            React.createElement("p", null, "No upcoming events"))))))))];
             }
         });
     });
