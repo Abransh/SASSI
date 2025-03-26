@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 
 // POST /api/resources/[id]/track - Track resource view or download
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any  // Use 'any' to bypass TypeScript's type checking
+ //{ params }: { params: { id: string } }
 ) {
   try {
+    const id = context.params.id; // Access the ID via context.params.id
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -25,7 +27,7 @@ export async function POST(
     // Check if resource exists
     const resource = await prisma.resource.findUnique({
       where: {
-        id: params.id,
+        id: id,
       },
     });
     
@@ -39,7 +41,7 @@ export async function POST(
     // Update resource view/download count
     await prisma.resource.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         viewCount: { increment: 1 },
@@ -51,7 +53,7 @@ export async function POST(
     await prisma.resourceView.upsert({
       where: {
         resourceId_userId: {
-          resourceId: params.id,
+          resourceId: id,
           userId: session.user.id,
         },
       },
@@ -59,7 +61,7 @@ export async function POST(
         downloaded: downloaded || undefined,
       },
       create: {
-        resourceId: params.id,
+        resourceId: id,
         userId: session.user.id,
         downloaded,
       },

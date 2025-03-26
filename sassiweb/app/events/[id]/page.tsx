@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { Calendar, Clock, MapPin, Users } from "lucide-react";
 import { getEvent } from "@/lib/event-service";
@@ -10,15 +9,17 @@ import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
 import PhotoGallery from "@/components/PhotoGallery";
 import EventRegistrationButton from "./EventRegistrationButton";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { redirect, notFound } from "next/navigation";
+import { getServerSession } from "next-auth/next";
 
-type Props = {
-  params: { id: string };
-};
+
 
 // Generate metadata for the page
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+
+export async function generateMetadata(props: any): Promise<Metadata> {
   try {
-    const event = await getEvent(params.id);
+    const event = await getEvent(props.params.id);
     
     return {
       title: `${event.title} - SASSI Events`,
@@ -32,9 +33,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function EventPage({ params }: Props) {
+export default async function EventPage(props: any) {
+  const { params, searchParams } = props;
+
+  // Check authentication or perform other logic if needed
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    redirect("/auth/signin");
+  }
+
+  // Fetch the event based on params.id
   let event;
-  
   try {
     event = await getEvent(params.id);
   } catch (error) {
@@ -107,8 +116,8 @@ export default async function EventPage({ params }: Props) {
                   <Image
                     src={event.imageUrl}
                     alt={event.title}
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
               ) : (

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from "@/lib/prisma";
 import { format } from "date-fns";
 import Header from "@/components/Header";
@@ -62,8 +62,17 @@ export default async function ContactSubmissionsPage() {
             
             {/* Submissions List */}
             <div className="divide-y divide-gray-200">
-              {pendingSubmissions.length > 0 ? (
-                pendingSubmissions.map((submission: { id: string; subject: string; name: string; email: string; createdAt: string; message: string; }) => (
+                 {pendingSubmissions.length > 0 ? (
+                   pendingSubmissions.map(
+                    (submission: {
+                    id: string;
+                      subject: string;
+                     name: string;
+                     email: string;
+                      createdAt: Date;
+                     message: string;
+                      responded: boolean;
+                     }) => (
                   <div key={submission.id} className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>

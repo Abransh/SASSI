@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { getEvent } from "@/lib/event-service";
 import EventForm from "@/components/EventForm";
 import Header from "@/components/Header";

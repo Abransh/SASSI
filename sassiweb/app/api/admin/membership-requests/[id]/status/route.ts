@@ -1,7 +1,7 @@
 // import { NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth/next";
 // import prisma from "@/lib/prisma";
-// import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+// import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 // import { z } from "zod";
 // import { sendMembershipStatusEmail } from "@/lib/email";
 
@@ -99,7 +99,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { z } from "zod";
 import { sendMembershipStatusEmail } from "@/lib/email";
 
@@ -178,10 +178,10 @@ export async function PATCH(
     
     // Send email notification
     await sendMembershipStatusEmail(
-      membershipRequest.userEmail,
-      membershipRequest.userName,
-      updatedRequest.status,
-      updatedRequest.notes
+      membershipRequest.email,
+      membershipRequest.firstName,
+      updatedRequest.status as "APPROVED" | "REJECTED",
+      updatedRequest.notes ?? undefined
     );
     
     return NextResponse.json(updatedRequest);

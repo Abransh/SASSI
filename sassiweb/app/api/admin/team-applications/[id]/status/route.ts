@@ -1,7 +1,7 @@
 // import { NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth/next";
 // import prisma from "@/lib/prisma";
-// import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+// import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 // import { z } from "zod";
 // import { sendTeamApplicationStatusEmail } from "@/lib/email";
 
@@ -107,7 +107,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { z } from "zod";
 import { sendTeamApplicationStatusEmail } from "@/lib/email";
 
@@ -175,7 +175,7 @@ export async function PATCH(
     if (teamApplication.user) {
       await sendTeamApplicationStatusEmail(
         teamApplication.user.email,
-        teamApplication.user.name,
+        teamApplication.user.name ?? "",
         teamApplication.department,
         updatedApplication.status,
         updatedApplication.notes

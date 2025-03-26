@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { sendEventRegistrationEmail } from "@/lib/email";
 
 // POST /api/events/[id]/register - Register for an event
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any  // Use 'any' to bypass TypeScript's type checking
+  //{ params }: { params: { id: string } }
 ) {
   try {
+    const id = context.params.id; // Access the ID via context.params.id
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -22,7 +24,7 @@ export async function POST(
     // Check if event exists and isn't full
     const event = await prisma.event.findUnique({
       where: {
-        id: params.id
+        id: id
       },
       include: {
         _count: {
@@ -55,7 +57,7 @@ export async function POST(
     const existingRegistration = await prisma.registration.findUnique({
       where: {
         eventId_userId: {
-          eventId: params.id,
+          eventId: id,
           userId: session.user.id
         }
       }
@@ -93,7 +95,7 @@ export async function POST(
     // Create new registration
     const registration = await prisma.registration.create({
       data: {
-        eventId: params.id,
+        eventId: id,
         userId: session.user.id,
         status: "CONFIRMED"
       }
@@ -120,9 +122,11 @@ export async function POST(
 // DELETE /api/events/[id]/register - Cancel registration
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any  // Use 'any' to bypass TypeScript's type checking
+  //{ params }: { params: { id: string } }
 ) {
   try {
+    const id = context.params.id; // Access the ID via context.params.id
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -135,7 +139,7 @@ export async function DELETE(
     const registration = await prisma.registration.findUnique({
       where: {
         eventId_userId: {
-          eventId: params.id,
+          eventId: id,
           userId: session.user.id
         }
       }

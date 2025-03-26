@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { authOptions } from "../api/auth/[...nextauth]/options";
 import prisma from "@/lib/prisma";
 import Header from "@/components/Header";
 import MobileMenu from "@/components/MobileMenu";
@@ -10,11 +10,9 @@ import { User, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import UniversityFilter from "@/components/UniversityFilter";
 
-export default async function MembersPage({
-  searchParams,
-}: {
-  searchParams: { query?: string; university?: string };
-}) {
+export default async function MembersPage(props: any) {
+  const { searchParams } = props;
+  
   try {
     // Check if user is logged in
     const session = await getServerSession(authOptions);
