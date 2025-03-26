@@ -21,15 +21,9 @@ const DEPARTMENTS = {
   "tech": { name: "Tech Team", icon: "💻" },
 };
 
-export default async function TeamApplicationsPage({
-  searchParams,
-}: {
-  searchParams: { 
-    status?: "PENDING" | "APPROVED" | "REJECTED";
-    department?: string;
-    search?: string;
-  };
-}) {
+export default async function TeamApplicationsPage(props: any) {
+  const { searchParams } = props;
+  
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);
   

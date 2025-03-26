@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // Exclude dist directories from page resolution
+    pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  },
     images: {
       domains: [
         'example.com',
@@ -10,7 +14,13 @@ const nextConfig = {
         'placekitten.com'
       ],
     },
-    // Add other Next.js config options here
+    webpack: (config) => {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: ['**/dist/**', '**/node_modules/**'],
+      };
+      return config;
+    },
   };
   
   export default nextConfig;

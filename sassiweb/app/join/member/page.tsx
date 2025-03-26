@@ -363,7 +363,7 @@ export default function MemberRegistrationPage() {
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <h3 className="font-medium text-lg mb-2">Annual Membership Fee:</h3>
               <p className="text-gray-700">
-                The annual membership fee is <span className="font-bold">€20.00</span>. After clicking &quot;Proceed to Payment&quot;, you&apos;ll be redirected to our secure payment page.
+                The annual membership fee is <span className="font-bold">€5.00</span>. After clicking &quot;Proceed to Payment&quot;, you&apos;ll be redirected to our secure payment page.
               </p>
             </div>
             

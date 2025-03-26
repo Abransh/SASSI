@@ -166,7 +166,7 @@ export default function UserDashboard() {
                             href="https://revolut.me/harshnj"
                             className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-sm"
                           >
-                            Pay Membership Fee (€20)
+                            Pay Membership Fee (€5)
                           </Link>
                         </div>
                       )}
@@ -184,7 +184,7 @@ export default function UserDashboard() {
                             href="https://revolut.me/harshnj"
                             className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-sm"
                           >
-                            Renew Membership (€20)
+                            Renew Membership (€5)
                           </Link>
                         </div>
                       )}

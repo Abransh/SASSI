@@ -236,7 +236,7 @@ export default function TeamRegistrationPage() {
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
                     <h3 className="font-medium text-blue-800 mb-2">Next Steps:</h3>
                     <ol className="list-decimal pl-5 text-sm text-gray-700 space-y-1">
-                      <li>Complete your membership payment (€20.00 annual fee).</li>
+                      <li>Complete your membership payment (€5.00 annual fee).</li>
                       <li>Wait for your payment to be verified by our administrators.</li>
                       <li>Return to this page to submit your team application.</li>
                     </ol>

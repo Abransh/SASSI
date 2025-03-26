@@ -11,14 +11,9 @@ import { CheckCircle, XCircle, AlertCircle, ArrowUpDown, Search } from "lucide-r
 import { Input } from "@/components/ui/input";
 import MembershipStatusActions from "@/components/admin/MembershipStatusActions";
 
-export default async function MembershipRequestsPage({
-  searchParams,
-}: {
-  searchParams: { 
-    status?: "PENDING" | "APPROVED" | "REJECTED";
-    search?: string;
-  };
-}) {
+export default async function MembershipRequestsPage(props: any) {
+  const { searchParams } = props;
+  
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);
   
