@@ -40,7 +40,7 @@ exports.POST = exports.GET = void 0;
 var server_1 = require("next/server");
 var next_1 = require("next-auth/next");
 var prisma_1 = require("@/lib/prisma");
-var route_1 = require("../../auth/[...nextauth]/route");
+var route_1 = require("@/app/api/auth/[...nextauth]/route");
 var zod_1 = require("zod");
 // Validation schema for category creation
 var categorySchema = zod_1.z.object({
