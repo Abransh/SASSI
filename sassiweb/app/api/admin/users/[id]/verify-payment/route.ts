@@ -52,7 +52,7 @@ export async function PATCH(
 
       await sendPaymentConfirmationEmail(
         updatedUser.email,
-        updatedUser.name,
+        updatedUser.name ?? "",
         expiryDate
       );
     }

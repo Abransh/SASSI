@@ -9,10 +9,11 @@ import Link from "next/link";
 import { User, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import UniversityFilter from "@/components/UniversityFilter";
+export const dynamic = 'force-dynamic';
 
 export default async function MembersPage(props: any) {
   const { searchParams } = props;
-  
+
   try {
     // Check if user is logged in
     const session = await getServerSession(authOptions);
@@ -24,6 +25,7 @@ export default async function MembersPage(props: any) {
     // Get search parameters
     const searchQuery = searchParams.query || "";
     const universityFilter = searchParams.university || "";
+    
     
     // Fetch users with public profiles and apply filters
     const users = await prisma.user.findMany({
@@ -61,6 +63,9 @@ export default async function MembersPage(props: any) {
       },
       distinct: ["university"],
     });
+    const processedUniversities = universities.map(u => ({
+      university: u.university ?? ""
+    }));
     
     return (
       <main className="min-h-screen bg-gray-50">
@@ -101,7 +106,7 @@ export default async function MembersPage(props: any) {
                   <div className="md:w-64">
                     {/* Client component for interactive select */}
                     <UniversityFilter 
-                      universities={universities} 
+                      universities={processedUniversities}  
                       currentValue={universityFilter}
                       searchQuery={searchQuery}
                     />
@@ -166,7 +171,7 @@ export default async function MembersPage(props: any) {
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="p-6 bg-white rounded shadow-lg max-w-lg">
           <h1 className="text-xl font-bold mb-4">Error Loading Members</h1>
-          <p className="text-red-500">{error.message}</p>
+          <p className="text-red-500">{(error as Error).message}</p>
           <div className="mt-6">
             <a href="/" className="text-blue-600 hover:underline">Return to Homepage</a>
           </div>

@@ -16,7 +16,7 @@ export async function sendContactFormEmail(
     const { data, error } = await resend.emails.send({
       from: 'SASSI Contact Form <contact@sassimilan.com>',
       to: 'support@sassimilan.com', // Change to your admin email
-      reply_to: email,
+      replyTo: email,
       subject: `[Contact Form] ${subject}`,
       html: `
         <h1>New Contact Form Submission</h1>

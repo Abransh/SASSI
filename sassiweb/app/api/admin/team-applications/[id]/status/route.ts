@@ -177,8 +177,8 @@ export async function PATCH(
         teamApplication.user.email,
         teamApplication.user.name ?? "",
         teamApplication.department,
-        updatedApplication.status,
-        updatedApplication.notes
+        updatedApplication.status as "APPROVED" | "REJECTED",
+        updatedApplication.notes ?? undefined
       );
     }
     

@@ -53,7 +53,7 @@ function sendContactFormEmail(name, email, subject, message) {
                     return [4 /*yield*/, resend.emails.send({
                             from: 'SASSI Contact Form <contact@sassimilan.com>',
                             to: 'support@sassimilan.com',
-                            reply_to: email,
+                            replyTo: email,
                             subject: "[Contact Form] " + subject,
                             html: "\n        <h1>New Contact Form Submission</h1>\n        <p><strong>From:</strong> " + name + " (" + email + ")</p>\n        <p><strong>Subject:</strong> " + subject + "</p>\n        <h2>Message:</h2>\n        <p>" + message.replace(/\n/g, '<br>') + "</p>\n      "
                         })];
