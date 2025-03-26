@@ -13,10 +13,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 /** @type {import('next').NextConfig} */
 var nextConfig = {
-  experimental: {
-    // Exclude dist directories from page resolution
-    pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx']
+  experimental: {// Exclude dist directories from page resolution
   },
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   images: {
     domains: ['example.com', 'res.cloudinary.com', 'images.unsplash.com', 'via.placeholder.com', 'placehold.co', 'placekitten.com']
   },

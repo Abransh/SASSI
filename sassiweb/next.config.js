@@ -2,8 +2,9 @@
 const nextConfig = {
   experimental: {
     // Exclude dist directories from page resolution
-    pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+   
   },
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
     images: {
       domains: [
         'example.com',
