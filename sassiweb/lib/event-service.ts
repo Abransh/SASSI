@@ -9,11 +9,12 @@ const getBaseUrl = () => {
   }
   
   // In server environment, construct the absolute URL
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  const vercelUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL;
+  if (vercelUrl) {
+    return `https://${vercelUrl}`;
   }
   
-  // Fallback to a configured URL or a default
+  // Fallback to a configured URL or localhost
   return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 };
 
@@ -25,77 +26,65 @@ export async function getEvents(options?: {
   past?: boolean;
   upcoming?: boolean;
 }): Promise<Event[]> {
-  try {
-    const params = new URLSearchParams();
-    
-    if (options?.publishedOnly) params.set('published', 'true');
-    if (options?.past) params.set('past', 'true');
-    if (options?.upcoming) params.set('upcoming', 'true');
-    
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-    const baseUrl = getBaseUrl();
-    
-    const response = await fetch(`${baseUrl}/api/events${queryString}`, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error fetching events: ${response.status}`);
-    }
-    
-    const events = await response.json();
-    
-    // Convert date strings to Date objects
-    return events.map((event: any) => ({
-      ...event,
-      startDate: new Date(event.startDate),
-      endDate: new Date(event.endDate),
-      createdAt: new Date(event.createdAt),
-      updatedAt: new Date(event.updatedAt),
-    }));
-  } catch (error) {
-    console.error("Error in getEvents:", error);
-    // Return empty array instead of throwing to avoid breaking the page
-    return [];
+  const params = new URLSearchParams();
+  
+  if (options?.publishedOnly) params.set('published', 'true');
+  if (options?.past) params.set('past', 'true');
+  if (options?.upcoming) params.set('upcoming', 'true');
+  
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  const baseUrl = getBaseUrl();
+  
+  const response = await fetch(`${baseUrl}/api/events${queryString}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch events');
   }
+  
+  const events = await response.json();
+  
+  // Convert date strings to Date objects
+  return events.map((event: any) => ({
+    ...event,
+    startDate: new Date(event.startDate),
+    endDate: new Date(event.endDate),
+    createdAt: new Date(event.createdAt),
+    updatedAt: new Date(event.updatedAt),
+  }));
 }
 
-// The rest of your event-service.ts file remains the same...
+/**
+ * Fetch a single event by ID
+ */
 export async function getEvent(id: string): Promise<Event> {
   const baseUrl = getBaseUrl();
   
-  try {
-    const response = await fetch(`${baseUrl}/api/events/${id}`, {
-      method: 'GET',
-      cache: 'no-store',
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch event');
-    }
-    
-    const event = await response.json();
-    
-    // Convert date strings to Date objects
-    return {
-      ...event,
-      startDate: new Date(event.startDate),
-      endDate: new Date(event.endDate),
-      createdAt: new Date(event.createdAt),
-      updatedAt: new Date(event.updatedAt),
-      gallery: event.gallery?.map((img: any) => ({
-        ...img,
-        createdAt: new Date(img.createdAt),
-      })),
-    };
-  } catch (error) {
-    console.error("Error in getEvent:", error);
-    throw error;
+  const response = await fetch(`${baseUrl}/api/events/${id}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch event');
   }
+  
+  const event = await response.json();
+  
+  // Convert date strings to Date objects
+  return {
+    ...event,
+    startDate: new Date(event.startDate),
+    endDate: new Date(event.endDate),
+    createdAt: new Date(event.createdAt),
+    updatedAt: new Date(event.updatedAt),
+    gallery: event.gallery?.map((img: any) => ({
+      ...img,
+      createdAt: new Date(img.createdAt),
+    })),
+  };
 }
 
 /**
@@ -217,3 +206,4 @@ export async function addEventImage(
   
   return response.json();
 }
+
