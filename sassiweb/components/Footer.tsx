@@ -15,7 +15,7 @@ const Footer = () => {
               SASSI
             </Link>
             <p className="mt-4 text-gray-400">
-              Supporting Indian students in Milan since ___.
+              Supporting Indian students in Milan since 2023.
             </p>
             <div className="mt-6 flex space-x-4">
               <SocialIcons />
@@ -32,17 +32,17 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-gray-400 hover:text-white transition duration-200">
-                  About
-                </Link>
-              </li>
-              <li>
                 <Link href="#events" className="text-gray-400 hover:text-white transition duration-200">
                   Events
                 </Link>
               </li>
               <li>
-                <Link href="/contact-us" className="text-gray-400 hover:text-white transition duration-200">
+                <Link href="/faqs" className="text-gray-400 hover:text-white transition duration-200">
+                  FAQs
+                </Link>
+              </li>
+              <li>
+                <Link href="#contact-us" className="text-gray-400 hover:text-white transition duration-200">
                   Contact
                 </Link>
               </li>
@@ -54,23 +54,23 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Resources</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/life-in-milan" className="text-gray-400 hover:text-white transition duration-200">
+                <Link href="#life-in-milan" className="text-gray-400 hover:text-white transition duration-200">
                   Life in Milan
                 </Link>
               </li>
               <li>
-                <Link href="/networks" className="text-gray-400 hover:text-white transition duration-200">
+                <Link href="#uni-networks" className="text-gray-400 hover:text-white transition duration-200">
                   Uni Networks
                 </Link>
               </li>
               <li>
-                <Link href="/join-us" className="text-gray-400 hover:text-white transition duration-200">
+                <Link href="#join-us" className="text-gray-400 hover:text-white transition duration-200">
                   Join Us
                 </Link>
               </li>
               <li>
-                <Link href="/support-us" className="text-gray-400 hover:text-white transition duration-200">
-                  Support Us
+                <Link href="/auth/signin" className="text-gray-400 hover:text-white transition duration-200">
+                  Member Login
                 </Link>
               </li>
             </ul>
@@ -86,7 +86,7 @@ const Footer = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <span className="text-gray-400">
-                  Address 
+                  Milan, Italy
                 </span>
               </li>
               <li className="flex items-start">

@@ -12,11 +12,13 @@ function UniNetworks() {
                 React.createElement("p", { className: "max-w-4xl mx-auto text-lg text-gray-700" }, "We collaborate with student networks at top universities to connect you with the right guidance and support for your journey.")),
             React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2  gap-6" },
                 React.createElement("div", { className: "flex flex-col items-center" },
-                    React.createElement(link_1["default"], { href: "#before-arrival", className: "mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors" }, "ISA POLIMI"),
+                    React.createElement(link_1["default"], { href: " " //add insta here
+                        , className: "mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors" }, "ISA POLIMI"),
                     React.createElement("p", { className: "text-center text-gray-700" }, "Indian Students Association"),
                     React.createElement("p", { className: "text-center text-gray-700" }, "Politecnico di Milano")),
                 React.createElement("div", { className: "flex flex-col items-center" },
-                    React.createElement(link_1["default"], { href: "#welcome-to-italy", className: "mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors" }, "ISA DNA"),
+                    React.createElement(link_1["default"], { href: "" //add insta here
+                        , className: "mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors" }, "ISA DNA"),
                     React.createElement("p", { className: "text-center text-gray-700" }, "Indian Students Association."),
                     React.createElement("p", { className: "text-center text-gray-700" }, "Domus Academy & NABA"))))));
 }

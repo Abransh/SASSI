@@ -1,10 +1,12 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { Instagram, Mail, Twitter, X, Menu } from "lucide-react"
+import { Instagram, Mail, Twitter, X, Menu, LogOut } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
+  const { data: session } = useSession()
 
   const toggleMenu = () => {
     setIsOpen(!isOpen)
@@ -12,6 +14,11 @@ export default function MobileMenu() {
 
   const closeMenu = () => {
     setIsOpen(false)
+  }
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/' })
+    closeMenu()
   }
 
   return (
@@ -36,9 +43,6 @@ export default function MobileMenu() {
             <Link href="/" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
               Home
             </Link>
-            <Link href="#about" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
-              About
-            </Link>
             <Link
               href="#life-in-milan"
               onClick={closeMenu}
@@ -60,13 +64,6 @@ export default function MobileMenu() {
               Join Us
             </Link>
             <Link
-              href="#support-us"
-              onClick={closeMenu}
-              className="text-gray-800 hover:text-orange-600 transition-colors"
-            >
-              Support Us
-            </Link>
-            <Link
               href="#contact-us"
               onClick={closeMenu}
               className="text-gray-800 hover:text-orange-600 transition-colors"
@@ -77,17 +74,44 @@ export default function MobileMenu() {
               FAQs
             </Link>
 
+            {!session ? (
+              <Link 
+                href="/auth/signin" 
+                onClick={closeMenu}
+                className="px-5 py-2 bg-yellow-400 text-black font-medium rounded-md hover:bg-yellow-500 transition-colors"
+              >
+                Login / Register
+              </Link>
+            ) : (
+              <>
+                <Link 
+                  href="/dashboard" 
+                  onClick={closeMenu}
+                  className="text-gray-800 hover:text-orange-600 transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  <LogOut size={18} className="mr-2" />
+                  <span>Logout</span>
+                </button>
+              </>
+            )}
+
             {/* Social Media Icons */}
             <div className="flex items-center space-x-6 mt-8">
               <Link
-                href="https://instagram.com"
+                href="https://www.instagram.com/sassi.milan/"
                 target="_blank"
                 className="text-gray-800 hover:text-pink-600 transition-colors"
               >
                 <Instagram size={24} />
               </Link>
               <Link
-                href="mailto:contact@indianstudents.it"
+                href="mailto:support@sassimilan.com"
                 className="text-gray-800 hover:text-blue-600 transition-colors"
               >
                 <Mail size={24} />
@@ -106,4 +130,3 @@ export default function MobileMenu() {
     </div>
   )
 }
-

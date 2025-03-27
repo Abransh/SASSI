@@ -29,7 +29,7 @@ export default function UniNetworks() {
           {/*ISA POLIMI HERE */}
           <div className="flex flex-col items-center">
             <Link
-              href="#before-arrival"
+              href=" "//add insta here
               className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
             >
               ISA POLIMI
@@ -38,10 +38,10 @@ export default function UniNetworks() {
             <p className="text-center text-gray-700">Politecnico di Milano</p>
           </div>
 
-          {/* Welcome to Italy */}
+          {/* ISA DNA */}
           <div className="flex flex-col items-center">
             <Link
-              href="#welcome-to-italy"
+              href="" //add insta here
               className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
             >
               ISA DNA
