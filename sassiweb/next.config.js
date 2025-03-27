@@ -6,6 +6,11 @@ const nextConfig = {
   },
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
     images: {
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'res.cloudinary.com',
+        },], 
       domains: [
         'example.com',
         'res.cloudinary.com',
@@ -14,6 +19,7 @@ const nextConfig = {
         'placehold.co',
         'placekitten.com'
       ],
+    
     },
     webpack: (config) => {
       config.watchOptions = {

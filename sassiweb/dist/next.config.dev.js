@@ -17,6 +17,10 @@ var nextConfig = {
   },
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   images: {
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: 'res.cloudinary.com'
+    }],
     domains: ['example.com', 'res.cloudinary.com', 'images.unsplash.com', 'via.placeholder.com', 'placehold.co', 'placekitten.com']
   },
   webpack: function webpack(config) {

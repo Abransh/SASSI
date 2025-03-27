@@ -55,20 +55,29 @@ var getBaseUrl = function () {
         // In the browser, use relative URLs
         return '';
     }
-    // In server environment, construct the absolute URL
-    var vercelUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL;
-    if (vercelUrl) {
-        return "https://" + vercelUrl;
+    // For static site generation/build time - use empty string for relative URLs
+    // This prevents external network requests during build
+    if (process.env.NEXT_PUBLIC_SKIP_BUILD_API_CALLS === 'true') {
+        return '';
     }
-    // Fallback to a configured URL or localhost
-    return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    // In server environment, construct the absolute URL
+    // First check NEXT_PUBLIC_API_BASE_URL which can be explicitly set
+    if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+        return process.env.NEXT_PUBLIC_API_BASE_URL;
+    }
+    // Check for Vercel-specific environment variables
+    if (process.env.VERCEL_URL) {
+        return "https://" + process.env.VERCEL_URL;
+    }
+    // Fallback to localhost for development
+    return 'http://localhost:3000';
 };
 /**
  * Fetch all events, optionally filtering by published status and timing
  */
 function getEvents(options) {
     return __awaiter(this, void 0, Promise, function () {
-        var params, queryString, baseUrl, response, events;
+        var params, queryString, baseUrl, url, response, events, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -81,20 +90,32 @@ function getEvents(options) {
                         params.set('upcoming', 'true');
                     queryString = params.toString() ? "?" + params.toString() : '';
                     baseUrl = getBaseUrl();
-                    return [4 /*yield*/, fetch(baseUrl + "/api/events" + queryString, {
-                            method: 'GET',
-                            cache: 'no-store'
-                        })];
+                    url = typeof window === 'undefined'
+                        ? baseUrl + "/api/events" + queryString // Server: absolute URL
+                        : "/api/events" + queryString;
+                    _a.label = 1;
                 case 1:
+                    _a.trys.push([1, 4, , 5]);
+                    return [4 /*yield*/, fetch(url, {
+                            method: 'GET',
+                            //cache: 'no-store'
+                            next: { revalidate: 60 }
+                        })];
+                case 2:
                     response = _a.sent();
                     if (!response.ok) {
-                        throw new Error('Failed to fetch events');
+                        throw new Error("Failed to fetch events: " + response.status);
                     }
                     return [4 /*yield*/, response.json()];
-                case 2:
+                case 3:
                     events = _a.sent();
                     // Convert date strings to Date objects
                     return [2 /*return*/, events.map(function (event) { return (__assign(__assign({}, event), { startDate: new Date(event.startDate), endDate: new Date(event.endDate), createdAt: new Date(event.createdAt), updatedAt: new Date(event.updatedAt) })); })];
+                case 4:
+                    error_1 = _a.sent();
+                    console.error('Error fetching events:', error_1);
+                    throw new Error("Failed to fetch events: " + (error_1 instanceof Error ? error_1.message : String(error_1)));
+                case 5: return [2 /*return*/];
             }
         });
     });
@@ -111,9 +132,10 @@ function getEvent(id) {
             switch (_b.label) {
                 case 0:
                     baseUrl = getBaseUrl();
-                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + id, {
+                    return [4 /*yield*/, fetch("/api/events/" + id, {
                             method: 'GET',
-                            cache: 'no-store'
+                            //cache: 'no-store',
+                            next: { revalidate: 60 }
                         })];
                 case 1:
                     response = _b.sent();

@@ -8,14 +8,25 @@ const getBaseUrl = () => {
     return '';
   }
   
-  // In server environment, construct the absolute URL
-  const vercelUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL;
-  if (vercelUrl) {
-    return `https://${vercelUrl}`;
+  // For static site generation/build time - use empty string for relative URLs
+  // This prevents external network requests during build
+  if (process.env.NEXT_PUBLIC_SKIP_BUILD_API_CALLS === 'true') {
+    return '';
   }
   
-  // Fallback to a configured URL or localhost
-  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  // In server environment, construct the absolute URL
+  // First check NEXT_PUBLIC_API_BASE_URL which can be explicitly set
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  
+  // Check for Vercel-specific environment variables
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Fallback to localhost for development
+  return 'http://localhost:3000';
 };
 
 /**
@@ -33,27 +44,40 @@ export async function getEvents(options?: {
   if (options?.upcoming) params.set('upcoming', 'true');
   
   const queryString = params.toString() ? `?${params.toString()}` : '';
-  const baseUrl = getBaseUrl();
+  const baseUrl = getBaseUrl(); // Restore this line!
   
-  const response = await fetch(`${baseUrl}/api/events${queryString}`, {
-    method: 'GET',
-    cache: 'no-store',
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch events');
+   
+  // Always use absolute URL with baseUrl when on server
+  const url = typeof window === 'undefined' 
+    ? `${baseUrl}/api/events${queryString}` // Server: absolute URL
+    : `/api/events${queryString}`; // Browser: relative URL is fine
+
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      //cache: 'no-store'
+      next: { revalidate: 60 } 
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch events: ${response.status}`);
+    }
+    
+    const events = await response.json();
+    
+    // Convert date strings to Date objects
+    return events.map((event: any) => ({
+      ...event,
+      startDate: new Date(event.startDate),
+      endDate: new Date(event.endDate),
+      createdAt: new Date(event.createdAt),
+      updatedAt: new Date(event.updatedAt),
+    }));
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    throw new Error(`Failed to fetch events: ${error instanceof Error ? error.message : String(error)}`);
   }
-  
-  const events = await response.json();
-  
-  // Convert date strings to Date objects
-  return events.map((event: any) => ({
-    ...event,
-    startDate: new Date(event.startDate),
-    endDate: new Date(event.endDate),
-    createdAt: new Date(event.createdAt),
-    updatedAt: new Date(event.updatedAt),
-  }));
 }
 
 /**
@@ -62,9 +86,11 @@ export async function getEvents(options?: {
 export async function getEvent(id: string): Promise<Event> {
   const baseUrl = getBaseUrl();
   
-  const response = await fetch(`${baseUrl}/api/events/${id}`, {
+  
+  const response = await fetch(`/api/events/${id}`, {
     method: 'GET',
-    cache: 'no-store',
+    //cache: 'no-store',
+    next: { revalidate: 60 } 
   });
   
   if (!response.ok) {
