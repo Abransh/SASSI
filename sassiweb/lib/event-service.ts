@@ -24,18 +24,15 @@ import { Event, EventImage } from '@/types/event';
 // };
 
 // In lib/event-service.ts
+// lib/event-service.ts - Fixed version
+
+
 
 const getBaseUrl = () => {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
     // In the browser, use relative URLs
     return '';
-  }
-  
-  // In development or preview deployments, use a fallback URL
-  // that will work before the domain is live
-  if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV === 'preview') {
-    return 'http://localhost:3000';
   }
   
   // In production, use the configured URL
@@ -65,13 +62,6 @@ export async function getEvents(options?: {
   past?: boolean;
   upcoming?: boolean;
 }): Promise<Event[]> {
-  // During the build process, return an empty array or mock data
-  if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
-    console.log('Skipping API call during build');
-    // Return empty array or some mock data for build
-    return [];
-  }
-
   const params = new URLSearchParams();
   
   if (options?.publishedOnly) params.set('published', 'true');
@@ -81,15 +71,15 @@ export async function getEvents(options?: {
   const queryString = params.toString() ? `?${params.toString()}` : '';
   const baseUrl = getBaseUrl();
   
-  // Always use absolute URL with baseUrl when on server
+  // Use absolute URL for server-side, relative for client-side
   const url = typeof window === 'undefined' 
     ? `${baseUrl}/api/events${queryString}` 
     : `/api/events${queryString}`;
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(url, { 
       method: 'GET',
-      next: { revalidate: 60 } 
+      cache: 'no-store' // Ensure we get fresh data
     });
     
     if (!response.ok) {
@@ -118,14 +108,13 @@ export async function getEvents(options?: {
 export async function getEvent(id: string): Promise<Event> {
   const baseUrl = getBaseUrl();
   
-  // Use baseUrl consistently for server-side calls
   const url = typeof window === 'undefined' 
-    ? `${baseUrl}/api/events/${id}` // Server: absolute URL
-    : `/api/events/${id}`; // Browser: relative URL
+    ? `${baseUrl}/api/events/${id}` 
+    : `/api/events/${id}`;
   
-  const response = await fetch(url, {
+  const response = await fetch(url, { 
     method: 'GET',
-    next: { revalidate: 60 } 
+    cache: 'no-store'
   });
   
   if (!response.ok) {
@@ -134,7 +123,6 @@ export async function getEvent(id: string): Promise<Event> {
   
   const event = await response.json();
   
-  // Rest of the function remains the same
   return {
     ...event,
     startDate: new Date(event.startDate),
@@ -152,15 +140,12 @@ export async function getEvent(id: string): Promise<Event> {
  * Register current user for an event
  */
 export async function registerForEvent(eventId: string): Promise<any> {
-  const baseUrl = getBaseUrl();
-  
-  const url = typeof window === 'undefined' 
-    ? `${baseUrl}/api/events/${eventId}` // Server: absolute URL
-    : `/api/events/${eventId}`; // Browser: relative URL
-  
-  const response = await fetch(url, {
-    method: 'GET',
-    next: { revalidate: 60 } 
+  // FIXED: Changed method from GET to POST
+  const response = await fetch(`/api/events/${eventId}/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
   
   if (!response.ok) {
@@ -175,15 +160,9 @@ export async function registerForEvent(eventId: string): Promise<any> {
  * Cancel registration for an event
  */
 export async function cancelRegistration(eventId: string): Promise<void> {
-  const baseUrl = getBaseUrl();
-  
-  const url = typeof window === 'undefined' 
-    ? `${baseUrl}/api/events/${eventId}` // Server: absolute URL
-    : `/api/events/${eventId}`; // Browser: relative URL
-  
-  const response = await fetch(url, {
-    method: 'GET',
-    next: { revalidate: 60 } 
+  // FIXED: Changed method from GET to DELETE
+  const response = await fetch(`/api/events/${eventId}/register`, {
+    method: 'DELETE',
   });
   
   if (!response.ok) {
@@ -196,11 +175,7 @@ export async function cancelRegistration(eventId: string): Promise<void> {
  * Create a new event (admin only)
  */
 export async function createEvent(eventData: Partial<Event>): Promise<Event> {
-  const baseUrl = getBaseUrl();
-  
-  const response = await fetch(`${baseUrl}/api/events`, 
-    
-    {
+  const response = await fetch('/api/events', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -220,9 +195,7 @@ export async function createEvent(eventData: Partial<Event>): Promise<Event> {
  * Update an existing event (admin only)
  */
 export async function updateEvent(id: string, eventData: Partial<Event>): Promise<Event> {
-  const baseUrl = getBaseUrl();
-  
-  const response = await fetch(`${baseUrl}/api/events/${id}`, {
+  const response = await fetch(`/api/events/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -242,9 +215,7 @@ export async function updateEvent(id: string, eventData: Partial<Event>): Promis
  * Delete an event (admin only)
  */
 export async function deleteEvent(id: string): Promise<void> {
-  const baseUrl = getBaseUrl();
-  
-  const response = await fetch(`${baseUrl}/api/events/${id}`, {
+  const response = await fetch(`/api/events/${id}`, {
     method: 'DELETE',
   });
   
@@ -262,9 +233,7 @@ export async function addEventImage(
   imageUrl: string,
   caption?: string
 ): Promise<EventImage> {
-  const baseUrl = getBaseUrl();
-  
-  const response = await fetch(`${baseUrl}/api/events/${eventId}/gallery`, {
+  const response = await fetch(`/api/events/${eventId}/gallery`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -279,4 +248,3 @@ export async function addEventImage(
   
   return response.json();
 }
-

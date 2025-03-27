@@ -47,7 +47,7 @@ export default function CoreInitiativesSection() {
             {/* Container 1 */}
             <div className="p-12 rounded-[2rem] bg-[#14213D]">
               <h3 className="text-4xl font-serif mb-6 text-[#FFFFFF]">Community Outreach</h3>
-              <p className="text-lg text-[#FFFFFF]leading-relaxed">
+              <p className="text-lg text-[#FFFFFF] leading-relaxed">
                 We strive to build a vibrant and inclusive community that connects Indian students in Milan with local
                 and global networks. Through cultural events, social initiatives, and collaborative projects, we aim to
                 foster a sense of belonging and mutual support while promoting cross-cultural understanding.

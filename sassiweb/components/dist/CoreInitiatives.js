@@ -37,7 +37,7 @@ function CoreInitiativesSection() {
                 React.createElement("div", { className: "space-y-8" },
                     React.createElement("div", { className: "p-12 rounded-[2rem] bg-[#14213D]" },
                         React.createElement("h3", { className: "text-4xl font-serif mb-6 text-[#FFFFFF]" }, "Community Outreach"),
-                        React.createElement("p", { className: "text-lg text-[#FFFFFF]leading-relaxed" }, "We strive to build a vibrant and inclusive community that connects Indian students in Milan with local and global networks. Through cultural events, social initiatives, and collaborative projects, we aim to foster a sense of belonging and mutual support while promoting cross-cultural understanding.")),
+                        React.createElement("p", { className: "text-lg text-[#FFFFFF] leading-relaxed" }, "We strive to build a vibrant and inclusive community that connects Indian students in Milan with local and global networks. Through cultural events, social initiatives, and collaborative projects, we aim to foster a sense of belonging and mutual support while promoting cross-cultural understanding.")),
                     React.createElement("div", { className: "p-12 rounded-[2rem] bg-[#14213D]" },
                         React.createElement("h3", { className: "text-4xl font-serif mb-6 text-[#FFFFFF]" }, "Academic Excellence"),
                         React.createElement("p", { className: "text-lg text-[#FFFFFF] leading-relaxed" }, "We are committed to supporting the academic journey of Indian students in Milan through mentorship programs, study groups, and resource sharing. Our goal is to help students navigate the Italian education system successfully and achieve their full academic potential.")),
