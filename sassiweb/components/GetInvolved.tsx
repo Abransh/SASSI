@@ -21,7 +21,7 @@ export default function GetInvolvedSection() {
           {/* Get Involved Button */}
           <div className="absolute right-0 bottom-10 md:right-0 md:bottom-20">
             <Link
-              href="/join-us"
+              href="/join/team"
               className="font-serif text-5xl md:text-6xl text-yellow-300 hover:text-yellow-200 transition-colors flex items-center"
             >
                Get Involved
