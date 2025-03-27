@@ -8,16 +8,10 @@ const getBaseUrl = () => {
     return '';
   }
   
-  // For static site generation/build time - use empty string for relative URLs
-  // This prevents external network requests during build
-  if (process.env.NEXT_PUBLIC_SKIP_BUILD_API_CALLS === 'true') {
-    return '';
-  }
-  
   // In server environment, construct the absolute URL
-  // First check NEXT_PUBLIC_API_BASE_URL which can be explicitly set
-  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  // First check NEXTAUTH_URL which is usually set to the canonical domain
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL;
   }
   
   // Check for Vercel-specific environment variables
@@ -86,10 +80,13 @@ export async function getEvents(options?: {
 export async function getEvent(id: string): Promise<Event> {
   const baseUrl = getBaseUrl();
   
+  // Use baseUrl consistently for server-side calls
+  const url = typeof window === 'undefined' 
+    ? `${baseUrl}/api/events/${id}` // Server: absolute URL
+    : `/api/events/${id}`; // Browser: relative URL
   
-  const response = await fetch(`/api/events/${id}`, {
+  const response = await fetch(url, {
     method: 'GET',
-    //cache: 'no-store',
     next: { revalidate: 60 } 
   });
   
@@ -99,7 +96,7 @@ export async function getEvent(id: string): Promise<Event> {
   
   const event = await response.json();
   
-  // Convert date strings to Date objects
+  // Rest of the function remains the same
   return {
     ...event,
     startDate: new Date(event.startDate),
@@ -119,8 +116,13 @@ export async function getEvent(id: string): Promise<Event> {
 export async function registerForEvent(eventId: string): Promise<any> {
   const baseUrl = getBaseUrl();
   
-  const response = await fetch(`${baseUrl}/api/events/${eventId}/register`, {
-    method: 'POST',
+  const url = typeof window === 'undefined' 
+    ? `${baseUrl}/api/events/${eventId}` // Server: absolute URL
+    : `/api/events/${eventId}`; // Browser: relative URL
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    next: { revalidate: 60 } 
   });
   
   if (!response.ok) {
@@ -137,8 +139,13 @@ export async function registerForEvent(eventId: string): Promise<any> {
 export async function cancelRegistration(eventId: string): Promise<void> {
   const baseUrl = getBaseUrl();
   
-  const response = await fetch(`${baseUrl}/api/events/${eventId}/register`, {
-    method: 'DELETE',
+  const url = typeof window === 'undefined' 
+    ? `${baseUrl}/api/events/${eventId}` // Server: absolute URL
+    : `/api/events/${eventId}`; // Browser: relative URL
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    next: { revalidate: 60 } 
   });
   
   if (!response.ok) {
@@ -153,7 +160,9 @@ export async function cancelRegistration(eventId: string): Promise<void> {
 export async function createEvent(eventData: Partial<Event>): Promise<Event> {
   const baseUrl = getBaseUrl();
   
-  const response = await fetch(`${baseUrl}/api/events`, {
+  const response = await fetch(`${baseUrl}/api/events`, 
+    
+    {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

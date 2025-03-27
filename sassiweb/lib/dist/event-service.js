@@ -55,15 +55,10 @@ var getBaseUrl = function () {
         // In the browser, use relative URLs
         return '';
     }
-    // For static site generation/build time - use empty string for relative URLs
-    // This prevents external network requests during build
-    if (process.env.NEXT_PUBLIC_SKIP_BUILD_API_CALLS === 'true') {
-        return '';
-    }
     // In server environment, construct the absolute URL
-    // First check NEXT_PUBLIC_API_BASE_URL which can be explicitly set
-    if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-        return process.env.NEXT_PUBLIC_API_BASE_URL;
+    // First check NEXTAUTH_URL which is usually set to the canonical domain
+    if (process.env.NEXTAUTH_URL) {
+        return process.env.NEXTAUTH_URL;
     }
     // Check for Vercel-specific environment variables
     if (process.env.VERCEL_URL) {
@@ -127,14 +122,16 @@ exports.getEvents = getEvents;
 function getEvent(id) {
     var _a;
     return __awaiter(this, void 0, Promise, function () {
-        var baseUrl, response, event;
+        var baseUrl, url, response, event;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     baseUrl = getBaseUrl();
-                    return [4 /*yield*/, fetch("/api/events/" + id, {
+                    url = typeof window === 'undefined'
+                        ? baseUrl + "/api/events/" + id // Server: absolute URL
+                        : "/api/events/" + id;
+                    return [4 /*yield*/, fetch(url, {
                             method: 'GET',
-                            //cache: 'no-store',
                             next: { revalidate: 60 }
                         })];
                 case 1:
@@ -145,7 +142,7 @@ function getEvent(id) {
                     return [4 /*yield*/, response.json()];
                 case 2:
                     event = _b.sent();
-                    // Convert date strings to Date objects
+                    // Rest of the function remains the same
                     return [2 /*return*/, __assign(__assign({}, event), { startDate: new Date(event.startDate), endDate: new Date(event.endDate), createdAt: new Date(event.createdAt), updatedAt: new Date(event.updatedAt), gallery: (_a = event.gallery) === null || _a === void 0 ? void 0 : _a.map(function (img) { return (__assign(__assign({}, img), { createdAt: new Date(img.createdAt) })); }) })];
             }
         });
@@ -157,13 +154,17 @@ exports.getEvent = getEvent;
  */
 function registerForEvent(eventId) {
     return __awaiter(this, void 0, Promise, function () {
-        var baseUrl, response, error;
+        var baseUrl, url, response, error;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     baseUrl = getBaseUrl();
-                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + eventId + "/register", {
-                            method: 'POST'
+                    url = typeof window === 'undefined'
+                        ? baseUrl + "/api/events/" + eventId // Server: absolute URL
+                        : "/api/events/" + eventId;
+                    return [4 /*yield*/, fetch(url, {
+                            method: 'GET',
+                            next: { revalidate: 60 }
                         })];
                 case 1:
                     response = _a.sent();
@@ -183,13 +184,17 @@ exports.registerForEvent = registerForEvent;
  */
 function cancelRegistration(eventId) {
     return __awaiter(this, void 0, Promise, function () {
-        var baseUrl, response, error;
+        var baseUrl, url, response, error;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     baseUrl = getBaseUrl();
-                    return [4 /*yield*/, fetch(baseUrl + "/api/events/" + eventId + "/register", {
-                            method: 'DELETE'
+                    url = typeof window === 'undefined'
+                        ? baseUrl + "/api/events/" + eventId // Server: absolute URL
+                        : "/api/events/" + eventId;
+                    return [4 /*yield*/, fetch(url, {
+                            method: 'GET',
+                            next: { revalidate: 60 }
                         })];
                 case 1:
                     response = _a.sent();
