@@ -89,39 +89,40 @@ export default function TeamRegistrationPage() {
     setIsConfirming(true);
   };
   
-  const handleConfirm = async () => {
-    if (!selectedDepartment) return;
+  // In app/join/team/page.tsx, update the handleConfirm function
+const handleConfirm = async () => {
+  if (!selectedDepartment) return;
+  
+  setIsSubmitting(true);
+  
+  try {
+    // Send team application to the API
+    const response = await fetch("/api/user/team-application", {  // Updated endpoint
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        department: selectedDepartment,
+        motivation: motivation
+      }),
+    });
     
-    setIsSubmitting(true);
-    
-    try {
-      // Send team application to the API
-      const response = await fetch("/api/join/team", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          department: selectedDepartment,
-          motivation: motivation
-        }),
-      });
-      
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to submit application");
-      }
-      
-      // Show success screen
-      setIsSuccess(true);
-      
-    } catch (error) {
-      console.error("Error submitting application:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to submit your application. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || "Failed to submit application");
     }
-  };
+    
+    // Show success screen
+    setIsSuccess(true);
+    
+  } catch (error) {
+    console.error("Error submitting application:", error);
+    toast.error(error instanceof Error ? error.message : "Failed to submit your application. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   
   const handleChangeSelection = () => {
     setIsConfirming(false);
