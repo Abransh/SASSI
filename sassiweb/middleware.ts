@@ -33,21 +33,23 @@ export async function middleware(request: NextRequest) {
     
     // If there's no token, redirect to sign in
     if (!token) {
+      // Store the absolute URL they were trying to access
+      const fullUrl = request.nextUrl.toString();
       const url = new URL('/auth/signin', request.url);
-      url.searchParams.set('callbackUrl', request.url);
+      url.searchParams.set('callbackUrl', fullUrl);
       
       return NextResponse.redirect(url);
     }
   }
 
-  // Add a more secure Content-Security-Policy header to all responses
+  // Add more secure Content-Security-Policy headers
   const response = NextResponse.next();
+  
+  // Add security headers
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*; font-src 'self' data:; connect-src 'self' https://*;"
   );
-  
-  // Add additional security headers
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');

@@ -28,23 +28,33 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
+      console.log("Signing in with callback URL:", callbackUrl);
+      
       const result = await signIn("credentials", {
         redirect: false,
         email,
         password,
-        callbackUrl,
       });
 
       if (!result?.ok) {
         throw new Error(result?.error || "Failed to sign in");
       }
 
-      router.push(callbackUrl);
+      // Success message
       toast.success("Signed in successfully");
+      
+      // For more reliable redirection, especially for external URLs
+      console.log("Sign-in successful, redirecting to:", callbackUrl);
+      
+      // Small delay to ensure toast is shown
+      setTimeout(() => {
+        // Use window.location for more reliable redirection
+        window.location.href = callbackUrl;
+      }, 300);
+      
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error(error instanceof Error ? error.message : "Invalid email or password");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -121,12 +131,17 @@ function SignInForm() {
         <p className="text-sm text-gray-600">
           Don&apos;t have an account?{" "}
           <Link
-            href="/auth/signup"
+            href="/join/member"
             className="text-orange-600 hover:text-orange-800 font-medium"
           >
-            Sign Up
+            Join SASSI
           </Link>
         </p>
+      </div>
+
+      {/* Hidden debug information */}
+      <div className="text-xs text-gray-400 mt-6 text-center hidden">
+        Callback URL: {callbackUrl}
       </div>
     </>
   );

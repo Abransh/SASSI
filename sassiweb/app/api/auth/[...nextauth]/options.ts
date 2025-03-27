@@ -1,4 +1,4 @@
-// app/api/auth/[...nextauth]/options.ts
+// app/api/auth/[...nextauth]/options.ts - Updated for better redirection support
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
@@ -66,6 +66,23 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+    // Add redirect callback to handle redirection after sign-in
+    redirect: ({ url, baseUrl }) => {
+      // If the URL starts with the base URL, it's a relative URL
+      if (url.startsWith(baseUrl)) return url;
+      
+      // If the URL is relative, it should be safe to redirect
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      
+      // Allow redirects to the same domain
+      const urlObj = new URL(url);
+      const baseUrlObj = new URL(baseUrl);
+      
+      if (urlObj.hostname === baseUrlObj.hostname) return url;
+      
+      // Default fallback to baseUrl
+      return baseUrl;
+    },
   },
   pages: {
     signIn: '/auth/signin',
@@ -74,6 +91,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
