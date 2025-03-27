@@ -4,6 +4,11 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // Add debug logging to check the path 
+
+  
+  // Rest of your middleware code...
+  console.log("Middleware checking path:", request.nextUrl.pathname);
   
   // Check if the path starts with /admin
   if (pathname.startsWith('/admin')) {

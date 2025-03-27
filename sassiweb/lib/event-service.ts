@@ -1,6 +1,30 @@
 import { Event, EventImage } from '@/types/event';
 
-// Helper to get the base URL for API calls
+// // Helper to get the base URL for API calls
+// const getBaseUrl = () => {
+//   // Check if we're in a browser environment
+//   if (typeof window !== 'undefined') {
+//     // In the browser, use relative URLs
+//     return '';
+//   }
+  
+//   // In server environment, construct the absolute URL
+//   // First check NEXTAUTH_URL which is usually set to the canonical domain
+//   if (process.env.NEXTAUTH_URL) {
+//     return process.env.NEXTAUTH_URL;
+//   }
+  
+//   // Check for Vercel-specific environment variables
+//   if (process.env.VERCEL_URL) {
+//     return `https://${process.env.VERCEL_URL}`;
+//   }
+  
+//   // Fallback to localhost for development
+//   return 'http://localhost:3000';
+// };
+
+// In lib/event-service.ts
+
 const getBaseUrl = () => {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
@@ -8,10 +32,15 @@ const getBaseUrl = () => {
     return '';
   }
   
-  // In server environment, construct the absolute URL
-  // First check NEXTAUTH_URL which is usually set to the canonical domain
-  if (process.env.NEXTAUTH_URL) {
-    return process.env.NEXTAUTH_URL;
+  // In development or preview deployments, use a fallback URL
+  // that will work before the domain is live
+  if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV === 'preview') {
+    return 'http://localhost:3000';
+  }
+  
+  // In production, use the configured URL
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
   }
   
   // Check for Vercel-specific environment variables
@@ -19,7 +48,12 @@ const getBaseUrl = () => {
     return `https://${process.env.VERCEL_URL}`;
   }
   
-  // Fallback to localhost for development
+  // Fallback to the NEXTAUTH_URL if configured
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL;
+  }
+  
+  // Last resort fallback
   return 'http://localhost:3000';
 };
 
@@ -31,6 +65,13 @@ export async function getEvents(options?: {
   past?: boolean;
   upcoming?: boolean;
 }): Promise<Event[]> {
+  // During the build process, return an empty array or mock data
+  if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
+    console.log('Skipping API call during build');
+    // Return empty array or some mock data for build
+    return [];
+  }
+
   const params = new URLSearchParams();
   
   if (options?.publishedOnly) params.set('published', 'true');
@@ -38,19 +79,16 @@ export async function getEvents(options?: {
   if (options?.upcoming) params.set('upcoming', 'true');
   
   const queryString = params.toString() ? `?${params.toString()}` : '';
-  const baseUrl = getBaseUrl(); // Restore this line!
+  const baseUrl = getBaseUrl();
   
-   
   // Always use absolute URL with baseUrl when on server
   const url = typeof window === 'undefined' 
-    ? `${baseUrl}/api/events${queryString}` // Server: absolute URL
-    : `/api/events${queryString}`; // Browser: relative URL is fine
-
+    ? `${baseUrl}/api/events${queryString}` 
+    : `/api/events${queryString}`;
 
   try {
     const response = await fetch(url, {
       method: 'GET',
-      //cache: 'no-store'
       next: { revalidate: 60 } 
     });
     

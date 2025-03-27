@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]/options";
@@ -9,7 +11,7 @@ import Link from "next/link";
 import { User, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import UniversityFilter from "@/components/UniversityFilter";
-export const dynamic = 'force-dynamic';
+
 
 export default async function MembersPage(props: any) {
   const { searchParams } = props;
