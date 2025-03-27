@@ -12,6 +12,7 @@ import MobileMenu from "@/components/MobileMenu";
 import PlaneAnimation from "@/components/PlaneScroll";
 import UniNetworks from "@/components/UniNetworks";
 import VisionSection from "@/components/vision";
+import ContactSection from "@/components/ui/ContactSection";
 
 
 
@@ -33,6 +34,7 @@ export default function Home() {
       
       <GetInvolvedSection />
       <ContactForm />
+      {/* <ContactSection /> */}
       <Footer />
     </main>
   );
