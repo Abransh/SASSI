@@ -2,12 +2,10 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from "@/lib/prisma";
-import { format } from "date-fns";
 import Header from "@/components/Header";
 import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
-import Link from "next/link";
-import { Mail, Check, MailOpen } from "lucide-react";
+import ContactSubmissionList from "@/components/admin/ContactSubmissionList";
 
 export default async function ContactSubmissionsPage() {
   // Check if user is authenticated and is an admin
@@ -18,20 +16,26 @@ export default async function ContactSubmissionsPage() {
   }
   
   // Fetch contact submissions
-  const contactSubmissions = await prisma.contactSubmission.findMany({
-    orderBy: {
-      createdAt: "desc"
-    }
-  });
+const contactSubmissions = await prisma.contactSubmission.findMany({
+  orderBy: {
+    createdAt: "desc"
+  }
+});
+
+// Convert `createdAt` to a string for compatibility
+const formattedSubmissions = contactSubmissions.map((submission) => ({
+  ...submission,
+  createdAt: submission.createdAt.toISOString(), // Convert Date to string
+}));
   
   // Group submissions by status
-  const pendingSubmissions = contactSubmissions.filter(
-    (submission: { responded: boolean }) => !submission.responded
-  );
-  
-  const respondedSubmissions = contactSubmissions.filter(
-    (submission: { responded: boolean }) => submission.responded
-  );
+const pendingSubmissions = formattedSubmissions.filter(
+  (submission) => !submission.responded
+);
+
+const respondedSubmissions = formattedSubmissions.filter(
+  (submission) => submission.responded
+);
   
   return (
     <main className="min-h-screen bg-gray-50">
@@ -61,71 +65,7 @@ export default async function ContactSubmissionsPage() {
             </div>
             
             {/* Submissions List */}
-            <div className="divide-y divide-gray-200">
-                 {pendingSubmissions.length > 0 ? (
-                   pendingSubmissions.map(
-                    (submission: {
-                    id: string;
-                      subject: string;
-                     name: string;
-                     email: string;
-                      createdAt: Date;
-                     message: string;
-                      responded: boolean;
-                     }) => (
-                  <div key={submission.id} className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900">
-                          {submission.subject}
-                        </h3>
-                        <div className="mt-1 flex items-center">
-                          <span className="text-sm font-medium text-gray-700 mr-2">
-                            {submission.name}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            &lt;{submission.email}&gt;
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        {format(new Date(submission.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                      </span>
-                    </div>
-                    
-                    <div className="mt-2 text-sm text-gray-700 whitespace-pre-line mb-4">
-                      {submission.message}
-                    </div>
-                    
-                    <div className="mt-4 flex gap-4">
-                      <a
-                        href={`mailto:${submission.email}?subject=Re: ${submission.subject}`}
-                        className="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md"
-                      >
-                        <Mail className="mr-2 h-4 w-4" />
-                        Reply via Email
-                      </a>
-                      
-                      <Link
-                        href={`/admin/contact/${submission.id}/mark-responded`}
-                        className="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-md"
-                      >
-                        <Check className="mr-2 h-4 w-4" />
-                        Mark as Responded
-                      </Link>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="py-20 text-center">
-                  <MailOpen className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-lg font-medium text-gray-900">No Pending Messages</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    You have responded to all messages. Check back later for new submissions.
-                  </p>
-                </div>
-              )}
-            </div>
+            <ContactSubmissionList submissions={pendingSubmissions} />
           </div>
         </div>
       </section>
