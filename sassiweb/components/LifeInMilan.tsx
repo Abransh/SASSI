@@ -1,3 +1,5 @@
+// components/LifeInMilan.tsx - Updated version
+
 import Link from "next/link"
 import Image from "next/image"
 
@@ -28,7 +30,7 @@ export default function LifeInMilanSection() {
           {/* Before Arrival */}
           <div className="flex flex-col items-center">
             <Link
-              href="#before-arrival"
+              href="/resources/before-arrival"
               className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
             >
               BEFORE ARRIVAL
@@ -36,13 +38,13 @@ export default function LifeInMilanSection() {
             <p className="text-center text-gray-700">Essential tips to prepare before you arrive in Italy.</p>
           </div>
 
-          {/* Welcome to Italy */}
+          {/* Living in Milan */}
           <div className="flex flex-col items-center">
             <Link
-              href="#welcome-to-italy"
+              href="/resources/living-in-milan"
               className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
             >
-              WELCOME TO ITALY
+              LIVING IN MILAN
             </Link>
             <p className="text-center text-gray-700">A guide to settling in and navigating life in Milan.</p>
           </div>
@@ -50,7 +52,7 @@ export default function LifeInMilanSection() {
           {/* After Graduation */}
           <div className="flex flex-col items-center">
             <Link
-              href="#after-graduation"
+              href="/resources/after-graduation"
               className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
             >
               AFTER GRADUATION
@@ -61,7 +63,7 @@ export default function LifeInMilanSection() {
            {/* FAQs */}
            <div className="flex flex-col items-center">
             <Link
-              href="#faqs"
+              href="/faqs"
               className="mb-4 bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors"
             >
               FAQS

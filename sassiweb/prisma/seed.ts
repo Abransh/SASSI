@@ -1,3 +1,5 @@
+// prisma/seed.ts - Updated to include resource categories
+
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcrypt';
 
@@ -52,6 +54,88 @@ async function main() {
   });
 
   console.log({ sampleEvent1, sampleEvent2 });
+  
+  // Create resource categories
+  const categoryBeforeArrival = await prisma.resourceCategory.upsert({
+    where: { slug: 'before-arrival' },
+    update: {},
+    create: {
+      name: 'Before Arrival',
+      slug: 'before-arrival',
+      description: 'Everything you need to know before coming to Milan - visas, accommodation, and preparation tips.',
+      order: 1,
+    },
+  });
+  
+  const categoryLivingInMilan = await prisma.resourceCategory.upsert({
+    where: { slug: 'living-in-milan' },
+    update: {},
+    create: {
+      name: 'Living in Milan',
+      slug: 'living-in-milan',
+      description: 'Resources to help you settle in and navigate daily life in Milan - from transportation to healthcare.',
+      order: 2,
+    },
+  });
+  
+  const categoryAfterGraduation = await prisma.resourceCategory.upsert({
+    where: { slug: 'after-graduation' },
+    update: {},
+    create: {
+      name: 'After Graduation',
+      slug: 'after-graduation',
+      description: 'Resources for your next steps after completing your studies - career opportunities, staying in Italy, and more.',
+      order: 3,
+    },
+  });
+  
+  console.log({ 
+    categoryBeforeArrival, 
+    categoryLivingInMilan, 
+    categoryAfterGraduation 
+  });
+  
+  // Create sample resources
+  const resource1 = await prisma.resource.upsert({
+    where: { id: 'resource1' },
+    update: {},
+    create: {
+      title: 'Complete Guide to Student Visas',
+      description: 'Step-by-step instructions for obtaining your Italian student visa, including required documents and application tips.',
+      fileUrl: 'https://example.com/resources/visa-guide.pdf',
+      resourceType: 'GUIDE',
+      featured: true,
+      categoryId: categoryBeforeArrival.id,
+    },
+  });
+  
+  const resource2 = await prisma.resource.upsert({
+    where: { id: 'resource2' },
+    update: {},
+    create: {
+      title: 'Milan Transportation Guide',
+      description: 'Guide to navigating Milan\'s public transportation system, including metro, trams, buses, and student discounts.',
+      fileUrl: 'https://example.com/resources/transportation-guide.pdf',
+      resourceType: 'GUIDE',
+      featured: true,
+      categoryId: categoryLivingInMilan.id,
+    },
+  });
+  
+  const resource3 = await prisma.resource.upsert({
+    where: { id: 'resource3' },
+    update: {},
+    create: {
+      title: 'CV Template for Italian Job Market',
+      description: 'Customized CV template for international students looking for jobs in Italy, with tips on adapting your resume.',
+      fileUrl: 'https://example.com/resources/cv-template.docx',
+      resourceType: 'TEMPLATE',
+      featured: true,
+      categoryId: categoryAfterGraduation.id,
+    },
+  });
+  
+  console.log({ resource1, resource2, resource3 });
 }
 
 main()

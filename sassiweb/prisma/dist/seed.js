@@ -1,4 +1,5 @@
 "use strict";
+// prisma/seed.ts - Updated to include resource categories
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -41,7 +42,7 @@ var bcrypt_1 = require("bcrypt");
 var prisma = new client_1.PrismaClient();
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var adminPassword, admin, sampleEvent1, sampleEvent2;
+        var adminPassword, admin, sampleEvent1, sampleEvent2, categoryBeforeArrival, categoryLivingInMilan, categoryAfterGraduation, resource1, resource2, resource3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, bcrypt_1.hash('Admin@SASSI123', 10)];
@@ -95,6 +96,90 @@ function main() {
                 case 4:
                     sampleEvent2 = _a.sent();
                     console.log({ sampleEvent1: sampleEvent1, sampleEvent2: sampleEvent2 });
+                    return [4 /*yield*/, prisma.resourceCategory.upsert({
+                            where: { slug: 'before-arrival' },
+                            update: {},
+                            create: {
+                                name: 'Before Arrival',
+                                slug: 'before-arrival',
+                                description: 'Everything you need to know before coming to Milan - visas, accommodation, and preparation tips.',
+                                order: 1
+                            }
+                        })];
+                case 5:
+                    categoryBeforeArrival = _a.sent();
+                    return [4 /*yield*/, prisma.resourceCategory.upsert({
+                            where: { slug: 'living-in-milan' },
+                            update: {},
+                            create: {
+                                name: 'Living in Milan',
+                                slug: 'living-in-milan',
+                                description: 'Resources to help you settle in and navigate daily life in Milan - from transportation to healthcare.',
+                                order: 2
+                            }
+                        })];
+                case 6:
+                    categoryLivingInMilan = _a.sent();
+                    return [4 /*yield*/, prisma.resourceCategory.upsert({
+                            where: { slug: 'after-graduation' },
+                            update: {},
+                            create: {
+                                name: 'After Graduation',
+                                slug: 'after-graduation',
+                                description: 'Resources for your next steps after completing your studies - career opportunities, staying in Italy, and more.',
+                                order: 3
+                            }
+                        })];
+                case 7:
+                    categoryAfterGraduation = _a.sent();
+                    console.log({
+                        categoryBeforeArrival: categoryBeforeArrival,
+                        categoryLivingInMilan: categoryLivingInMilan,
+                        categoryAfterGraduation: categoryAfterGraduation
+                    });
+                    return [4 /*yield*/, prisma.resource.upsert({
+                            where: { id: 'resource1' },
+                            update: {},
+                            create: {
+                                title: 'Complete Guide to Student Visas',
+                                description: 'Step-by-step instructions for obtaining your Italian student visa, including required documents and application tips.',
+                                fileUrl: 'https://example.com/resources/visa-guide.pdf',
+                                resourceType: 'GUIDE',
+                                featured: true,
+                                categoryId: categoryBeforeArrival.id
+                            }
+                        })];
+                case 8:
+                    resource1 = _a.sent();
+                    return [4 /*yield*/, prisma.resource.upsert({
+                            where: { id: 'resource2' },
+                            update: {},
+                            create: {
+                                title: 'Milan Transportation Guide',
+                                description: 'Guide to navigating Milan\'s public transportation system, including metro, trams, buses, and student discounts.',
+                                fileUrl: 'https://example.com/resources/transportation-guide.pdf',
+                                resourceType: 'GUIDE',
+                                featured: true,
+                                categoryId: categoryLivingInMilan.id
+                            }
+                        })];
+                case 9:
+                    resource2 = _a.sent();
+                    return [4 /*yield*/, prisma.resource.upsert({
+                            where: { id: 'resource3' },
+                            update: {},
+                            create: {
+                                title: 'CV Template for Italian Job Market',
+                                description: 'Customized CV template for international students looking for jobs in Italy, with tips on adapting your resume.',
+                                fileUrl: 'https://example.com/resources/cv-template.docx',
+                                resourceType: 'TEMPLATE',
+                                featured: true,
+                                categoryId: categoryAfterGraduation.id
+                            }
+                        })];
+                case 10:
+                    resource3 = _a.sent();
+                    console.log({ resource1: resource1, resource2: resource2, resource3: resource3 });
                     return [2 /*return*/];
             }
         });

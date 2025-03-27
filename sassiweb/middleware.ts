@@ -1,14 +1,11 @@
+// middleware.ts - Updated to handle resource pages authentication
+
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  // Add debug logging to check the path 
-
-  
-  // Rest of your middleware code...
-  console.log("Middleware checking path:", request.nextUrl.pathname);
   
   // Check if the path starts with /admin
   if (pathname.startsWith('/admin')) {
@@ -20,6 +17,22 @@ export async function middleware(request: NextRequest) {
     // If there's no token or the user is not an admin
     if (!token || token.role !== 'ADMIN') {
       // Store the original URL they were trying to access
+      const url = new URL('/auth/signin', request.url);
+      url.searchParams.set('callbackUrl', request.url);
+      
+      return NextResponse.redirect(url);
+    }
+  }
+  
+  // Check if the path starts with /resources
+  if (pathname.startsWith('/resources')) {
+    const token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET 
+    });
+    
+    // If there's no token, redirect to sign in
+    if (!token) {
       const url = new URL('/auth/signin', request.url);
       url.searchParams.set('callbackUrl', request.url);
       
@@ -43,7 +56,7 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// Only run middleware on admin paths
+// Run middleware on admin and resources paths
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: ['/admin/:path*', '/resources/:path*']
 };

@@ -1,6 +1,3 @@
-// This is your Prisma schema file
-// Learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,158 +7,115 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model for authentication
 model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email         String         @unique
-  password      String
-  image         String?
-  role          Role           @default(USER)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  
-  // Enhanced profile fields
-  university    String?
-  course        String?
-  graduationYear Int?
-  bio           String?        @db.Text
-  phoneNumber   String?
-  city          String?        // City in India
-  linkedinUrl   String?
-  isProfilePublic Boolean      @default(true)
-  isVerified    Boolean        @default(false)
-  paymentVerified Boolean      @default(false)
+  id                   String              @id @default(cuid())
+  name                 String?
+  email                String              @unique
+  password             String
+  image                String?
+  role                 Role                @default(USER)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  bio                  String?
+  city                 String?
+  course               String?
+  graduationYear       Int?
+  isProfilePublic      Boolean             @default(true)
+  isVerified           Boolean             @default(false)
+  linkedinUrl          String?
+  phoneNumber          String?
+  university           String?
   membershipExpiryDate DateTime?
-
-  // Relations
-  events        Event[]        // Events created by this user
-  registrations Registration[]
-  profile       Profile?
-  resourceViews ResourceView[]
-  membershipRequests MembershipRequest[]
-  teamApplications TeamApplication[]
+  paymentVerified      Boolean             @default(false)
+  events               Event[]
+  membershipRequests   MembershipRequest[]
+  profile              Profile?
+  registrations        Registration[]
+  resourceViews        ResourceView[]
+  teamApplications     TeamApplication[]
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
-// Extended profile information
 model Profile {
-  id            String    @id @default(cuid())
-  userId        String    @unique
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Academic information
+  id                String   @id @default(cuid())
+  userId            String   @unique
   universityInIndia String?
-  degreeInIndia    String?
-  
-  // Experience in Milan
-  yearOfArrival    Int?
-  residenceArea    String?
-  
-  // Interests and skills
-  interests       String?   @db.Text
-  skills          String?   @db.Text
-  
-  // Visibility preferences
-  showEmail       Boolean   @default(false)
-  showPhone       Boolean   @default(false)
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  degreeInIndia     String?
+  yearOfArrival     Int?
+  residenceArea     String?
+  interests         String?
+  skills            String?
+  showEmail         Boolean  @default(false)
+  showPhone         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// New model for membership requests
 model MembershipRequest {
-  id            String    @id @default(cuid())
-  firstName     String
-  lastName      String
-  email         String
-  isStudent     Boolean   @default(true)
-  university    String
-  codiceFiscale String?
-  status        RequestStatus @default(PENDING)
+  id               String        @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String
+  isStudent        Boolean       @default(true)
+  university       String
+  codiceFiscale    String?
+  status           RequestStatus @default(PENDING)
   paymentReference String?
-  notes         String?   @db.Text
-  
-  // Relations
-  userId        String?   // Optional: Will be set once the user is created
-  user          User?     @relation(fields: [userId], references: [id])
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  reviewedBy    String?   // Admin user ID who reviewed this request
-  reviewedAt    DateTime?
+  notes            String?
+  userId           String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  user             User?         @relation(fields: [userId], references: [id])
 }
 
-// New model for team applications
 model TeamApplication {
-  id            String    @id @default(cuid())
-  department    String    // One of the department options
-  motivation    String?   @db.Text
-  status        RequestStatus @default(PENDING)
-  notes         String?   @db.Text
-  
-  // Relations
-  userId        String    // The user who applied
-  user          User      @relation(fields: [userId], references: [id])
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  reviewedBy    String?   // Admin user ID who reviewed this application
-  reviewedAt    DateTime?
+  id         String        @id @default(cuid())
+  department String
+  motivation String?
+  status     RequestStatus @default(PENDING)
+  notes      String?
+  userId     String
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  reviewedBy String?
+  reviewedAt DateTime?
+  user       User          @relation(fields: [userId], references: [id])
 }
 
-enum RequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-// Event model
 model Event {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   title         String
   description   String
-  content       String?   @db.Text
+  content       String?
   location      String
   startDate     DateTime
   endDate       DateTime
   imageUrl      String?
   maxAttendees  Int?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   createdBy     String
-  published     Boolean   @default(false)
-  registrations Registration[]
+  published     Boolean        @default(false)
+  author        User           @relation(fields: [createdBy], references: [id])
   gallery       EventImage[]
-  author        User      @relation(fields: [createdBy], references: [id])
+  registrations Registration[]
 }
 
-// Registration model for event RSVPs
 model Registration {
-  id        String   @id @default(cuid())
+  id        String             @id @default(cuid())
   eventId   String
   userId    String
   status    RegistrationStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId])
 }
 
-enum RegistrationStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-}
-
-// EventImage model for event galleries
 model EventImage {
   id        String   @id @default(cuid())
   eventId   String
@@ -171,45 +125,72 @@ model EventImage {
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
-// Contact form submissions
 model ContactSubmission {
   id        String   @id @default(cuid())
   name      String
   email     String
   subject   String
-  message   String   @db.Text
+  message   String
   createdAt DateTime @default(now())
   responded Boolean  @default(false)
 }
 
-// Resource hub models
 model ResourceCategory {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   name        String
-  slug        String    @unique
-  description String?   @db.Text
+  slug        String     @unique
+  description String?
   imageUrl    String?
-  order       Int       @default(0)
+  order       Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   resources   Resource[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
 }
 
 model Resource {
-  id          String    @id @default(cuid())
-  title       String
-  description String    @db.Text
-  fileUrl     String    // URL to downloadable file
-  thumbnailUrl String?  // Preview image
-  categoryId  String
-  category    ResourceCategory @relation(fields: [categoryId], references: [id])
-  featured    Boolean   @default(false)
-  resourceType ResourceType @default(DOCUMENT)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  viewCount   Int       @default(0)
-  downloadCount Int     @default(0)
+  id            String           @id @default(cuid())
+  title         String
+  description   String
+  fileUrl       String
+  thumbnailUrl  String?
+  categoryId    String
+  featured      Boolean          @default(false)
+  resourceType  ResourceType     @default(DOCUMENT)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  viewCount     Int              @default(0)
+  downloadCount Int              @default(0)
+  category      ResourceCategory @relation(fields: [categoryId], references: [id])
   resourceViews ResourceView[]
+}
+
+model ResourceView {
+  id         String   @id @default(cuid())
+  resourceId String
+  userId     String
+  viewedAt   DateTime @default(now())
+  downloaded Boolean  @default(false)
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceId, userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
 }
 
 enum ResourceType {
@@ -218,16 +199,4 @@ enum ResourceType {
   GUIDE
   VIDEO
   LINK
-}
-
-model ResourceView {
-  id          String    @id @default(cuid())
-  resourceId  String
-  resource    Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  viewedAt    DateTime  @default(now())
-  downloaded  Boolean   @default(false)
-
-  @@unique([resourceId, userId])
 }
