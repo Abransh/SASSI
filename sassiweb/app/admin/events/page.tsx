@@ -1,3 +1,4 @@
+// File: app/admin/events/page.tsx
 export const dynamic = 'force-dynamic';
 
 import { redirect } from "next/navigation";
@@ -10,6 +11,7 @@ import Header from "@/components/Header";
 import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
 import { CalendarPlus, Search } from "lucide-react";
+import EventDeleteButton from "@/components/admin/EventDeleteButton"; // Import client component
 
 export default async function AdminEventsList() {
   // Check if user is authenticated and is an admin
@@ -160,10 +162,10 @@ export default async function AdminEventsList() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                         <Link 
                           href={`/events/${event.id}`} 
-                          className="text-blue-600 hover:text-blue-900 mr-4"
+                          className="text-blue-600 hover:text-blue-900"
                         >
                           View
                         </Link>
@@ -173,6 +175,11 @@ export default async function AdminEventsList() {
                         >
                           Edit
                         </Link>
+                        {/* Client Component for Delete Button */}
+                        <EventDeleteButton 
+                          eventId={event.id} 
+                          eventTitle={event.title} 
+                        />
                       </td>
                     </tr>
                   ))}
