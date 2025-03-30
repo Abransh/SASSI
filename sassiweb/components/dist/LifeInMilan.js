@@ -79,6 +79,7 @@ function LifeInMilanSection() {
     var sectionRef = react_1.useRef(null);
     var elementsRef = react_1.useRef([]);
     react_1.useEffect(function () {
+        var section = sectionRef.current;
         var observer = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
@@ -99,12 +100,12 @@ function LifeInMilanSection() {
                 }
             });
         }, { threshold: 0.2 });
-        if (sectionRef.current) {
-            observer.observe(sectionRef.current);
+        if (section) {
+            observer.observe(section);
         }
         return function () {
-            if (sectionRef.current) {
-                observer.unobserve(sectionRef.current);
+            if (section) {
+                observer.unobserve(section);
             }
         };
     }, []);

@@ -1,12 +1,20 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Instagram, Mail, Twitter, X, Menu, LogOut } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
+import { useRouter, usePathname } from "next/navigation"
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const { data: session } = useSession()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsOpen(false)
+  }, [pathname])
 
   const toggleMenu = () => {
     setIsOpen(!isOpen)
@@ -19,6 +27,27 @@ export default function MobileMenu() {
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' })
     closeMenu()
+  }
+
+  // Function to handle smooth scrolling to anchors
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, anchor: string) => {
+    e.preventDefault()
+    closeMenu()
+    
+    // Find the element to scroll to
+    const element = document.getElementById(anchor)
+    if (element) {
+      // If we're already on the home page, scroll to the element
+      if (pathname === "/") {
+        element.scrollIntoView({ behavior: "smooth" })
+      } else {
+        // If we're on another page, navigate to home page with the anchor
+        router.push(`/#${anchor}`)
+      }
+    } else {
+      // If element not found, just navigate to the anchor
+      router.push(`/#${anchor}`)
+    }
   }
 
   return (
@@ -43,33 +72,41 @@ export default function MobileMenu() {
             <Link href="/" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
               Home
             </Link>
-            <Link
-              href="#life-in-milan"
-              onClick={closeMenu}
+            <a
+              href="/#life-in-milan"
+              onClick={(e) => handleAnchorClick(e, "life-in-milan")}
               className="text-gray-800 hover:text-orange-600 transition-colors"
             >
               Life in Milan
-            </Link>
-            <Link
-              href="#uni-networks"
-              onClick={closeMenu}
+            </a>
+            <a
+              href="/#uni-networks"
+              onClick={(e) => handleAnchorClick(e, "uni-networks")}
               className="text-gray-800 hover:text-orange-600 transition-colors"
             >
               Uni Networks
-            </Link>
-            <Link href="#events" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
+            </a>
+            <a
+              href="/#events"
+              onClick={(e) => handleAnchorClick(e, "events")}
+              className="text-gray-800 hover:text-orange-600 transition-colors"
+            >
               Events
-            </Link>
-            <Link href="#join-us" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
+            </a>
+            <a
+              href="/#join-us"
+              onClick={(e) => handleAnchorClick(e, "join-us")}
+              className="text-gray-800 hover:text-orange-600 transition-colors"
+            >
               Join Us
-            </Link>
-            <Link
-              href="#contact-us"
-              onClick={closeMenu}
+            </a>
+            <a
+              href="/#contact-us"
+              onClick={(e) => handleAnchorClick(e, "contact-us")}
               className="text-gray-800 hover:text-orange-600 transition-colors"
             >
               Contact Us
-            </Link>
+            </a>
             <Link href="/faqs" onClick={closeMenu} className="text-gray-800 hover:text-orange-600 transition-colors">
               FAQs
             </Link>
@@ -107,12 +144,14 @@ export default function MobileMenu() {
                 href="https://www.instagram.com/sassi.milan/"
                 target="_blank"
                 className="text-gray-800 hover:text-pink-600 transition-colors"
+                onClick={closeMenu}
               >
                 <Instagram size={24} />
               </Link>
               <Link
                 href="mailto:support@sassimilan.com"
                 className="text-gray-800 hover:text-blue-600 transition-colors"
+                onClick={closeMenu}
               >
                 <Mail size={24} />
               </Link>
@@ -120,6 +159,7 @@ export default function MobileMenu() {
                 href="https://twitter.com"
                 target="_blank"
                 className="text-gray-800 hover:text-blue-400 transition-colors"
+                onClick={closeMenu}
               >
                 <Twitter size={24} />
               </Link>
