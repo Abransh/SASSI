@@ -14,24 +14,32 @@ import { CheckCircle, XCircle, AlertCircle, ArrowUpDown, Search } from "lucide-r
 import { Input } from "@/components/ui/input";
 import MembershipStatusActions from "@/components/admin/MembershipStatusActions";
 
-export default async function MembershipRequestsPage(props: any) {
-  const { searchParams } = props;
-  
+interface PageProps {
+  params: Record<string, never>;
+  searchParams: Record<string, string | string[] | undefined>;
+}
+
+export default async function MembershipRequestsPage(props: PageProps) {
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);
   
   if (!session || session.user.role !== "ADMIN") {
     redirect("/auth/signin?callbackUrl=/admin/membership-requests");
   }
+
+  // Extract search params safely
+  const searchParams = await props.searchParams;
+  const statusParam = searchParams.status;
+  const searchParam = searchParams.search;
   
-  // Get query parameters
-  const status = searchParams.status || "PENDING";
-  const searchQuery = searchParams.search || "";
+  // Convert to proper types
+  const status = typeof statusParam === 'string' ? statusParam : "PENDING";
+  const searchQuery = typeof searchParam === 'string' ? searchParam : "";
   
   // Fetch membership requests based on filters
   const membershipRequests = await prisma.membershipRequest.findMany({
     where: {
-      status: status as any,
+      status: status as "PENDING" | "APPROVED" | "REJECTED",
       OR: searchQuery
         ? [
             { firstName: { contains: searchQuery, mode: "insensitive" } },
