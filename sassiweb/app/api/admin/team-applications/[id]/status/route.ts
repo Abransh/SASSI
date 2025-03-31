@@ -103,7 +103,7 @@
 //     );
 //   }
 // }
-
+// app/api/admin/team-applications/[id]/status/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
@@ -119,10 +119,10 @@ const statusUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  context: any  // Change to 'any' to bypass type checking
+  context: any
 ) {
   try {
-    const id = context.params.id;  // Access ID through context.params
+    const id = context.params.id;
     
     // Check if user is authenticated and is an admin
     const session = await getServerSession(authOptions);
@@ -138,10 +138,14 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = statusUpdateSchema.parse(body);
     
-    // Find the team application
+    // Find the team application with user information
     const teamApplication = await prisma.teamApplication.findUnique({
-      where: { id },
-      include: { user: true }
+      where: {
+        id,
+      },
+      include: {
+        user: true,
+      },
     });
     
     if (!teamApplication) {
@@ -171,18 +175,26 @@ export async function PATCH(
       },
     });
     
-    // Send email notification
-    if (teamApplication.user) {
-      await sendTeamApplicationStatusEmail(
-        teamApplication.user.email,
-        teamApplication.user.name ?? "",
-        teamApplication.department,
-        updatedApplication.status as "APPROVED" | "REJECTED",
-        updatedApplication.notes ?? undefined
-      );
+    // Send email notification to the user if possible
+    if (teamApplication.user?.email) {
+      try {
+        await sendTeamApplicationStatusEmail(
+          teamApplication.user.email,
+          teamApplication.user.name || "SASSI Member",
+          teamApplication.department,
+          validatedData.status,
+          validatedData.notes
+        );
+      } catch (emailError) {
+        console.error("Failed to send status email:", emailError);
+        // Continue with the response even if email fails
+      }
     }
     
-    return NextResponse.json(updatedApplication);
+    return NextResponse.json({
+      message: `Team application ${validatedData.status.toLowerCase()} successfully`,
+      application: updatedApplication,
+    });
   } catch (error) {
     console.error("Error updating team application status:", error);
     

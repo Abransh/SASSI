@@ -135,7 +135,7 @@ export default function MembershipStatusActions({
     );
   }
   
-  // For APPROVED or REJECTED status, just show view details
+  // For APPROVED or REJECTED status, just show view details and payment verification if needed
   return (
     <div className="flex space-x-2">
       {!paymentVerified && userId && currentStatus === "APPROVED" && (

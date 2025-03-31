@@ -96,6 +96,7 @@
 //   }
 // }
 
+// app/api/admin/membership-requests/[id]/status/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
@@ -109,7 +110,6 @@ const statusUpdateSchema = z.object({
   notes: z.string().optional(),
 });
 
-// Using simpler parameter structure without destructuring
 export async function PATCH(
   request: NextRequest,
   context: any
@@ -131,9 +131,12 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = statusUpdateSchema.parse(body);
     
-    // Find the membership request
+    // Find the membership request with associated user data
     const membershipRequest = await prisma.membershipRequest.findUnique({
       where: { id },
+      include: {
+        user: true,
+      },
     });
     
     if (!membershipRequest) {
@@ -171,20 +174,28 @@ export async function PATCH(
           id: membershipRequest.userId,
         },
         data: {
-          paymentVerified: true,
+          isVerified: true,
         },
       });
     }
     
-    // Send email notification
-    await sendMembershipStatusEmail(
-      membershipRequest.email,
-      membershipRequest.firstName,
-      updatedRequest.status as "APPROVED" | "REJECTED",
-      updatedRequest.notes ?? undefined
-    );
+    // Send email notification to the user
+    try {
+      await sendMembershipStatusEmail(
+        membershipRequest.email,
+        `${membershipRequest.firstName} ${membershipRequest.lastName}`,
+        validatedData.status,
+        validatedData.notes
+      );
+    } catch (emailError) {
+      console.error("Failed to send status email:", emailError);
+      // Continue with the response even if email fails
+    }
     
-    return NextResponse.json(updatedRequest);
+    return NextResponse.json({
+      message: `Membership request ${validatedData.status.toLowerCase()} successfully`,
+      request: updatedRequest,
+    });
   } catch (error) {
     console.error("Error updating membership request status:", error);
     

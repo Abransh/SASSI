@@ -1,3 +1,4 @@
+// app/admin/team-applications/page.tsx
 export const dynamic = 'force-dynamic';
 
 import { redirect } from "next/navigation";
@@ -23,25 +24,34 @@ const DEPARTMENTS = {
   "tech": { name: "Tech Team", icon: "💻" },
 };
 
-export default async function TeamApplicationsPage(props: any) {
-  const { searchParams } = props;
+interface PageProps {
+  params: Record<string, never>;
+  searchParams: Record<string, string | string[] | undefined>;
+}
 
+export default async function TeamApplicationsPage(props: PageProps) {
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);
   
   if (!session || session.user.role !== "ADMIN") {
     redirect("/auth/signin?callbackUrl=/admin/team-applications");
   }
+
+  // Extract search params safely
+  const searchParams = await props.searchParams;
+  const statusParam = searchParams.status;
+  const departmentParam = searchParams.department;
+  const searchParam = searchParams.search;
   
-  // Get query parameters
-  const status = searchParams.status || "PENDING";
-  const department = searchParams.department;
-  const searchQuery = searchParams.search || "";
+  // Convert to proper types
+  const status = typeof statusParam === 'string' ? statusParam : "PENDING";
+  const department = typeof departmentParam === 'string' ? departmentParam : undefined;
+  const searchQuery = typeof searchParam === 'string' ? searchParam : "";
   
   // Fetch team applications based on filters
   const teamApplications = await prisma.teamApplication.findMany({
     where: {
-      status: status as any,
+      status: status as "PENDING" | "APPROVED" | "REJECTED",
       ...(department ? { department } : {}),
       user: searchQuery
         ? {
@@ -74,7 +84,7 @@ export default async function TeamApplicationsPage(props: any) {
       department: true,
     },
     where: {
-      status,
+      status: status as any,
     },
   });
   
