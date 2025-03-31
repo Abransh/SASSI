@@ -1,0 +1,63 @@
+// app/admin/resources/[id]/page.tsx
+export const dynamic = 'force-dynamic';
+
+import { redirect, notFound } from "next/navigation";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import prisma from "@/lib/prisma";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import ResourceForm from "@/components/admin/ResourceForm";
+
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function EditResourcePage({ params }: PageProps) {
+  // Check if user is authenticated and is an admin
+  const session = await getServerSession(authOptions);
+  
+  if (!session || session.user.role !== "ADMIN") {
+    redirect("/auth/signin?callbackUrl=/admin/resources/" + params.id);
+  }
+  
+  // Fetch the resource to edit
+  const resource = await prisma.resource.findUnique({
+    where: {
+      id: params.id,
+    },
+  });
+  
+  // If resource not found, show 404
+  if (!resource) {
+    notFound();
+  }
+  
+  // Fetch categories for the form
+  const categories = await prisma.resourceCategory.findMany({
+    orderBy: {
+      order: "asc",
+    },
+  });
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Link
+          href="/admin/resources"
+          className="inline-flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          <span>Back to Resources</span>
+        </Link>
+        <h1 className="text-2xl font-bold">Edit Resource</h1>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <ResourceForm categories={categories} resource={resource} />
+      </div>
+    </div>
+  );
+}
