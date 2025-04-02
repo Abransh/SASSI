@@ -3,7 +3,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { FileText, BookOpen, GraduationCap } from "lucide-react";
 import FeaturedResourceCard from "@/components/FeaturedResourceCard";

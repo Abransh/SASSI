@@ -1,18 +1,34 @@
+// app/admin/resources/new/page.tsx
+export const dynamic = 'force-dynamic';
+
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import EventForm from "@/components/EventForm";
+import prisma from "@/lib/prisma";
 import Header from "@/components/Header";
 import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
+import ResourceForm from "@/components/admin/ResourceForm";
 
-export default async function CreateEventPage() {
+export default async function CreateResourcePage() {
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);
   
   if (!session || session.user.role !== "ADMIN") {
-    redirect("/auth/signin?callbackUrl=/admin/events/new");
+    redirect("/auth/signin?callbackUrl=/admin/resources/new");
   }
+  
+  // Fetch resource categories
+  const categories = await prisma.resourceCategory.findMany({
+    orderBy: {
+      order: "asc",
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  });
   
   return (
     <main className="min-h-screen bg-gray-50">
@@ -21,16 +37,16 @@ export default async function CreateEventPage() {
 
       <section className="pt-32 pb-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Create New Event</h1>
+              <h1 className="text-3xl font-bold mb-2">Add New Resource</h1>
               <p className="text-gray-600">
-                Add a new event to the SASSI calendar
+                Upload a file or add an external resource link to the SASSI resource library
               </p>
             </div>
             
             <div className="bg-white rounded-lg shadow-md p-6">
-              <EventForm />
+              <ResourceForm categories={categories} />
             </div>
           </div>
         </div>

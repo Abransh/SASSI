@@ -11,7 +11,7 @@ import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
 import PhotoGallery from "@/components/PhotoGallery";
 import EventRegistrationButton from "./EventRegistrationButton";
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { authOptions } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 

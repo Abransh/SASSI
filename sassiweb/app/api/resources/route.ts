@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 // Validation schema for resource creation
 const resourceSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  fileUrl: z.string().url("Valid file URL is required"),
-  thumbnailUrl: z.string().url().optional().nullable(),
+  fileUrl: z.string().min(1, "File URL or link is required"),
+  thumbnailUrl: z.string().optional().nullable(),
   categoryId: z.string().min(1, "Category is required"),
   resourceType: z.enum(["DOCUMENT", "TEMPLATE", "GUIDE", "VIDEO", "LINK"]),
   featured: z.boolean().optional().default(false),

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Header from "@/components/Header";
 import MobileMenu from "@/components/MobileMenu";

@@ -14,6 +14,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Students' Association of Indians in Milan",
   description: "A community by the students, for the students in Milan, Italy",
+  keywords: "Indian students, Milan, community, events, resources",
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },

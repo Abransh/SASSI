@@ -35,8 +35,8 @@ import { z } from "zod";
 const resourceSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  fileUrl: z.string().url("Valid file URL is required"),
-  thumbnailUrl: z.string().url().optional().nullable(),
+  fileUrl: z.string().min(1, "File URL or link is required"),
+  thumbnailUrl: z.string().optional().nullable(),
   categoryId: z.string().min(1, "Category is required"),
   resourceType: z.enum(["DOCUMENT", "TEMPLATE", "GUIDE", "VIDEO", "LINK"]),
   featured: z.boolean().optional().default(false),
@@ -151,13 +151,16 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
       // Create form data for Cloudinary upload
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("upload_preset", "sassi_resources"); // Required for unsigned uploads
+      formData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "");
+      formData.append("timestamp", Math.floor(Date.now() / 1000).toString());
       
       // Add folder based on type
-      formData.append("upload_preset", "sassi_resources");
       if (type === "thumbnail") {
-        formData.append("folder", "resource_thumbnails");
+        formData.append("folder", "sassi/resource_thumbnails");
       } else {
-        formData.append("folder", "resources");
+        formData.append("folder", "sassi/resources");
+        formData.append("folder", "sassi/resources");
       }
       
       // Upload to Cloudinary
@@ -169,11 +172,12 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
         }
       );
       
-      if (!response.ok) {
-        throw new Error("Failed to upload file");
-      }
-      
       const data = await response.json();
+      
+      if (!response.ok) {
+        console.error("Cloudinary error:", data);
+        throw new Error(data.error?.message || "Failed to upload file");
+      }
       
       // Update form data with the new URL
       setFormData((prev) => ({
@@ -237,58 +241,63 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      toast.error("Please fix the errors in the form");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
     try {
-      if (isEditMode) {
-        // Update existing resource
-        const response = await fetch(`/api/resources/${resource.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to update resource");
+      // Validate form data
+      const validatedData = resourceSchema.parse(formData);
+      
+      setIsSubmitting(true);
+      
+      // Create new resource
+      const response = await fetch("/api/resources", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(validatedData),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        // Handle API validation errors
+        if (data.error && Array.isArray(data.error)) {
+          const newErrors: Record<string, string> = {};
+          data.error.forEach((err: any) => {
+            if (err.path && err.path[0]) {
+              newErrors[err.path[0]] = err.message;
+            }
+          });
+          setErrors(newErrors);
+          toast.error("Please fix the errors in the form");
+          return;
         }
         
-        toast.success("Resource updated successfully");
-      } else {
-        // Create new resource
-        const response = await fetch("/api/resources", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to create resource");
-        }
-        
-        toast.success("Resource created successfully");
+        // Handle other API errors
+        throw new Error(data.error || "Failed to create resource");
       }
       
-      // Redirect back to resources list
+      toast.success("Resource created successfully");
       router.push("/admin/resources");
       router.refresh();
     } catch (error) {
-      console.error(`Error ${isEditMode ? "updating" : "creating"} resource:`, error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : `Failed to ${isEditMode ? "update" : "create"} resource`
-      );
+      if (error instanceof z.ZodError) {
+        // Handle form validation errors
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(newErrors);
+        toast.error("Please fix the errors in the form");
+      } else {
+        console.error("Error creating resource:", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to create resource"
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
