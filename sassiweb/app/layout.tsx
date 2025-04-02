@@ -15,8 +15,20 @@ export const metadata: Metadata = {
   title: "Students' Association of Indians in Milan",
   description: "A community by the students, for the students in Milan, Italy",
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/favicon.ico', sizes: '16x16' }
+    ],
+    apple: [
+      { url: '/favicon.ico', sizes: '180x180' }
+    ],
+    shortcut: '/favicon.ico'
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: "Students' Association of Indians in Milan"
   }
 }
 
