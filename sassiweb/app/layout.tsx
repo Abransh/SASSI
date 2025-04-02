@@ -14,6 +14,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Students' Association of Indians in Milan",
   description: "A community by the students, for the students in Milan, Italy",
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+  }
 }
 
 export default function RootLayout({
