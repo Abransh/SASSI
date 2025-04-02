@@ -1,6 +1,4 @@
 // app/admin/membership-requests/page.tsx
-export const dynamic = 'force-dynamic';
-
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
@@ -15,10 +13,14 @@ import { Input } from "@/components/ui/input";
 import MembershipStatusActions from "@/components/admin/MembershipStatusActions";
 
 interface PageProps {
-  params: Record<string, never>;
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Promise<any>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
+// Main page component
 export default async function MembershipRequestsPage(props: PageProps) {
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);

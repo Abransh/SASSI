@@ -1,6 +1,4 @@
 // app/admin/team-applications/page.tsx
-export const dynamic = 'force-dynamic';
-
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
@@ -24,12 +22,15 @@ const DEPARTMENTS = {
   "tech": { name: "Tech Team", icon: "💻" },
 };
 
-interface PageProps {
-  params: Record<string, never>;
-  searchParams: Record<string, string | string[] | undefined>;
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
-export default async function TeamApplicationsPage(props: PageProps) {
+// Main page component
+export default async function TeamApplicationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);
   
@@ -38,10 +39,10 @@ export default async function TeamApplicationsPage(props: PageProps) {
   }
 
   // Extract search params safely
-  const searchParams = await props.searchParams;
-  const statusParam = searchParams.status;
-  const departmentParam = searchParams.department;
-  const searchParam = searchParams.search;
+  const params = await searchParams;
+  const statusParam = params.status;
+  const departmentParam = params.department;
+  const searchParam = params.search;
   
   // Convert to proper types
   const status = typeof statusParam === 'string' ? statusParam : "PENDING";

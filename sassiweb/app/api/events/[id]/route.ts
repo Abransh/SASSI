@@ -119,11 +119,11 @@ export async function PATCH(
 // DELETE /api/events/[id] - Delete an event
 export async function DELETE(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
-  //{ params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    // Await the params before accessing them
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {
@@ -133,10 +133,21 @@ export async function DELETE(
       );
     }
     
+    // Find the event
+    const event = await prisma.event.findUnique({
+      where: { id },
+    });
+    
+    if (!event) {
+      return NextResponse.json(
+        { error: "Event not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Delete the event
     await prisma.event.delete({
-      where: {
-        id: id
-      }
+      where: { id },
     });
     
     return new NextResponse(null, { status: 204 });

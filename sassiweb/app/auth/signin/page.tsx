@@ -131,7 +131,7 @@ function SignInForm() {
         <p className="text-sm text-gray-600">
           Don&apos;t have an account?{" "}
           <Link
-            href="/join/member"
+            href="/auth/signup"
             className="text-orange-600 hover:text-orange-800 font-medium"
           >
             Join SASSI

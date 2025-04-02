@@ -624,7 +624,7 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(formData.thumbnailUrl, "_blank")}
+                          onClick={() => typeof formData.thumbnailUrl === 'string' && window.open(formData.thumbnailUrl, "_blank")}
                           className="text-blue-600 hover:text-blue-800"
                         >
                           <ExternalLink size={16} className="mr-1" />
