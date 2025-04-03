@@ -8,7 +8,7 @@ type ApplicationType = "TEAM" | "MEMBERSHIP";
 // PATCH /api/admin/applications/[id] - Update application status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -20,7 +20,7 @@ export async function PATCH(
       );
     }
     
-    const { id } = params;
+    const id = context.params.id;
     const { status, type } = await request.json();
     
     // Validate status

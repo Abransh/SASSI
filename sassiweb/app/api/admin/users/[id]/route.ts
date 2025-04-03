@@ -8,7 +8,7 @@ type Role = "USER" | "ADMIN";
 // PATCH /api/admin/users/[id] - Update user role
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions);

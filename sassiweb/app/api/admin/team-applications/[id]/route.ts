@@ -7,7 +7,7 @@ type Status = "PENDING" | "APPROVED" | "REJECTED";
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,7 +19,7 @@ export async function PATCH(
       );
     }
     
-    const { id } = await context.params;
+    const id = context.params.id;
     const body = await request.json();
     const { status, department } = body;
     
