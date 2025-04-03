@@ -3,9 +3,8 @@ import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
-type Role = "USER" | "ADMIN";
+type Status = "PENDING" | "APPROVED" | "REJECTED";
 
-// PATCH /api/admin/users/[id] - Update user role
 export async function PATCH(
   request: NextRequest,
   context: { params: { id: string } }
@@ -21,48 +20,40 @@ export async function PATCH(
     }
     
     const { id } = await context.params;
-    const { role } = await request.json();
+    const { status } = await request.json();
     
-    // Validate role
-    if (role !== "USER" && role !== "ADMIN") {
+    // Validate status
+    if (status !== "PENDING" && status !== "APPROVED" && status !== "REJECTED") {
       return NextResponse.json(
-        { error: "Invalid role" },
+        { error: "Invalid status" },
         { status: 400 }
       );
     }
     
-    // Check if user exists
-    const user = await prisma.user.findUnique({
+    // Check if request exists
+    const membershipRequest = await prisma.membershipRequest.findUnique({
       where: { id },
     });
     
-    if (!user) {
+    if (!membershipRequest) {
       return NextResponse.json(
-        { error: "User not found" },
+        { error: "Request not found" },
         { status: 404 }
       );
     }
     
-    // Check if trying to modify super admin
-    if (user.isSuperAdmin) {
-      return NextResponse.json(
-        { error: "Cannot modify super admin role" },
-        { status: 403 }
-      );
-    }
-    
-    // Update user role
-    const updatedUser = await prisma.user.update({
+    // Update request status
+    const updatedRequest = await prisma.membershipRequest.update({
       where: { id },
-      data: { role },
+      data: { status },
     });
     
-    return NextResponse.json(updatedUser);
+    return NextResponse.json(updatedRequest);
   } catch (error) {
-    console.error("Error updating user role:", error);
+    console.error("Error updating request status:", error);
     return NextResponse.json(
-      { error: "Failed to update user role" },
+      { error: "Failed to update request status" },
       { status: 500 }
     );
   }
-}
+} 

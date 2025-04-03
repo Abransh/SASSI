@@ -3,34 +3,25 @@
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
+import { NextRequestWithAuth } from "next-auth/middleware";
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Check if the path starts with /admin
-  if (pathname.startsWith('/admin')) {
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
-    });
-    
-    // If there's no token or the user is not an admin
-    if (!token || token.role !== 'ADMIN') {
-      // Store the original URL they were trying to access
-      const url = new URL('/auth/signin', request.url);
-      url.searchParams.set('callbackUrl', request.url);
-      
-      return NextResponse.redirect(url);
+export default async function middleware(request: NextRequestWithAuth) {
+  const token = await getToken({ req: request });
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+
+  if (isAdminRoute) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    // Allow access if user is an admin or super admin
+    if (token.role !== "ADMIN" && !token.isSuperAdmin) {
+      return NextResponse.redirect(new URL("/", request.url));
     }
   }
-  
+
   // Check if the path starts with /resources
-  if (pathname.startsWith('/resources')) {
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
-    });
-    
+  if (request.nextUrl.pathname.startsWith('/resources')) {
     // If there's no token, redirect to sign in
     if (!token) {
       // Store the absolute URL they were trying to access

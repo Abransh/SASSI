@@ -107,6 +107,7 @@ export default async function AdminUsersPage() {
                     <UserRoleSelect
                       userId={user.id}
                       currentRole={user.role}
+                      email={user.email}
                     />
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
