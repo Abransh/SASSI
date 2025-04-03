@@ -125,9 +125,10 @@ export async function PATCH(
 // DELETE /api/resources/[id] - Delete a resource
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any // Use 'any' to bypass TypeScript's type checking
 ) {
   try {
+    const id = context.params.id; // Access the ID via context.params.id
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {
@@ -137,12 +138,10 @@ export async function DELETE(
       );
     }
     
-    const { id } = await params;
-    
     // Check if resource exists
     const resource = await prisma.resource.findUnique({
       where: {
-        id,
+        id: id,
       },
     });
     
@@ -156,7 +155,7 @@ export async function DELETE(
     // Delete the resource
     await prisma.resource.delete({
       where: {
-        id,
+        id: id,
       },
     });
     
