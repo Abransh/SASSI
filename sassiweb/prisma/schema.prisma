@@ -154,6 +154,7 @@ model Resource {
   fileUrl       String
   thumbnailUrl  String?
   categoryId    String
+  slug          String           @unique
   featured      Boolean          @default(false)
   resourceType  ResourceType     @default(DOCUMENT)
   createdAt     DateTime         @default(now())

@@ -30,6 +30,17 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Resource schema for validation
 const resourceSchema = z.object({
@@ -83,6 +94,7 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState<"file" | "thumbnail" | null>(null);
   const isEditMode = !!resource;
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Get icon for resource type
   const getResourceTypeIcon = (type: string) => {
@@ -300,6 +312,32 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+  
+  // Handle resource deletion
+  const handleDelete = async () => {
+    if (!resource) return;
+    
+    try {
+      setIsDeleting(true);
+      
+      const response = await fetch(`/api/resources/${resource.id}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to delete resource");
+      }
+      
+      toast.success("Resource deleted successfully");
+      router.push("/admin/resources");
+      router.refresh();
+    } catch (error) {
+      console.error("Error deleting resource:", error);
+      toast.error("Failed to delete resource");
+    } finally {
+      setIsDeleting(false);
     }
   };
   
@@ -691,29 +729,65 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
       </div>
       
       {/* Form Actions */}
-      <div className="flex justify-end space-x-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push("/admin/resources")}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          className="bg-orange-600 hover:bg-orange-700"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEditMode ? "Updating..." : "Creating..."}
-            </>
-          ) : (
-            isEditMode ? "Update Resource" : "Create Resource"
+      <div className="flex justify-between items-center pt-6">
+        <div className="flex items-center space-x-4">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              isEditMode ? "Update Resource" : "Create Resource"
+            )}
+          </Button>
+          
+          {isEditMode && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash className="mr-2 h-4 w-4" />
+                      Delete Resource
+                    </>
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the resource
+                    and remove it from the database.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
-        </Button>
+        </div>
       </div>
     </form>
   );

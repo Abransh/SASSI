@@ -3,16 +3,19 @@ import Image from "next/image";
 import { getResourceTypeIcon, getResourceTypeColor } from "@/lib/resource-utils";
 import { Download, Eye } from "lucide-react";
 
+interface Resource {
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnailUrl: string | null;
+  resourceType: string;
+  viewCount: number;
+  downloadCount: number;
+  slug: string;
+}
+
 type ResourceCardProps = {
-  resource: {
-    id: string;
-    title: string;
-    description: string;
-    thumbnailUrl: string | null;
-    resourceType: string;
-    viewCount: number;
-    downloadCount: number;
-  };
+  resource: Resource;
 };
 
 export default function ResourceCard({ resource }: ResourceCardProps) {
@@ -39,7 +42,7 @@ export default function ResourceCard({ resource }: ResourceCardProps) {
   
   return (
     <Link
-      href={`/resources/view/${resource.id}`}
+      href={`/resources/${resource.slug}`}
       className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all flex flex-col h-full"
     >
       {/* Resource Header */}

@@ -1,8 +1,7 @@
-// app/api/resources/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { z } from "zod";
 
 // Resource schema for validation
@@ -19,10 +18,10 @@ const resourceUpdateSchema = z.object({
 // GET /api/resources/[id] - Get a single resource
 export async function GET(
   request: NextRequest,
-  context: any
+  context: any // Use 'any' to bypass TypeScript's type checking
 ) {
   try {
-    const id = context.params.id;
+    const id = context.params.id; // Access the ID via context.params.id
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -32,13 +31,17 @@ export async function GET(
       );
     }
     
-    // Get the resource
     const resource = await prisma.resource.findUnique({
       where: {
         id: id,
       },
       include: {
-        category: true,
+        category: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
       },
     });
     
@@ -62,10 +65,10 @@ export async function GET(
 // PATCH /api/resources/[id] - Update a resource
 export async function PATCH(
   request: NextRequest,
-  context: any
+  context: any // Use 'any' to bypass TypeScript's type checking
 ) {
   try {
-    const id = context.params.id;
+    const id = context.params.id; // Access the ID via context.params.id
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {
@@ -122,10 +125,10 @@ export async function PATCH(
 // DELETE /api/resources/[id] - Delete a resource
 export async function DELETE(
   request: NextRequest,
-  context: any
+  context: any // Use 'any' to bypass TypeScript's type checking
 ) {
   try {
-    const id = context.params.id;
+    const id = context.params.id; // Access the ID via context.params.id
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {
@@ -136,13 +139,13 @@ export async function DELETE(
     }
     
     // Check if resource exists
-    const existingResource = await prisma.resource.findUnique({
+    const resource = await prisma.resource.findUnique({
       where: {
         id: id,
       },
     });
     
-    if (!existingResource) {
+    if (!resource) {
       return NextResponse.json(
         { error: "Resource not found" },
         { status: 404 }
@@ -156,7 +159,10 @@ export async function DELETE(
       },
     });
     
-    return new NextResponse(null, { status: 204 });
+    return NextResponse.json(
+      { message: "Resource deleted successfully" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error deleting resource:", error);
     return NextResponse.json(

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
+import slugify from "slugify";
 
 // Validation schema for resource creation
 const resourceSchema = z.object({
@@ -90,9 +91,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = resourceSchema.parse(body);
     
+    // Generate slug from title
+    const slug = slugify(validatedData.title, { lower: true });
+    
     // Create the resource
     const resource = await prisma.resource.create({
-      data: validatedData,
+      data: {
+        ...validatedData,
+        slug,
+      },
     });
     
     return NextResponse.json(resource, { status: 201 });

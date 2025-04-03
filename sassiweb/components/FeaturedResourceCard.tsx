@@ -19,7 +19,7 @@ export default function FeaturedResourceCard({ resource }: FeaturedResourceCardP
   
   return (
     <Link
-      href={`/resources/view/${resource.id}`}
+      href={`/resources/${resource.id}`}
       className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all flex flex-col h-full"
     >
       {/* Resource Thumbnail */}

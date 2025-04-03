@@ -1,13 +1,14 @@
-// prisma/seed.ts - Updated to include resource categories
+// prisma/seed.js - Updated to include resource categories
 
 import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcrypt';
+import bcrypt from 'bcrypt';
+import slugify from 'slugify';
 
 const prisma = new PrismaClient();
 
 async function main() {
   // Create admin user
-  const adminPassword = await hash('Admin@SASSI123', 10);
+  const adminPassword = await bcrypt.hash('Admin@SASSI123', 10);
   const admin = await prisma.user.upsert({
     where: { email: 'admin@sassimilan.com' },
     update: {},
@@ -101,6 +102,7 @@ async function main() {
     update: {},
     create: {
       title: 'Complete Guide to Student Visas',
+      slug: slugify('Complete Guide to Student Visas', { lower: true }),
       description: 'Step-by-step instructions for obtaining your Italian student visa, including required documents and application tips.',
       fileUrl: 'https://example.com/resources/visa-guide.pdf',
       resourceType: 'GUIDE',
@@ -114,6 +116,7 @@ async function main() {
     update: {},
     create: {
       title: 'Milan Transportation Guide',
+      slug: slugify('Milan Transportation Guide', { lower: true }),
       description: 'Guide to navigating Milan\'s public transportation system, including metro, trams, buses, and student discounts.',
       fileUrl: 'https://example.com/resources/transportation-guide.pdf',
       resourceType: 'GUIDE',
@@ -127,6 +130,7 @@ async function main() {
     update: {},
     create: {
       title: 'CV Template for Italian Job Market',
+      slug: slugify('CV Template for Italian Job Market', { lower: true }),
       description: 'Customized CV template for international students looking for jobs in Italy, with tips on adapting your resume.',
       fileUrl: 'https://example.com/resources/cv-template.docx',
       resourceType: 'TEMPLATE',
