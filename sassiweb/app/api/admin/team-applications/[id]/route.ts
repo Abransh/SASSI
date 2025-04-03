@@ -19,7 +19,7 @@ export async function PATCH(
       );
     }
     
-    const id = context.params.id;
+    const { id } = await context.params;
     const body = await request.json();
     const { status, department } = body;
     
