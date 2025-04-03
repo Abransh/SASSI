@@ -8,14 +8,9 @@ import { Trash, Loader2 } from "lucide-react";
 interface ResourceDeleteButtonProps {
   resourceId: string;
   resourceTitle: string;
-  variant?: "button" | "link";
 }
 
-export default function ResourceDeleteButton({
-  resourceId,
-  resourceTitle,
-  variant = "link",
-}: ResourceDeleteButtonProps) {
+export default function ResourceDeleteButton({ resourceId, resourceTitle }: ResourceDeleteButtonProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -48,8 +43,6 @@ export default function ResourceDeleteButton({
       
       // Refresh the page to update the list
       router.refresh();
-      // Optionally redirect back to resources list
-      router.push("/admin/resources");
     } catch (error) {
       console.error("Error deleting resource:", error);
       toast.error(error instanceof Error ? error.message : "Failed to delete resource");
@@ -58,42 +51,23 @@ export default function ResourceDeleteButton({
     }
   };
 
-  if (variant === "button") {
+  if (isDeleting) {
     return (
-      <button
-        onClick={handleDelete}
-        disabled={isDeleting}
-        className="inline-flex items-center px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-50 transition-colors"
-      >
-        {isDeleting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Deleting...
-          </>
-        ) : (
-          <>
-            <Trash className="mr-2 h-4 w-4" />
-            Delete Resource
-          </>
-        )}
-      </button>
+      <span className="inline-flex items-center text-gray-400 cursor-not-allowed">
+        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+        Deleting...
+      </span>
     );
   }
 
   return (
     <button
       onClick={handleDelete}
+      className="text-red-600 hover:text-red-900 inline-flex items-center"
       disabled={isDeleting}
-      className="text-red-600 hover:text-red-900"
     >
-      {isDeleting ? (
-        <span className="inline-flex items-center">
-          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-          Deleting...
-        </span>
-      ) : (
-        "Delete"
-      )}
+      <Trash className="mr-1 h-3 w-3" />
+      Delete
     </button>
   );
 }

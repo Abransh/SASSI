@@ -1,4 +1,4 @@
-// app/admin/resources/categories/page.tsx
+// app/admin/resources/page.tsx
 export const dynamic = 'force-dynamic';
 
 import { redirect } from "next/navigation";
@@ -10,25 +10,56 @@ import { format } from "date-fns";
 import Header from "@/components/Header";
 import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
-import { Plus, ArrowLeft, FileText } from "lucide-react";
+import { Plus, Search, FileText } from "lucide-react";
+import ResourceDeleteButton from "@/components/admin/ResourceDeleteButton";
 
-export default async function ResourceCategoriesPage() {
+type ResourceWithRelations = {
+  id: string;
+  title: string;
+  description: string;
+  fileUrl: string;
+  thumbnailUrl: string | null;
+  categoryId: string;
+  slug: string;
+  featured: boolean;
+  resourceType: "DOCUMENT" | "TEMPLATE" | "GUIDE" | "VIDEO" | "LINK";
+  createdAt: Date;
+  updatedAt: Date;
+  viewCount: number;
+  downloadCount: number;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    imageUrl: string | null;
+    order: number;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  _count: {
+    resourceViews: number;
+  };
+};
+
+export default async function ResourcesPage() {
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);
   
   if (!session || session.user.role !== "ADMIN") {
-    redirect("/auth/signin?callbackUrl=/admin/resources/categories");
+    redirect("/auth/signin?callbackUrl=/admin/resources");
   }
   
-  // Fetch resource categories with resource counts
-  const categories = await prisma.resourceCategory.findMany({
+  // Fetch all resources with their categories
+  const resources = await prisma.resource.findMany({
     orderBy: {
-      order: "asc",
+      createdAt: "desc",
     },
     include: {
+      category: true,
       _count: {
         select: {
-          resources: true,
+          resourceViews: true,
         },
       },
     },
@@ -41,64 +72,61 @@ export default async function ResourceCategoriesPage() {
 
       <section className="pt-32 pb-20">
         <div className="container mx-auto px-4">
-          <div className="mb-6">
-            <Link
-              href="/admin/resources"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft size={16} className="mr-2" />
-              <span>Back to Resources</span>
-            </Link>
-          </div>
-          
           <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Resource Categories</h1>
+              <h1 className="text-3xl font-bold mb-2">Resources</h1>
               <p className="text-gray-600">
-                Manage categories for organizing resources
+                Manage all resources for SASSI members
               </p>
             </div>
             
-            <div className="mt-4 md:mt-0">
-              <div className="flex gap-3">
-                <button 
-                  className="flex items-center justify-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md"
-                >
-                  <Plus size={18} className="mr-2" />
-                  Add Category
-                </button>
-                
-                <Link
-                  href="/api/admin/init-categories"
-                  target="_blank"
-                  className="flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md"
-                >
-                  Initialize Default Categories
-                </Link>
+            <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search resources..."
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent w-full"
+                />
               </div>
+              
+              <Link 
+                href="/admin/resources/new"
+                className="flex items-center justify-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md"
+              >
+                <Plus size={18} className="mr-2" />
+                Create Resource
+              </Link>
+              
+              <Link 
+                href="/admin/resources/categories"
+                className="flex items-center justify-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md"
+              >
+                Manage Categories
+              </Link>
             </div>
           </div>
           
-          {/* Categories Table */}
+          {/* Resources Table */}
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
+                      Title
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Slug
+                      Category
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Description
+                      Type
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Resources
+                      Views
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Order
+                      Created
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -106,53 +134,67 @@ export default async function ResourceCategoriesPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {categories.length > 0 ? (
-                    categories.map((category) => (
-                      <tr key={category.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-medium text-gray-900">
-                            {category.name}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {category.slug}
-                          </div>
-                        </td>
+                  {resources.length > 0 ? (
+                    resources.map((resource: ResourceWithRelations) => (
+                      <tr key={resource.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
+                          <div className="font-medium text-gray-900">
+                            {resource.title}
+                          </div>
                           <div className="text-sm text-gray-500 line-clamp-1">
-                            {category.description || "No description"}
+                            {resource.description}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {resource.category.name}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {resource.resourceType}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {resource._count.resourceViews} views
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {category._count.resources} resources
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {category.order}
+                            {format(new Date(resource.createdAt), "MMM d, yyyy")}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                          <button className="text-orange-600 hover:text-orange-900">
+                          <Link 
+                            href={`/resources/${resource.slug}`} 
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            View
+                          </Link>
+                          <Link 
+                            href={`/admin/resources/${resource.id}`} 
+                            className="text-orange-600 hover:text-orange-900"
+                          >
                             Edit
-                          </button>
-                          {category._count.resources === 0 && (
-                            <button className="text-red-600 hover:text-red-900">
-                              Delete
-                            </button>
-                          )}
+                          </Link>
+                          <ResourceDeleteButton 
+                            resourceId={resource.id} 
+                            resourceTitle={resource.title} 
+                          />
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
-                        No categories found.
-                        <button className="text-orange-600 hover:text-orange-800 ml-1">
-                          Create your first category
-                        </button>
+                        No resources found. 
+                        <Link 
+                          href="/admin/resources/new" 
+                          className="text-orange-600 hover:text-orange-800 ml-1"
+                        >
+                          Create your first resource
+                        </Link>
                       </td>
                     </tr>
                   )}
@@ -168,15 +210,14 @@ export default async function ResourceCategoriesPage() {
                 <FileText size={24} />
               </div>
               <div>
-                <h3 className="font-bold mb-2">About Resource Categories</h3>
+                <h3 className="font-bold mb-2">About Resources</h3>
                 <p className="text-sm text-gray-700 mb-4">
-                  Categories help organize resources for your members. Each resource must belong to a category.
-                  Resources can be documents, templates, guides, videos, or links to external websites.
+                  Resources are helpful materials for your members. They can be documents, templates, guides, videos, or links to external websites.
                 </p>
                 <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
-                  <li>Create descriptive categories to help members find resources easily</li>
-                  <li>Use the order field to control how categories are displayed</li>
-                  <li>You cannot delete categories that contain resources</li>
+                  <li>Create resources in different categories to keep them organized</li>
+                  <li>Use descriptive titles and descriptions to help members find what they need</li>
+                  <li>Track resource popularity through view counts</li>
                 </ul>
               </div>
             </div>
