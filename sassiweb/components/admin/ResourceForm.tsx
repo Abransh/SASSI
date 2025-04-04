@@ -152,8 +152,6 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
   };
   
   // Handle file upload
-  // This is the updated handleFileUpload function for ResourceForm.tsx
-
 const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "file" | "thumbnail") => {
   const files = e.target.files;
   if (!files || files.length === 0) return;
@@ -172,10 +170,8 @@ const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "f
       formData.append("folder", "sassi/resource_thumbnails");
     } else {
       formData.append("folder", "sassi/resources");
-      
-      // Set resource access type to allow downloads
       formData.append("resource_type", "auto"); // Auto-detect file type
-      formData.append("access_mode", "public"); // Ensure the resource is public
+      // REMOVED: formData.append("access_mode", "public"); - This was causing the error
     }
     
     // Upload to Cloudinary
@@ -187,17 +183,15 @@ const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "f
       }
     );
     
-    const data = await response.json();
-    
     if (!response.ok) {
+      const data = await response.json();
       console.error("Cloudinary error:", data);
       throw new Error(data.error?.message || "Failed to upload file");
     }
     
-    console.log("Cloudinary upload response:", data); // Log the response to debug
+    const data = await response.json();
     
     // Update form data with the new URL
-    // For documents, we use the secure_url which should be directly accessible
     setFormData((prev) => ({
       ...prev,
       [type === "file" ? "fileUrl" : "thumbnailUrl"]: data.secure_url,
@@ -258,26 +252,53 @@ const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "f
   // Handle form submission
   // Update this in your ResourceForm.tsx component
 
+// Updated handleSubmit function for ResourceForm.tsx
+
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   
+  if (!validateForm()) {
+    toast.error("Please fix the errors in the form");
+    return;
+  }
+  
+  setIsSubmitting(true);
+  
   try {
-    // Validate form data
-    const validatedData = resourceSchema.parse(formData);
+    // Make sure URLs don't have any special parameters that might interfere with viewing/downloading
+    let cleanFileUrl = formData.fileUrl;
+    let cleanThumbnailUrl = formData.thumbnailUrl;
     
-    setIsSubmitting(true);
-    
-    // Ensure file URL is properly formatted
-    let fileUrl = validatedData.fileUrl;
-    
-    // If it's a Cloudinary URL for a document, ensure it has the right params for viewing
-    if (fileUrl.includes('cloudinary.com') && 
-        ['DOCUMENT', 'TEMPLATE', 'GUIDE'].includes(validatedData.resourceType)) {
-      // Make sure we have the raw URL for documents (no transformation)
-      fileUrl = fileUrl.split('/upload/')[0] + '/upload/' + fileUrl.split('/upload/')[1].split('/').pop();
+    // For Cloudinary URLs, make sure they are clean secure URLs without extra parameters
+    if (cleanFileUrl && cleanFileUrl.includes('cloudinary.com')) {
+      // Just keep the base URL without additional parameters
+      const parts = cleanFileUrl.split('/upload/');
+      if (parts.length === 2) {
+        const filename = parts[1].split('/').pop();
+        if (filename) {
+          cleanFileUrl = `${parts[0]}/upload/${filename}`;
+        }
+      }
     }
     
-    // Create new resource or update existing one
+    if (cleanThumbnailUrl && cleanThumbnailUrl.includes('cloudinary.com')) {
+      const parts = cleanThumbnailUrl.split('/upload/');
+      if (parts.length === 2) {
+        const filename = parts[1].split('/').pop();
+        if (filename) {
+          cleanThumbnailUrl = `${parts[0]}/upload/${filename}`;
+        }
+      }
+    }
+    
+    // Prepare form data for submission
+    const resourceData = {
+      ...formData,
+      fileUrl: cleanFileUrl,
+      thumbnailUrl: cleanThumbnailUrl === "" ? null : cleanThumbnailUrl,
+    };
+    
+    // Submit to API
     const response = await fetch(
       isEditMode ? `/api/resources/${resource?.id}` : "/api/resources", 
       {
@@ -285,30 +306,12 @@ const handleSubmit = async (e: React.FormEvent) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...validatedData,
-          fileUrl
-        }),
+        body: JSON.stringify(resourceData),
       }
     );
     
-    const data = await response.json();
-    
     if (!response.ok) {
-      // Handle API validation errors
-      if (data.error && Array.isArray(data.error)) {
-        const newErrors: Record<string, string> = {};
-        data.error.forEach((err: any) => {
-          if (err.path && err.path[0]) {
-            newErrors[err.path[0]] = err.message;
-          }
-        });
-        setErrors(newErrors);
-        toast.error("Please fix the errors in the form");
-        return;
-      }
-      
-      // Handle other API errors
+      const data = await response.json();
       throw new Error(data.error || "Failed to save resource");
     }
     
@@ -316,24 +319,12 @@ const handleSubmit = async (e: React.FormEvent) => {
     router.push("/admin/resources");
     router.refresh();
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      // Handle form validation errors
-      const newErrors: Record<string, string> = {};
-      error.errors.forEach((err) => {
-        if (err.path[0]) {
-          newErrors[err.path[0] as string] = err.message;
-        }
-      });
-      setErrors(newErrors);
-      toast.error("Please fix the errors in the form");
-    } else {
-      console.error("Error saving resource:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to save resource"
-      );
-    }
+    console.error("Error saving resource:", error);
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Failed to save resource"
+    );
   } finally {
     setIsSubmitting(false);
   }

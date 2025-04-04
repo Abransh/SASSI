@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, ExternalLink, FileText, Share2, Eye } from "lucide-react";
+import { Download, ExternalLink, Eye, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trackResourceView } from "@/lib/resource-utils";
 import { toast } from "sonner";
@@ -26,13 +26,19 @@ export default function ResourceViewActions({ resource }: ResourceViewActionsPro
       // Track resource download
       await trackResourceView(resource.id, true);
       
-      // Use the download API endpoint to handle the download server-side
-      window.open(`/api/resources/${resource.id}/download`, '_blank');
+      // For direct download from Cloudinary
+      if (resource.resourceType === "LINK") {
+        // If it's a link, just open it in a new tab
+        window.open(resource.fileUrl, "_blank");
+      } else {
+        // Use the download API endpoint which will handle tracking and redirect
+        window.location.href = `/api/resources/${resource.id}/download`;
+      }
       
       toast.success("Download started");
     } catch (error) {
       console.error("Error downloading resource:", error);
-      toast.error("Failed to download resource. Please try again or contact support.");
+      toast.error("Failed to download resource. Please try again.");
     } finally {
       setIsDownloading(false);
     }
@@ -48,17 +54,19 @@ export default function ResourceViewActions({ resource }: ResourceViewActionsPro
       // Direct file viewing based on resource type
       if (resource.resourceType === "LINK") {
         window.open(resource.fileUrl, "_blank");
+      } else if (resource.fileUrl.toLowerCase().endsWith(".pdf")) {
+        // For PDFs, use Google Docs Viewer as a fallback option
+        const encodedUrl = encodeURIComponent(resource.fileUrl);
+        window.open(`https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`, "_blank");
       } else {
-        // If it's a PDF or document, open it directly
-        // Make sure the URL is the direct link to the document
-        const viewUrl = resource.fileUrl;
-        window.open(viewUrl, "_blank");
+        // For other files, try to open directly
+        window.open(resource.fileUrl, "_blank");
       }
       
       toast.success("Opening resource");
     } catch (error) {
       console.error("Error viewing resource:", error);
-      toast.error("Failed to open resource. Please try again or contact support.");
+      toast.error("Failed to open resource. Please try downloading instead.");
     } finally {
       setIsViewing(false);
     }

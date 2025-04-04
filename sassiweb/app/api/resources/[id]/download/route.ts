@@ -66,8 +66,19 @@ export async function GET(
       },
     });
     
-    // Redirect to the file URL
-    return NextResponse.redirect(resource.fileUrl);
+    // Prepare the download URL
+    let downloadUrl = resource.fileUrl;
+    
+    // For Cloudinary resources, add fl_attachment flag to force download
+    if (downloadUrl.includes('cloudinary.com')) {
+      const parts = downloadUrl.split('/upload/');
+      if (parts.length === 2) {
+        downloadUrl = `${parts[0]}/upload/fl_attachment/${parts[1]}`;
+      }
+    }
+    
+    // Redirect to the download URL
+    return NextResponse.redirect(downloadUrl);
   } catch (error) {
     console.error("Error downloading resource:", error);
     return NextResponse.json(

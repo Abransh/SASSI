@@ -1,21 +1,23 @@
+// app/api/resources/[id]/track/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
-// POST /api/resources/[id]/track - Track resource view or download
 export async function POST(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
- //{ params }: { params: { id: string } }
+  context: any
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
     const session = await getServerSession(authOptions);
+    const id = context.params.id; // Access the ID via context.params
+    
+   
     
     if (!session) {
       return NextResponse.json(
-        { error: "You must be logged in to access resources" },
+        { error: "You must be logged in to track resource views" },
         { status: 401 }
       );
     }
