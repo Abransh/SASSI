@@ -49,3 +49,6 @@ next-env.d.ts
 node_modules/
 .next/
 out/
+
+
+scripts/update-admin-password.ts

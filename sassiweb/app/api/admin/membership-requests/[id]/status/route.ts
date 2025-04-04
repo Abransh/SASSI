@@ -97,6 +97,7 @@
 // }
 
 // app/api/admin/membership-requests/[id]/status/route.ts
+// app/api/admin/membership-requests/[id]/status/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
@@ -106,7 +107,7 @@ import { sendMembershipStatusEmail } from "@/lib/email";
 
 // Schema for status update
 const statusUpdateSchema = z.object({
-  status: z.enum(["APPROVED", "REJECTED"]),
+  status: z.enum(["PENDING", "APPROVED", "REJECTED"]),
   notes: z.string().optional(),
 });
 
@@ -160,14 +161,13 @@ export async function PATCH(
       },
       data: {
         status: validatedData.status,
-        notes: validatedData.notes,
+        notes: validatedData.notes || undefined,
         reviewedBy: session.user.id,
         reviewedAt: new Date(),
       },
     });
     
-    // If the request is approved and has a user associated with it,
-    // update the user's verification status
+    // If the request is approved, also update the user's verification status
     if (validatedData.status === "APPROVED" && membershipRequest.userId) {
       await prisma.user.update({
         where: {
@@ -175,21 +175,26 @@ export async function PATCH(
         },
         data: {
           isVerified: true,
+          paymentVerified: true,
+          // Set membership expiry date to 1 year from now
+          membershipExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
       });
     }
     
-    // Send email notification to the user
-    try {
-      await sendMembershipStatusEmail(
-        membershipRequest.email,
-        `${membershipRequest.firstName} ${membershipRequest.lastName}`,
-        validatedData.status,
-        validatedData.notes
-      );
-    } catch (emailError) {
-      console.error("Failed to send status email:", emailError);
-      // Continue with the response even if email fails
+    // Send email notification to the user only for APPROVED or REJECTED statuses
+    if (validatedData.status === "APPROVED" || validatedData.status === "REJECTED") {
+      try {
+        await sendMembershipStatusEmail(
+          membershipRequest.email,
+          `${membershipRequest.firstName} ${membershipRequest.lastName}`,
+          validatedData.status,
+          validatedData.notes
+        );
+      } catch (emailError) {
+        console.error("Failed to send status email:", emailError);
+        // Continue with the response even if email fails
+      }
     }
     
     return NextResponse.json({

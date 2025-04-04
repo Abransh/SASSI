@@ -34,6 +34,7 @@ model User {
   registrations        Registration[]
   resourceViews        ResourceView[]
   teamApplications     TeamApplication[]
+  passwordReset        PasswordReset?
 }
 
 model Profile {
@@ -178,6 +179,16 @@ model ResourceView {
   @@unique([resourceId, userId])
 }
 
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
 enum Role {
   USER
   ADMIN
@@ -202,3 +213,4 @@ enum ResourceType {
   VIDEO
   LINK
 }
+

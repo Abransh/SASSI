@@ -308,3 +308,63 @@ export async function sendTeamApplicationStatusEmail(
     throw error;
   }
 }
+
+/**
+ * Send password reset email
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  name: string,
+  resetUrl: string
+) {
+  try {
+    await resend.emails.send({
+      from: "SASSI Support <no-reply@sassimilan.com>",
+      to: email,
+      subject: "Reset Your SASSI Password",
+      html: `
+        <h1>Password Reset Request</h1>
+        <p>Dear ${name},</p>
+        <p>We received a request to reset your password for your SASSI account. If you didn't make this request, you can safely ignore this email.</p>
+        <p>To reset your password, click the button below:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="background-color: #ff6b00; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Reset Password</a>
+        </div>
+        <p>Alternatively, you can copy and paste this link in your browser:</p>
+        <p style="word-break: break-all;">${resetUrl}</p>
+        <p><strong>Note:</strong> This link will expire in 1 hour for security reasons.</p>
+        <p>If you didn't request a password reset, please contact us immediately at support@sassimilan.com.</p>
+        <p>Best regards,<br>The SASSI Team</p>
+      `,
+    });
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send password changed confirmation email
+ */
+export async function sendPasswordChangedEmail(
+  email: string,
+  name: string
+) {
+  try {
+    await resend.emails.send({
+      from: "SASSI Support <no-reply@sassimilan.com>",
+      to: email,
+      subject: "Your SASSI Password Has Been Changed",
+      html: `
+        <h1>Password Changed Successfully</h1>
+        <p>Dear ${name},</p>
+        <p>This is a confirmation that the password for your SASSI account has been successfully changed.</p>
+        <p>If you did not make this change, please contact us immediately at support@sassimilan.com.</p>
+        <p>Best regards,<br>The SASSI Team</p>
+      `,
+    });
+  } catch (error) {
+    console.error("Error sending password changed email:", error);
+    throw error;
+  }
+}

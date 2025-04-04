@@ -32,7 +32,7 @@ export default function JoinUsModal({ isOpen, onClose }: JoinUsModalProps) {
   }, []);
 
   const handleMemberClick = () => {
-    router.push("/join/member");
+    router.push("/auth/signup");
     onClose();
   };
 

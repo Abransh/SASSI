@@ -9,6 +9,7 @@ import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
 import TeamStatusSelect from "@/components/admin/TeamStatusSelect";
 import MembershipStatusSelect from "@/components/admin/MembershipStatusSelect";
+import CreateMembershipStatusSelect from "@/components/admin/CreateMembershipStatusSelect";
 
 type UserWithTeams = {
   id: string;
@@ -163,7 +164,11 @@ export default async function AdminUsersRolesPage() {
                         ))}
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-500">No request</span>
+                      <CreateMembershipStatusSelect 
+                        userId={user.id}
+                        userName={user.name}
+                        userEmail={user.email}
+                      />
                     )}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
@@ -183,4 +188,4 @@ export default async function AdminUsersRolesPage() {
       <Footer />
     </div>
   );
-} 
+}
