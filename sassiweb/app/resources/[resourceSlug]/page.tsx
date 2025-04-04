@@ -7,6 +7,9 @@ import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Download } from "lucide-react";
+import { getResourceTypeIcon, formatResourceUrl } from "@/lib/resource-utils";
+import ResourceViewActions from "@/components/ResourceViewActions";
+
 
 export default async function ResourcePage({
   params,
@@ -51,6 +54,14 @@ export default async function ResourcePage({
     return notFound();
   }
   
+    // Format the resource URL for viewing
+    const formattedUrl = formatResourceUrl(resource.fileUrl, resource.resourceType);
+  
+    // Track resource view (we'll do this client-side in the ResourceViewActions component)
+    
+    const ResourceIcon = getResourceTypeIcon(resource.resourceType);
+    
+
   // Track resource view
   try {
     await prisma.resourceView.upsert({
@@ -81,47 +92,43 @@ export default async function ResourcePage({
       <section className="pt-32 pb-20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2">{resource.title}</h1>
-                <p className="text-gray-600">{resource.description}</p>
-              </div>
-              
-              <div className="flex flex-col space-y-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">Category:</span>
-                  <span className="text-sm font-medium">{resource.category.name}</span>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center mb-6">
+                  <div className="p-3 rounded-lg bg-blue-100 text-blue-600 mr-4">
+                    <ResourceIcon size={24} />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold">{resource.title}</h1>
+                    <p className="text-gray-500">{resource.category.name}</p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">Type:</span>
-                  <span className="text-sm font-medium">{resource.resourceType}</span>
+                <div className="mb-8">
+                  <p className="text-gray-700">{resource.description}</p>
                 </div>
                 
-                <div className="pt-4">
-                  <Button
-                    asChild
-                    className="w-full sm:w-auto"
-                  >
-                    <a
-                      href={resource.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-2"
-                    >
-                      {resource.resourceType === "LINK" ? (
-                        <>
-                          <ExternalLink className="h-4 w-4" />
-                          <span>Open Link</span>
-                        </>
-                      ) : (
-                        <>
-                          <Download className="h-4 w-4" />
-                          <span>Download Resource</span>
-                        </>
-                      )}
-                    </a>
-                  </Button>
+                {/* Resource Preview/Download */}
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold mb-4">Resource Actions</h2>
+                  <ResourceViewActions 
+                    resource={{
+                      id: resource.id,
+                      fileUrl: formattedUrl,
+                      resourceType: resource.resourceType,
+                      title: resource.title
+                    }} 
+                  />
+                </div>
+                
+                {/* Stats */}
+                <div className="mt-8 pt-6 border-t border-gray-200 flex justify-between text-sm text-gray-500">
+                  <div>
+                    Views: {resource.viewCount}
+                  </div>
+                  <div>
+                    Downloads: {resource.downloadCount}
+                  </div>
                 </div>
               </div>
             </div>
@@ -132,4 +139,4 @@ export default async function ResourcePage({
       <Footer />
     </main>
   );
-} 
+}

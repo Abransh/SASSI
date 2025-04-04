@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, ExternalLink, FileText, Share2 } from "lucide-react";
+import { Download, ExternalLink, FileText, Share2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trackResourceView } from "@/lib/resource-utils";
 import { toast } from "sonner";
@@ -11,11 +11,13 @@ type ResourceViewActionsProps = {
     id: string;
     fileUrl: string;
     resourceType: string;
+    title: string;
   };
 };
 
 export default function ResourceViewActions({ resource }: ResourceViewActionsProps) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isViewing, setIsViewing] = useState(false);
   
   const handleDownload = async () => {
     setIsDownloading(true);
@@ -24,28 +26,41 @@ export default function ResourceViewActions({ resource }: ResourceViewActionsPro
       // Track resource download
       await trackResourceView(resource.id, true);
       
-      // Trigger file download
-      window.open(resource.fileUrl, "_blank");
+      // Use the download API endpoint to handle the download server-side
+      window.open(`/api/resources/${resource.id}/download`, '_blank');
       
       toast.success("Download started");
     } catch (error) {
       console.error("Error downloading resource:", error);
-      toast.error("Failed to download resource");
+      toast.error("Failed to download resource. Please try again or contact support.");
     } finally {
       setIsDownloading(false);
     }
   };
   
   const handleView = async () => {
+    setIsViewing(true);
+    
     try {
       // Track resource view
       await trackResourceView(resource.id);
       
-      // Open file in new tab
-      window.open(resource.fileUrl, "_blank");
+      // Direct file viewing based on resource type
+      if (resource.resourceType === "LINK") {
+        window.open(resource.fileUrl, "_blank");
+      } else {
+        // If it's a PDF or document, open it directly
+        // Make sure the URL is the direct link to the document
+        const viewUrl = resource.fileUrl;
+        window.open(viewUrl, "_blank");
+      }
+      
+      toast.success("Opening resource");
     } catch (error) {
       console.error("Error viewing resource:", error);
-      toast.error("Failed to open resource");
+      toast.error("Failed to open resource. Please try again or contact support.");
+    } finally {
+      setIsViewing(false);
     }
   };
   
@@ -70,17 +85,19 @@ export default function ResourceViewActions({ resource }: ResourceViewActionsPro
         <Button
           onClick={handleView}
           variant="outline"
+          disabled={isViewing}
         >
           <ExternalLink className="mr-2 h-4 w-4" />
-          Visit Link
+          {isViewing ? "Opening..." : "Visit Link"}
         </Button>
       ) : (
         <Button
           onClick={handleView}
           variant="outline"
+          disabled={isViewing}
         >
-          <FileText className="mr-2 h-4 w-4" />
-          View Document
+          <Eye className="mr-2 h-4 w-4" />
+          {isViewing ? "Opening..." : "View Document"}
         </Button>
       )}
       

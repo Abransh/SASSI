@@ -152,74 +152,80 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
   };
   
   // Handle file upload
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "file" | "thumbnail") => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  // This is the updated handleFileUpload function for ResourceForm.tsx
+
+const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "file" | "thumbnail") => {
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+  
+  const file = files[0];
+  setIsUploading(type);
+  
+  try {
+    // Create form data for Cloudinary upload
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "sassi_resources"); // Required for unsigned uploads
     
-    const file = files[0];
-    setIsUploading(type);
-    
-    try {
-      // Create form data for Cloudinary upload
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "sassi_resources"); // Required for unsigned uploads
-      formData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "");
-      formData.append("timestamp", Math.floor(Date.now() / 1000).toString());
+    // Add folder based on type
+    if (type === "thumbnail") {
+      formData.append("folder", "sassi/resource_thumbnails");
+    } else {
+      formData.append("folder", "sassi/resources");
       
-      // Add folder based on type
-      if (type === "thumbnail") {
-        formData.append("folder", "sassi/resource_thumbnails");
-      } else {
-        formData.append("folder", "sassi/resources");
-        formData.append("folder", "sassi/resources");
-      }
-      
-      // Upload to Cloudinary
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        console.error("Cloudinary error:", data);
-        throw new Error(data.error?.message || "Failed to upload file");
-      }
-      
-      // Update form data with the new URL
-      setFormData((prev) => ({
-        ...prev,
-        [type === "file" ? "fileUrl" : "thumbnailUrl"]: data.secure_url,
-      }));
-      
-      // Clear any existing error
-      if (errors[type === "file" ? "fileUrl" : "thumbnailUrl" as keyof ResourceFormData]) {
-        setErrors((prev) => ({
-          ...prev,
-          [type === "file" ? "fileUrl" : "thumbnailUrl"]: undefined,
-        }));
-      }
-      
-      toast.success(`${type === "file" ? "Resource" : "Thumbnail"} uploaded successfully`);
-    } catch (error) {
-      console.error(`Error uploading ${type}:`, error);
-      toast.error(`Failed to upload ${type === "file" ? "resource" : "thumbnail"}`);
-    } finally {
-      setIsUploading(null);
-      
-      // Clear the file input
-      if (type === "file" && fileInputRef.current) {
-        fileInputRef.current.value = "";
-      } else if (type === "thumbnail" && thumbnailInputRef.current) {
-        thumbnailInputRef.current.value = "";
-      }
+      // Set resource access type to allow downloads
+      formData.append("resource_type", "auto"); // Auto-detect file type
+      formData.append("access_mode", "public"); // Ensure the resource is public
     }
-  };
+    
+    // Upload to Cloudinary
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error("Cloudinary error:", data);
+      throw new Error(data.error?.message || "Failed to upload file");
+    }
+    
+    console.log("Cloudinary upload response:", data); // Log the response to debug
+    
+    // Update form data with the new URL
+    // For documents, we use the secure_url which should be directly accessible
+    setFormData((prev) => ({
+      ...prev,
+      [type === "file" ? "fileUrl" : "thumbnailUrl"]: data.secure_url,
+    }));
+    
+    // Clear any existing error
+    if (errors[type === "file" ? "fileUrl" : "thumbnailUrl" as keyof ResourceFormData]) {
+      setErrors((prev) => ({
+        ...prev,
+        [type === "file" ? "fileUrl" : "thumbnailUrl"]: undefined,
+      }));
+    }
+    
+    toast.success(`${type === "file" ? "Resource" : "Thumbnail"} uploaded successfully`);
+  } catch (error) {
+    console.error(`Error uploading ${type}:`, error);
+    toast.error(`Failed to upload ${type === "file" ? "resource" : "thumbnail"}`);
+  } finally {
+    setIsUploading(null);
+    
+    // Clear the file input
+    if (type === "file" && fileInputRef.current) {
+      fileInputRef.current.value = "";
+    } else if (type === "thumbnail" && thumbnailInputRef.current) {
+      thumbnailInputRef.current.value = "";
+    }
+  }
+};
   
   // Clear file URL
   const handleClearFileUrl = (type: "file" | "thumbnail") => {
@@ -250,71 +256,89 @@ export default function ResourceForm({ categories, resource }: ResourceFormProps
   };
   
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Update this in your ResourceForm.tsx component
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  try {
+    // Validate form data
+    const validatedData = resourceSchema.parse(formData);
     
-    try {
-      // Validate form data
-      const validatedData = resourceSchema.parse(formData);
-      
-      setIsSubmitting(true);
-      
-      // Create new resource
-      const response = await fetch("/api/resources", {
-        method: "POST",
+    setIsSubmitting(true);
+    
+    // Ensure file URL is properly formatted
+    let fileUrl = validatedData.fileUrl;
+    
+    // If it's a Cloudinary URL for a document, ensure it has the right params for viewing
+    if (fileUrl.includes('cloudinary.com') && 
+        ['DOCUMENT', 'TEMPLATE', 'GUIDE'].includes(validatedData.resourceType)) {
+      // Make sure we have the raw URL for documents (no transformation)
+      fileUrl = fileUrl.split('/upload/')[0] + '/upload/' + fileUrl.split('/upload/')[1].split('/').pop();
+    }
+    
+    // Create new resource or update existing one
+    const response = await fetch(
+      isEditMode ? `/api/resources/${resource?.id}` : "/api/resources", 
+      {
+        method: isEditMode ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(validatedData),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        // Handle API validation errors
-        if (data.error && Array.isArray(data.error)) {
-          const newErrors: Record<string, string> = {};
-          data.error.forEach((err: any) => {
-            if (err.path && err.path[0]) {
-              newErrors[err.path[0]] = err.message;
-            }
-          });
-          setErrors(newErrors);
-          toast.error("Please fix the errors in the form");
-          return;
-        }
-        
-        // Handle other API errors
-        throw new Error(data.error || "Failed to create resource");
+        body: JSON.stringify({
+          ...validatedData,
+          fileUrl
+        }),
       }
-      
-      toast.success("Resource created successfully");
-      router.push("/admin/resources");
-      router.refresh();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Handle form validation errors
+    );
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // Handle API validation errors
+      if (data.error && Array.isArray(data.error)) {
         const newErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          if (err.path[0]) {
-            newErrors[err.path[0] as string] = err.message;
+        data.error.forEach((err: any) => {
+          if (err.path && err.path[0]) {
+            newErrors[err.path[0]] = err.message;
           }
         });
         setErrors(newErrors);
         toast.error("Please fix the errors in the form");
-      } else {
-        console.error("Error creating resource:", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to create resource"
-        );
+        return;
       }
-    } finally {
-      setIsSubmitting(false);
+      
+      // Handle other API errors
+      throw new Error(data.error || "Failed to save resource");
     }
-  };
-  
+    
+    toast.success(isEditMode ? "Resource updated successfully" : "Resource created successfully");
+    router.push("/admin/resources");
+    router.refresh();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // Handle form validation errors
+      const newErrors: Record<string, string> = {};
+      error.errors.forEach((err) => {
+        if (err.path[0]) {
+          newErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(newErrors);
+      toast.error("Please fix the errors in the form");
+    } else {
+      console.error("Error saving resource:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to save resource"
+      );
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
   // Handle resource deletion
   const handleDelete = async () => {
     if (!resource) return;
