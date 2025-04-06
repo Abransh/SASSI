@@ -64,7 +64,7 @@ export default function UserDashboard() {
       const eventsResponse = await fetch('/api/user/events');
       if (eventsResponse.ok) {
         const eventsData = await eventsResponse.json();
-        setUpcomingEvents(eventsData.events);
+        setUpcomingEvents(eventsData.upcoming || []);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -202,7 +202,7 @@ export default function UserDashboard() {
                 </div>
                 
                 <div className="p-6">
-                  {upcomingEvents.length > 0 ? (
+                  {upcomingEvents && upcomingEvents.length > 0 ? (
                     <div className="divide-y">
                       {upcomingEvents.map((event, index) => (
                         <div key={index} className="py-4 first:pt-0 last:pb-0">
@@ -214,7 +214,9 @@ export default function UserDashboard() {
                             <div className="flex-1">
                               <h3 className="font-medium">{event.title}</h3>
                               <p className="text-sm text-gray-600">
-                                {format(new Date(event.startDate), 'MMMM d, yyyy')} at {format(new Date(event.startDate), 'h:mm a')}
+                                {event.startDate && !isNaN(new Date(event.startDate).getTime()) 
+                                  ? `${format(new Date(event.startDate), 'MMMM d, yyyy')} at ${format(new Date(event.startDate), 'h:mm a')}`
+                                  : "Date not available"}
                               </p>
                               <p className="text-sm text-gray-500 mt-1">{event.location}</p>
                             </div>

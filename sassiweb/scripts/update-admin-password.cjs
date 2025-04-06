@@ -1,26 +1,43 @@
 // scripts/update-admin-password.cjs
 // Script to update an admin user's password securely
+// IMPORTANT: This script should NOT be committed to version control
 
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
+const readline = require('readline');
 
 // Load environment variables
 dotenv.config();
 
 const prisma = new PrismaClient();
 
+// Create readline interface for secure password input
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+// Securely prompt for password
+const question = (query) => new Promise((resolve) => rl.question(query, resolve));
+
 async function updateAdminPassword() {
   try {
-    // Get email from command line args or use default
-    const email = process.argv[2] || 'admin@sassimilan.com';
+    // Get email from command line args or prompt for it
+    let email = process.argv[2];
+    if (!email) {
+      email = await question('Enter admin email (default: admin@sassimilan.com): ');
+      email = email || 'admin@sassimilan.com';
+    }
     
-    // Get password from .env or command line args
-    const newPassword = process.argv[3] || process.env.ADMIN_PASSWORD || 'Admin@SASSI123';
-    
+    // Get password from .env or prompt for it (never use a default)
+    let newPassword = process.env.ADMIN_PASSWORD;
     if (!newPassword) {
-      console.error('No password provided. Set ADMIN_PASSWORD in .env file or provide as argument.');
-      process.exit(1);
+      newPassword = await question('Enter new password: ');
+      if (!newPassword) {
+        console.error('Password cannot be empty');
+        process.exit(1);
+      }
     }
     
     console.log(`Updating password for user: ${email}`);
@@ -49,12 +66,10 @@ async function updateAdminPassword() {
     });
     
     console.log(`Admin password updated successfully for: ${updatedAdmin.email}`);
-    
-    // Don't log the actual password
-    console.log('Password has been updated.');
   } catch (error) {
     console.error("Error updating admin password:", error);
   } finally {
+    rl.close();
     await prisma.$disconnect();
   }
 }

@@ -157,7 +157,7 @@ export default function EventDetail({ event }: EventDetailProps) {
                 <div>
                   <p className="mb-4 text-gray-700">Please sign in to register for this event.</p>
                   <Link 
-                    href={`/login?callbackUrl=/events/${event.id}`}
+                    href={`/auth/signin?callbackUrl=/events/${event.id}`}
                     className="w-full block text-center bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded"
                   >
                     Sign In

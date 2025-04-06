@@ -50,5 +50,7 @@ node_modules/
 .next/
 out/
 
-
+# Ignore password management scripts
+scripts/update-admin-password.js
+scripts/update-admin-password.cjs
 scripts/update-admin-password.ts
