@@ -23,7 +23,6 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Await the params before accessing them
     const { id } = await context.params;
     const event = await prisma.event.findUnique({
       where: {
@@ -78,7 +77,6 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Await the params before accessing them
     const { id } = await context.params;
     const session = await getServerSession(authOptions);
     
@@ -122,7 +120,6 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Await the params before accessing them
     const { id } = await context.params;
     const session = await getServerSession(authOptions);
     

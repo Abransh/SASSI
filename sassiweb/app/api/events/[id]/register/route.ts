@@ -33,47 +33,50 @@ interface CompleteEvent {
 // POST /api/events/[id]/register - Register for an event
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
     const session = await getServerSession(authOptions);
-
-    if (!session) {
+    
+    if (!session || !session.user) {
       return NextResponse.json(
-        { error: "You must be logged in to register for events" },
-        { status: 401 },
+        { error: "You must be logged in to register for an event" },
+        { status: 401 }
       );
     }
-
-    // Check if event exists and isn't full
-    const eventResult = await prisma.event.findUnique({
+    
+    // Check if the event exists and has capacity
+    const event = await prisma.event.findUnique({
       where: {
-        id: id,
+        id: id
       },
       include: {
         _count: {
           select: {
             registrations: {
               where: {
-                status: "CONFIRMED",
-              },
-            },
-          },
-        },
-      },
+                status: "CONFIRMED"
+              }
+            }
+          }
+        }
+      }
     });
-
-    if (!eventResult) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    
+    if (!event) {
+      return NextResponse.json(
+        { error: "Event not found" },
+        { status: 404 }
+      );
     }
 
     // Cast to our complete event type
-    const event = eventResult as unknown as CompleteEvent;
+    const completeEvent = event as unknown as CompleteEvent;
 
     if (
-      event.maxAttendees &&
-      event._count.registrations >= event.maxAttendees
+      completeEvent.maxAttendees &&
+      completeEvent._count.registrations >= completeEvent.maxAttendees
     ) {
       return NextResponse.json(
         { error: "This event is at full capacity" },
@@ -99,17 +102,17 @@ export async function POST(
             id: existingRegistration.id,
           },
           data: {
-            status: event.requiresPayment ? "PENDING" : "CONFIRMED",
+            status: completeEvent.requiresPayment ? "PENDING" : "CONFIRMED",
           },
         });
 
         // For free events, send a confirmation email and return the registration
-        if (!event.requiresPayment) {
+        if (!completeEvent.requiresPayment) {
           await sendEventRegistrationEmail(
             session.user.email as string,
             session.user.name as string,
-            event.title,
-            event.startDate,
+            completeEvent.title,
+            completeEvent.startDate,
           );
 
           return NextResponse.json(registration);
@@ -126,7 +129,22 @@ export async function POST(
           baseUrl = `https://${baseUrl}`;
         }
 
-        // Create a checkout session
+        // Set expiresAt to 30 minutes from now for pending registrations
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+        // First create a stripe payment record
+        const stripePayment = await prisma.stripePayment.create({
+          data: {
+            stripeSessionId: "", // Will update this after creating the checkout session
+            amount: completeEvent.price || 0,
+            status: "PENDING",
+            paymentType: "EVENT_REGISTRATION",
+            userId: session.user.id,
+            eventId: completeEvent.id,
+          },
+        });
+
+        // Then create a checkout session
         const checkoutSession = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
           line_items: [
@@ -134,38 +152,29 @@ export async function POST(
               price_data: {
                 currency: "eur",
                 product_data: {
-                  name: event.title,
-                  description: event.description,
+                  name: completeEvent.title,
+                  description: completeEvent.description,
                 },
-                unit_amount: Math.round(event.price * 100),
+                unit_amount: Math.round((completeEvent.price || 0) * 100),
               },
               quantity: 1,
             },
           ],
           metadata: {
-            eventId: event.id,
+            eventId: completeEvent.id,
             userId: session.user.id,
           },
-          client_reference_id: stripePayment.id, // Reference to our payment record
+          client_reference_id: stripePayment.id,
           mode: "payment",
-          success_url: `${baseUrl}/events/${event.id}?payment_status=success`,
-          cancel_url: `${baseUrl}/events/${event.id}?payment_status=canceled`,
+          success_url: `${baseUrl}/events/${completeEvent.id}?payment_status=success`,
+          cancel_url: `${baseUrl}/events/${completeEvent.id}?payment_status=canceled`,
         });
 
-        // For paid events, create a stripe payment record
-        const stripePayment = await prisma.stripePayment.create({
-          data: {
-            stripeSessionId: checkoutSession.id,
-            amount: event.price!,
-            status: "PENDING",
-            paymentType: "EVENT_REGISTRATION",
-            userId: session.user.id,
-            eventId: event.id,
-          },
+        // Update the stripe payment record with the session ID
+        await prisma.stripePayment.update({
+          where: { id: stripePayment.id },
+          data: { stripeSessionId: checkoutSession.id }
         });
-
-        // Set expiresAt to 30 minutes from now for pending registrations
-        const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
         // Create a new registration or update an existing cancelled one
         if (existingRegistration) {
@@ -185,7 +194,7 @@ export async function POST(
           // Create a new registration
           await prisma.registration.create({
             data: {
-              eventId: event.id,
+              eventId: completeEvent.id,
               userId: session.user.id,
               status: "PENDING",
               paymentStatus: "PENDING",
@@ -205,7 +214,7 @@ export async function POST(
     }
 
     // For non-paid events, create registration immediately
-    if (!event.requiresPayment) {
+    if (!completeEvent.requiresPayment) {
       // Create new registration
       const registration = await prisma.registration.create({
         data: {
@@ -220,8 +229,8 @@ export async function POST(
       await sendEventRegistrationEmail(
         session.user.email as string,
         session.user.name as string,
-        event.title,
-        event.startDate,
+        completeEvent.title,
+        completeEvent.startDate,
       );
 
       return NextResponse.json(registration, { status: 201 });
@@ -238,7 +247,22 @@ export async function POST(
       baseUrl = `https://${baseUrl}`;
     }
 
-    // Create a checkout session
+    // Set expiresAt to 30 minutes from now for pending registrations
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+    // First create a stripe payment record
+    const stripePayment = await prisma.stripePayment.create({
+      data: {
+        stripeSessionId: "", // Will update this after creating the checkout session
+        amount: completeEvent.price || 0,
+        status: "PENDING",
+        paymentType: "EVENT_REGISTRATION",
+        userId: session.user.id,
+        eventId: completeEvent.id,
+      },
+    });
+
+    // Then create a checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -246,38 +270,29 @@ export async function POST(
           price_data: {
             currency: "eur",
             product_data: {
-              name: event.title,
-              description: event.description,
+              name: completeEvent.title,
+              description: completeEvent.description,
             },
-            unit_amount: Math.round(event.price * 100),
+            unit_amount: Math.round((completeEvent.price || 0) * 100),
           },
           quantity: 1,
         },
       ],
       metadata: {
-        eventId: event.id,
+        eventId: completeEvent.id,
         userId: session.user.id,
       },
-      client_reference_id: stripePayment.id, // Reference to our payment record
+      client_reference_id: stripePayment.id,
       mode: "payment",
-      success_url: `${baseUrl}/events/${event.id}?payment_status=success`,
-      cancel_url: `${baseUrl}/events/${event.id}?payment_status=canceled`,
+      success_url: `${baseUrl}/events/${completeEvent.id}?payment_status=success`,
+      cancel_url: `${baseUrl}/events/${completeEvent.id}?payment_status=canceled`,
     });
 
-    // For paid events, create a stripe payment record
-    const stripePayment = await prisma.stripePayment.create({
-      data: {
-        stripeSessionId: checkoutSession.id,
-        amount: event.price!,
-        status: "PENDING",
-        paymentType: "EVENT_REGISTRATION",
-        userId: session.user.id,
-        eventId: event.id,
-      },
+    // Update the stripe payment record with the session ID
+    await prisma.stripePayment.update({
+      where: { id: stripePayment.id },
+      data: { stripeSessionId: checkoutSession.id }
     });
-
-    // Set expiresAt to 30 minutes from now for pending registrations
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
     // Create a new registration or update an existing cancelled one
     if (existingRegistration) {
@@ -297,7 +312,7 @@ export async function POST(
       // Create a new registration
       await prisma.registration.create({
         data: {
-          eventId: event.id,
+          eventId: completeEvent.id,
           userId: session.user.id,
           status: "PENDING",
           paymentStatus: "PENDING",
@@ -320,16 +335,16 @@ export async function POST(
 // DELETE /api/events/[id]/register - Cancel registration
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
     const session = await getServerSession(authOptions);
-
-    if (!session) {
+    
+    if (!session || !session.user) {
       return NextResponse.json(
-        { error: "You must be logged in to cancel registration" },
-        { status: 401 },
+        { error: "You must be logged in to cancel a registration" },
+        { status: 401 }
       );
     }
 

@@ -33,7 +33,7 @@ export default function EventRegistrationButton({
         setStatusChecked(true);
         router.refresh();
       } else if (paymentStatus === 'canceled') {
-        toast.info("Payment was cancelled. Your registration is pending.");
+        toast("Payment was cancelled. Your registration is pending.");
         setStatusChecked(true);
         router.refresh();
       }

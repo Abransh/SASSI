@@ -10,13 +10,13 @@ const galleryImageSchema = z.object({
   caption: z.string().optional()
 });
 
-// GET /api/events/[id]/gallery - Get event gallery
+// GET /api/events/[id]/gallery - Get gallery images for an event
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params; // Await params before accessing id
+    const { id } = await context.params;
     const gallery = await prisma.eventImage.findMany({
       where: {
         eventId: id
@@ -42,7 +42,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params; // Await params before accessing id
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {
@@ -91,5 +91,20 @@ export async function POST(
       { error: "Failed to add image to gallery" },
       { status: 500 }
     );
+  }
+}
+
+// DELETE /api/events/[id]/gallery - Delete gallery image
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    const imageId = request.nextUrl.searchParams.get("imageId");
+    const session = await getServerSession(authOptions);
+    // ... existing code ...
+  } catch (error) {
+    // ... existing code ...
   }
 }

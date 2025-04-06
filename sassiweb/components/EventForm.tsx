@@ -208,13 +208,20 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         endDate: combineDateTime(formData.endDate, endTime),
       };
       
+      // Convert Date objects to ISO strings for API
+      const apiEventData = {
+        ...eventData,
+        startDate: eventData.startDate.toISOString(),
+        endDate: eventData.endDate.toISOString()
+      };
+      
       if (isEdit && event) {
         // Update existing event
-        await updateEvent(event.id, eventData);
+        await updateEvent(event.id, apiEventData);
         toast.success("Event updated successfully");
       } else {
         // Create new event
-        await createEvent(eventData);
+        await createEvent(apiEventData);
         toast.success("Event created successfully");
       }
       

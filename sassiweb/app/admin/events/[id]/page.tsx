@@ -41,7 +41,7 @@ export default async function EditEventPage(props: any) {
               </p>
             </div>
             {/* Render EventForm with event data */}
-            <EventForm event={event} />
+            <EventForm event={event || undefined} />
           </div>
         </div>
       </section>
