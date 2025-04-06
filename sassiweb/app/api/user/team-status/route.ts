@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    
     // Find the most recent team application for this user
     const teamApplication = await prisma.teamApplication.findFirst({
       where: {
