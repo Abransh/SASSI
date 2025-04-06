@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
+import { createTeamApplicationCheckoutSession } from "@/lib/stripe";
+import crypto from 'crypto';
 
 // Schema for team application
 const teamApplicationSchema = z.object({
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check if user's payment is verified
+    // Check if user is already payment verified (skip payment if already verified)
     const user = await prisma.user.findUnique({
       where: {
         id: session.user.id,
@@ -31,13 +33,6 @@ export async function POST(request: NextRequest) {
         paymentVerified: true,
       },
     });
-    
-    if (!user || !user.paymentVerified) {
-      return NextResponse.json(
-        { error: "You must complete your membership payment before joining a team" },
-        { status: 403 }
-      );
-    }
     
     // Parse and validate request body
     const body = await request.json();
@@ -67,16 +62,63 @@ export async function POST(request: NextRequest) {
       },
     });
     
-    return NextResponse.json(
-      {
-        message: "Team application submitted successfully",
-        id: application.id,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("Error creating team application:", error);
+    // If user has already paid, return success
+    if (user?.paymentVerified) {
+      return NextResponse.json({
+        application,
+        paymentRequired: false
+      }, { status: 201 });
+    }
     
+    // Create a Stripe checkout session for payment
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const successUrl = `${baseUrl}/dashboard?membership=success`;
+    const cancelUrl = `${baseUrl}/join/team?cancelled=true`;
+    
+    const stripeSession = await createTeamApplicationCheckoutSession({
+      userId: session.user.id,
+      department: validatedData.department,
+      successUrl,
+      cancelUrl
+    });
+    
+    // Create a payment record
+    const payment = await prisma.$executeRaw`
+      INSERT INTO "StripePayment" (
+        id, "stripeSessionId", amount, currency, status,
+        "paymentType", "userId", "teamApplicationId", "createdAt", "updatedAt"
+      )
+      VALUES (
+        ${crypto.randomUUID()}, ${stripeSession.id}, 5.0, 'eur', 'PENDING',
+        'TEAM_APPLICATION', ${session.user.id}, ${application.id}, now(), now()
+      )
+      RETURNING id
+    `;
+    
+    // Get the payment ID
+    const paymentResult = await prisma.$queryRaw`
+      SELECT id FROM "StripePayment" WHERE "stripeSessionId" = ${stripeSession.id}
+    `;
+    const paymentId = Array.isArray(paymentResult) && paymentResult.length > 0
+      ? paymentResult[0].id
+      : null;
+    
+    // Update team application with payment ID
+    if (paymentId) {
+      await prisma.$executeRaw`
+        UPDATE "TeamApplication"
+        SET "paymentId" = ${paymentId}
+        WHERE id = ${application.id}
+      `;
+    }
+    
+    // Return the checkout URL
+    return NextResponse.json({
+      application,
+      paymentRequired: true,
+      checkoutUrl: stripeSession.url
+    }, { status: 201 });
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: error.errors },
@@ -84,8 +126,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    console.error("Error creating team application:", error);
     return NextResponse.json(
-      { error: "Failed to process team application" },
+      { error: "Failed to create team application" },
       { status: 500 }
     );
   }

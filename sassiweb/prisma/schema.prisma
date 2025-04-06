@@ -34,6 +34,7 @@ model User {
   registrations        Registration[]
   resourceViews        ResourceView[]
   teamApplications     TeamApplication[]
+  payments             StripePayment[]
   passwordReset        PasswordReset?
 }
 
@@ -73,17 +74,19 @@ model MembershipRequest {
 }
 
 model TeamApplication {
-  id         String        @id @default(cuid())
-  department String
-  motivation String?
-  status     RequestStatus @default(PENDING)
-  notes      String?
-  userId     String
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  reviewedBy String?
-  reviewedAt DateTime?
-  user       User          @relation(fields: [userId], references: [id])
+  id          String        @id @default(cuid())
+  department  String
+  motivation  String?
+  status      RequestStatus @default(PENDING)
+  notes       String?
+  userId      String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  paymentId   String?       @unique
+  user        User          @relation(fields: [userId], references: [id])
+  payment     StripePayment? @relation("TeamApplicationPayment")
 }
 
 model Event {
@@ -96,6 +99,8 @@ model Event {
   endDate       DateTime
   imageUrl      String?
   maxAttendees  Int?
+  price         Float?         // Optional price in EUR (null means free)
+  requiresPayment Boolean      @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   createdBy     String
@@ -103,17 +108,21 @@ model Event {
   author        User           @relation(fields: [createdBy], references: [id])
   gallery       EventImage[]
   registrations Registration[]
+  payments      StripePayment[]
 }
 
 model Registration {
-  id        String             @id @default(cuid())
-  eventId   String
-  userId    String
-  status    RegistrationStatus @default(PENDING)
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String             @id @default(cuid())
+  eventId      String
+  userId       String
+  status       RegistrationStatus @default(PENDING)
+  paymentStatus PaymentStatus     @default(UNPAID)
+  paymentId    String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  event        Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment      StripePayment?     @relation(fields: [paymentId], references: [id])
 
   @@unique([eventId, userId])
 }
@@ -188,6 +197,24 @@ model PasswordReset {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model StripePayment {
+  id                String            @id @default(cuid())
+  stripeSessionId   String            @unique
+  stripePaymentId   String?
+  amount            Float
+  currency          String            @default("eur")
+  status            PaymentStatus     @default(PENDING)
+  paymentType       PaymentType
+  userId            String
+  eventId           String?
+  teamApplicationId String?           @unique
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  user              User              @relation(fields: [userId], references: [id])
+  event             Event?            @relation(fields: [eventId], references: [id])
+  teamApplication   TeamApplication?  @relation("TeamApplicationPayment", fields: [teamApplicationId], references: [id])
+  registrations     Registration[]
+}
 
 enum Role {
   USER
@@ -212,5 +239,18 @@ enum ResourceType {
   GUIDE
   VIDEO
   LINK
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  UNPAID
+}
+
+enum PaymentType {
+  EVENT_REGISTRATION
+  TEAM_APPLICATION
 }
 

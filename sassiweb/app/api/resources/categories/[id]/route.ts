@@ -20,11 +20,10 @@ const categoryUpdateSchema = z.object({
 // GET /api/resources/categories/[id] - Get a single resource category
 export async function GET(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
-  //{ params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    const { id } = await context.params; // Await params before accessing id
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -69,11 +68,10 @@ export async function GET(
 // PATCH /api/resources/categories/[id] - Update a resource category
 export async function PATCH(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
-  //{ params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    const { id } = await context.params; // Await params before accessing id
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {
@@ -146,11 +144,10 @@ export async function PATCH(
 // DELETE /api/resources/categories/[id] - Delete a resource category
 export async function DELETE(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
- // { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    const { id } = await context.params; // Await params before accessing id
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {

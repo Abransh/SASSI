@@ -7,10 +7,10 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  context: any
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id;
+    const { id } = await context.params;
     
     // Check if user is authenticated
     const session = await getServerSession(authOptions);

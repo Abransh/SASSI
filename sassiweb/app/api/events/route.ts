@@ -14,16 +14,21 @@ const eventSchema = z.object({
   endDate: z.string().transform(str => new Date(str)),
   imageUrl: z.string().optional().nullable(),
   maxAttendees: z.number().optional().nullable(),
+  price: z.number().optional().nullable(),
+  requiresPayment: z.boolean().default(false),
   published: z.boolean().default(false),
 });
 
 // GET /api/events - Get all events
 export async function GET(request: NextRequest) {
   try {
+    console.log("API: Fetching events");
     const { searchParams } = new URL(request.url);
     const publishedOnly = searchParams.get("published") === "true";
     const past = searchParams.get("past") === "true";
     const upcoming = searchParams.get("upcoming") === "true";
+    
+    console.log("Query parameters:", { publishedOnly, past, upcoming });
     
     const now = new Date();
     
@@ -45,25 +50,36 @@ export async function GET(request: NextRequest) {
       };
     }
     
-    const events = await prisma.event.findMany({
-      where: whereCondition,
-      orderBy: {
-        startDate: upcoming ? 'asc' : 'desc'
-      },
-      include: {
-        _count: {
-          select: {
-            registrations: true
+    console.log("Executing Prisma query with conditions:", JSON.stringify(whereCondition));
+    
+    try {
+      const events = await prisma.event.findMany({
+        where: whereCondition,
+        orderBy: {
+          startDate: upcoming ? 'asc' : 'desc'
+        },
+        include: {
+          _count: {
+            select: {
+              registrations: true
+            }
           }
         }
-      }
-    });
-    
-    return NextResponse.json(events);
+      });
+      
+      console.log(`Successfully fetched ${events.length} events`);
+      return NextResponse.json(events);
+    } catch (dbError) {
+      console.error("Database query error:", dbError);
+      return NextResponse.json(
+        { error: "Database error: " + (dbError instanceof Error ? dbError.message : String(dbError)) },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error fetching events:", error);
     return NextResponse.json(
-      { error: "Failed to fetch events" },
+      { error: "Failed to fetch events", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

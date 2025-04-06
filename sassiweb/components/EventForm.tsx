@@ -25,6 +25,8 @@ const eventFormSchema = z.object({
   endDate: z.date(),
   imageUrl: z.string().optional().nullable(),
   maxAttendees: z.number().optional().nullable(),
+  price: z.number().optional().nullable(),
+  requiresPayment: z.boolean().default(false),
   published: z.boolean().default(false),
 });
 
@@ -61,6 +63,8 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     endDate: defaultEndDate,
     imageUrl: event?.imageUrl || "",
     maxAttendees: event?.maxAttendees || null,
+    price: event?.price || null,
+    requiresPayment: event?.requiresPayment || false,
     published: event?.published || false,
   });
   
@@ -120,6 +124,11 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       parsedValue = value ? parseInt(value, 10) : null;
     }
     
+    // Parse price field
+    if (name === "price") {
+      parsedValue = value ? parseFloat(value) : null;
+    }
+    
     setFormData((prev) => ({ ...prev, [name]: parsedValue }));
     
     // Clear error when field is edited
@@ -162,6 +171,14 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   
   const handlePublishedChange = (checked: boolean) => {
     setFormData((prev) => ({ ...prev, published: checked }));
+  };
+  
+  const handleRequiresPaymentChange = (checked: boolean) => {
+    setFormData({
+      ...formData,
+      requiresPayment: checked,
+      price: checked ? (formData.price || 0) : null,
+    });
   };
   
   // Helper to combine date and time values
@@ -448,6 +465,52 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             Leave empty for unlimited attendees
           </p>
         </div>
+      </div>
+      
+      {/* Payment Options */}
+      <div className="border-t pt-6 space-y-4">
+        <h3 className="text-md font-medium">Payment Options</h3>
+        
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="requiresPayment"
+            checked={formData.requiresPayment}
+            onCheckedChange={handleRequiresPaymentChange}
+          />
+          <label htmlFor="requiresPayment" className="text-sm font-medium">
+            {formData.requiresPayment ? "Payment Required" : "Free Event"}
+          </label>
+          <p className="text-xs text-gray-500 ml-2">
+            {formData.requiresPayment
+              ? "Attendees will need to pay to register"
+              : "Attendees can register for free"}
+          </p>
+        </div>
+        
+        {formData.requiresPayment && (
+          <div className="space-y-2">
+            <label htmlFor="price" className="text-sm font-medium flex items-center">
+              Price (€)
+            </label>
+            <Input
+              id="price"
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.price || ""}
+              onChange={handleChange}
+              className={errors.price ? "border-red-500" : ""}
+              placeholder="e.g. 5.00"
+            />
+            {errors.price && (
+              <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+            )}
+            <p className="text-xs text-gray-500">
+              Amount in Euro that attendees will be charged
+            </p>
+          </div>
+        )}
       </div>
       
       {/* Publishing Controls */}

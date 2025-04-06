@@ -10,6 +10,8 @@ export type EventImage = {
   export type EventRegistration = {
     id: string;
     status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+    paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'UNPAID';
+    paymentId?: string | null;
     user: {
       id: string;
       name: string | null;
@@ -27,6 +29,8 @@ export type EventImage = {
     endDate: Date;
     imageUrl?: string | null;
     maxAttendees?: number | null;
+    price?: number | null;
+    requiresPayment: boolean;
     createdAt: Date;
     updatedAt: Date;
     createdBy: string;

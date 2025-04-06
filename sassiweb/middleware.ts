@@ -8,7 +8,9 @@ import { NextRequestWithAuth } from "next-auth/middleware";
 export default async function middleware(request: NextRequestWithAuth) {
   const token = await getToken({ req: request });
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+  const isJoinTeamRoute = request.nextUrl.pathname === "/join/team";
 
+  // Handle admin routes
   if (isAdminRoute) {
     if (!token) {
       return NextResponse.redirect(new URL("/", request.url));
@@ -17,6 +19,18 @@ export default async function middleware(request: NextRequestWithAuth) {
     // Allow access if user is an admin or super admin
     if (token.role !== "ADMIN" && !token.isSuperAdmin) {
       return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
+  // Handle team join route - authenticate users
+  if (isJoinTeamRoute) {
+    if (!token) {
+      // Store the URL they were trying to access
+      const fullUrl = request.nextUrl.toString();
+      const url = new URL('/auth/signin', request.url);
+      url.searchParams.set('callbackUrl', fullUrl);
+      
+      return NextResponse.redirect(url);
     }
   }
 
@@ -49,7 +63,7 @@ export default async function middleware(request: NextRequestWithAuth) {
   return response;
 }
 
-// Run middleware on admin and resources paths
+// Run middleware on admin, resources, and join/team paths
 export const config = {
-  matcher: ['/admin/:path*', '/resources/:path*']
+  matcher: ['/admin/:path*', '/resources/:path*', '/join/team']
 };

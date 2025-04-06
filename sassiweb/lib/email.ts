@@ -67,7 +67,7 @@ export async function sendEventRegistrationEmail(
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p>
-        <p>We look forward to seeing you there! If you need to cancel your registration or have any questions, please log in to your account or contact us.</p>
+        <p>We look forward to seeing you there! If you need to cancel your registration or have any questions, please log in to your account or contact us. https://sassimilan.com/dashboard </p>
         <p>Best regards,<br>The SASSI Team</p>
       `,
     });
@@ -153,9 +153,9 @@ export async function sendMembershipStatusEmail(
         ${notes ? `<p><strong>Note from the team:</strong> ${notes}</p>` : ''}
         <p>Next steps:</p>
         <ul>
-          <li>Complete your profile to connect with other members</li>
-          <li>Check out upcoming events on our calendar</li>
-          <li>Browse our resources for Indian students in Milan</li>
+          <li>Complete your profile to connect with other members. https://sassimilan.com/profile </li>
+          <li>Check out upcoming events on our calendar https://sassimilan.com/events  </li>
+          <li>Browse our resources for Indian students in Milan  https://sassimilan.com/resources </li>
         </ul>
         <p>If you haven't already completed your payment, please do so to activate all membership benefits.</p>
         <p>If you have any questions, feel free to reach out to us.</p>

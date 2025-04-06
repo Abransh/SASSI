@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 // Resource schema for validation
@@ -18,10 +18,10 @@ const resourceUpdateSchema = z.object({
 // GET /api/resources/[id] - Get a single resource
 export async function GET(
   request: NextRequest,
-  context: any // Use 'any' to bypass TypeScript's type checking
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    const { id } = await context.params; // Await params before accessing id
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -65,10 +65,10 @@ export async function GET(
 // PATCH /api/resources/[id] - Update a resource
 export async function PATCH(
   request: NextRequest,
-  context: any // Use 'any' to bypass TypeScript's type checking
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    const { id } = await context.params; // Await params before accessing id
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {
@@ -125,10 +125,10 @@ export async function PATCH(
 // DELETE /api/resources/[id] - Delete a resource
 export async function DELETE(
   request: NextRequest,
-  context: any // Use 'any' to bypass TypeScript's type checking
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    const { id } = await context.params; // Await params before accessing id
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {

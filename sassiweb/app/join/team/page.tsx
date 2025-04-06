@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Loader2, CheckCircle, User, ShieldAlert } from "lucide-react";
+import { Loader2, CheckCircle, User, ShieldAlert, CreditCard } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import MobileMenu from "@/components/MobileMenu";
@@ -60,6 +60,8 @@ export default function TeamRegistrationPage() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentVerified, setPaymentVerified] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   
   useEffect(() => {
     // Check if user is authenticated once the session loads
@@ -73,6 +75,7 @@ export default function TeamRegistrationPage() {
   }, [status, router, session]);
   
   const checkPaymentStatus = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch('/api/user/payment-status');
       if (response.ok) {
@@ -81,6 +84,8 @@ export default function TeamRegistrationPage() {
       }
     } catch (error) {
       console.error("Error checking payment status:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -89,40 +94,47 @@ export default function TeamRegistrationPage() {
     setIsConfirming(true);
   };
   
-  // In app/join/team/page.tsx, update the handleConfirm function
-const handleConfirm = async () => {
-  if (!selectedDepartment) return;
-  
-  setIsSubmitting(true);
-  
-  try {
-    // Send team application to the API
-    const response = await fetch("/api/user/team-application", {  // Updated endpoint
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        department: selectedDepartment,
-        motivation: motivation
-      }),
-    });
+  const handleConfirm = async () => {
+    if (!selectedDepartment || !session) return;
     
-    if (!response.ok) {
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/user/team-application', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          department: selectedDepartment,
+          motivation: motivation.trim(),
+        }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to submit application');
+      }
+      
       const data = await response.json();
-      throw new Error(data.error || "Failed to submit application");
+      
+      // Check if payment is required
+      if (data.paymentRequired && data.checkoutUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+      
+      // For users who already paid
+      setIsSuccess(true);
+      setIsConfirming(false);
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to submit application');
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    // Show success screen
-    setIsSuccess(true);
-    
-  } catch (error) {
-    console.error("Error submitting application:", error);
-    toast.error(error instanceof Error ? error.message : "Failed to submit your application. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
   
   const handleChangeSelection = () => {
     setIsConfirming(false);
@@ -131,9 +143,54 @@ const handleConfirm = async () => {
   const handleMotivationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMotivation(e.target.value);
   };
+
+  const handleInitiatePayment = async () => {
+    if (!session) return;
+    
+    setIsPaymentProcessing(true);
+    
+    try {
+      // We'll use a temporary department to create the application
+      // which will be updated after payment is confirmed
+      const response = await fetch('/api/user/team-application', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          department: "pending-payment", // Temporary value
+          motivation: "",
+        }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to initiate payment');
+      }
+      
+      const data = await response.json();
+      
+      // Redirect to Stripe checkout
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+      
+      // If payment was already verified, refresh the page to show department selection
+      if (!data.paymentRequired) {
+        setPaymentVerified(true);
+        toast.success("Your payment has been verified");
+      }
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to initiate payment');
+    } finally {
+      setIsPaymentProcessing(false);
+    }
+  };
   
   // If loading session
-  if (status === "loading") {
+  if (status === "loading" || isLoading) {
     return (
       <main className="min-h-screen bg-gray-50">
         <Header />
@@ -212,8 +269,8 @@ const handleConfirm = async () => {
     );
   }
   
-  // Show payment required message if not verified
-  if (session && !paymentVerified) {
+  // Show payment required screen if not verified
+  if (!paymentVerified && session) {
     return (
       <main className="min-h-screen bg-gray-50">
         <Header />
@@ -223,32 +280,61 @@ const handleConfirm = async () => {
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto">
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="p-8 text-center">
-                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <ShieldAlert size={32} className="text-yellow-600" />
-                  </div>
-                  
-                  <h1 className="text-2xl font-bold mb-4">Complete Your Membership First</h1>
-                  
-                  <p className="text-gray-600 mb-6">
-                    To join the SASSI team, you need to complete your membership payment first.
+                <div className="p-6 border-b">
+                  <h1 className="text-2xl font-bold mb-1">Join the SASSI Team</h1>
+                  <p className="text-gray-600">
+                    Complete your membership payment to proceed with team application
                   </p>
-                  
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                    <h3 className="font-medium text-blue-800 mb-2">Next Steps:</h3>
-                    <ol className="list-decimal pl-5 text-sm text-gray-700 space-y-1">
-                      <li>Complete your membership payment (€5.00 annual fee).</li>
-                      <li>Wait for your payment to be verified by our administrators.</li>
-                      <li>Return to this page to submit your team application.</li>
-                    </ol>
+                </div>
+                
+                <div className="p-6">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+                    <h3 className="font-medium text-blue-800 flex items-center">
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Membership Fee Required
+                    </h3>
+                    <p className="text-gray-700 mt-2">
+                      A one-time membership fee of <span className="font-medium">€5.00</span> is required to join the SASSI team. This helps us cover operational costs and ensures commitment from our team members.
+                    </p>
                   </div>
                   
-                  <Link 
-                    href="https://revolut.me/harshnj"
-                    className="px-6 py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors inline-block"
-                  >
-                    Complete Payment
-                  </Link>
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                    <h3 className="font-medium text-gray-800 mb-2">Benefits of membership:</h3>
+                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                      <li>Contribute to the Indian student community in Milan</li>
+                      <li>Develop leadership and organizational skills</li>
+                      <li>Network with peers and professionals</li>
+                      <li>Gain valuable experience for your resume</li>
+                      <li>Priority access to SASSI events and resources</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="flex justify-between mt-8">
+                    <Link
+                      href="/"
+                      className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </Link>
+                    
+                    <button
+                      type="button"
+                      onClick={handleInitiatePayment}
+                      className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors flex items-center"
+                      disabled={isPaymentProcessing}
+                    >
+                      {isPaymentProcessing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Pay €5.00 & Continue
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -350,7 +436,7 @@ const handleConfirm = async () => {
     );
   }
   
-  // Show department selection screen
+  // Show department selection screen (only if payment is verified)
   return (
     <main className="min-h-screen bg-gray-50">
       <Header />

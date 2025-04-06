@@ -20,11 +20,11 @@ const eventUpdateSchema = z.object({
 // GET /api/events/[id] - Get a single event
 export async function GET(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
-  //{ params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    // Await the params before accessing them
+    const { id } = await context.params;
     const event = await prisma.event.findUnique({
       where: {
         id: id
@@ -75,11 +75,11 @@ export async function GET(
 // PATCH /api/events/[id] - Update an event
 export async function PATCH(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
- // { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    // Await the params before accessing them
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {

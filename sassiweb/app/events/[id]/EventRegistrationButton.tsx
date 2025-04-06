@@ -28,7 +28,16 @@ export default function EventRegistrationButton({ eventId }: EventRegistrationBu
     setIsLoading(true);
 
     try {
-      await registerForEvent(eventId);
+      const response = await registerForEvent(eventId);
+      
+      // Check if payment is required
+      if (response.requiresPayment && response.checkoutUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = response.checkoutUrl;
+        return;
+      }
+      
+      // For free events
       setIsRegistered(true);
       toast.success("You've successfully registered for this event!");
       router.refresh(); // Refresh the page to update attendance count

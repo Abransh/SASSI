@@ -21,7 +21,8 @@ import { getServerSession } from "next-auth/next";
 
 export async function generateMetadata(props: any): Promise<Metadata> {
   try {
-    const event = await getEvent(props.params.id);
+    const { id } = await props.params;
+    const event = await getEvent(id);
     
     return {
       title: `${event.title} - SASSI Events`,
@@ -37,6 +38,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
 
 export default async function EventPage(props: any) {
   const { params, searchParams } = props;
+  const { id } = await params;
 
   // Check authentication or perform other logic if needed
   const session = await getServerSession(authOptions);
@@ -47,7 +49,7 @@ export default async function EventPage(props: any) {
   // Fetch the event based on params.id
   let event;
   try {
-    event = await getEvent(params.id);
+    event = await getEvent(id);
   } catch (error) {
     notFound();
   }

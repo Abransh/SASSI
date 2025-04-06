@@ -77,16 +77,24 @@ export async function getEvents(options?: {
     : `/api/events${queryString}`;
 
   try {
+    console.log(`Fetching events from: ${url}`);
+    
     const response = await fetch(url, { 
       method: 'GET',
-      cache: 'no-store' // Ensure we get fresh data
+      cache: 'no-store', // Ensure we get fresh data
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     
     if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error details available');
+      console.error(`API error response: ${response.status} - ${errorText}`);
       throw new Error(`Failed to fetch events: ${response.status}`);
     }
     
     const events = await response.json();
+    console.log(`Successfully fetched ${events.length} events`);
     
     // Convert date strings to Date objects
     return events.map((event: any) => ({
@@ -140,7 +148,6 @@ export async function getEvent(id: string): Promise<Event> {
  * Register current user for an event
  */
 export async function registerForEvent(eventId: string): Promise<any> {
-  // FIXED: Changed method from GET to POST
   const response = await fetch(`/api/events/${eventId}/register`, {
     method: 'POST',
     headers: {

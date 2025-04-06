@@ -5,10 +5,10 @@ import { authOptions } from "@/lib/auth";
 
 export async function POST(
   request: NextRequest,
-  context: any
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id;
+    const { id } = await context.params;
     
     // Check if user is authenticated and is an admin
     const session = await getServerSession(authOptions);

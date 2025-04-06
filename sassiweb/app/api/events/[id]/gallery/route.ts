@@ -13,11 +13,10 @@ const galleryImageSchema = z.object({
 // GET /api/events/[id]/gallery - Get event gallery
 export async function GET(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
-  //{ params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    const { id } = await context.params; // Await params before accessing id
     const gallery = await prisma.eventImage.findMany({
       where: {
         eventId: id
@@ -40,11 +39,10 @@ export async function GET(
 // POST /api/events/[id]/gallery - Add image to event gallery
 export async function POST(
   request: NextRequest,
-  context: any  // Use 'any' to bypass TypeScript's type checking
-  //{ params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id; // Access the ID via context.params.id
+    const { id } = await context.params; // Await params before accessing id
     const session = await getServerSession(authOptions);
     
     if (!session || session.user.role !== "ADMIN") {
