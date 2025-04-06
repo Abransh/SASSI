@@ -97,8 +97,19 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Validate session has user ID
+    if (!session.user.id) {
+      console.error("Missing user ID in session:", session);
+      return NextResponse.json(
+        { error: "User ID missing in session" },
+        { status: 400 }
+      );
+    }
+    
     const json = await request.json();
     const validatedData = eventSchema.parse(json);
+    
+    console.log("Creating event with user ID:", session.user.id);
     
     const event = await prisma.event.create({
       data: {
