@@ -83,10 +83,10 @@ async function handleCheckoutCompleted(session: any) {
 
   // Process based on payment type
   if (paymentRecord.paymentType === "EVENT_REGISTRATION") {
-    // Update registration status
+    // Update registration status and clear expiresAt field
     await prisma.$executeRaw`
       UPDATE "Registration" 
-      SET "status" = 'CONFIRMED', "paymentStatus" = 'PAID'
+      SET "status" = 'CONFIRMED', "paymentStatus" = 'PAID', "expiresAt" = NULL
       WHERE "paymentId" = ${paymentRecord.id}
     `;
   } else if (paymentRecord.paymentType === "TEAM_APPLICATION") {

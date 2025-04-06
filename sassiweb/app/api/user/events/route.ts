@@ -2,67 +2,85 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { cleanupExpiredRegistrations } from "@/lib/events";
 
+// GET /api/user/events - Fetch user registrations
 export async function GET(request: NextRequest) {
   try {
-    // Check if user is authenticated
     const session = await getServerSession(authOptions);
     
     if (!session) {
       return NextResponse.json(
-        { error: "Not authenticated" },
+        { error: "You must be logged in to view your events" },
         { status: 401 }
       );
     }
     
+    // Clean up any expired registrations first
+    await cleanupExpiredRegistrations();
+    
     // Get the current date
     const now = new Date();
     
-    // Find all the events the user has registered for
+    // Fetch upcoming events for the user
     const registrations = await prisma.registration.findMany({
       where: {
         userId: session.user.id,
-        status: "CONFIRMED",
+        event: {
+          startDate: {
+            gte: now
+          }
+        },
+        OR: [
+          { status: "CONFIRMED" },
+          {
+            status: "PENDING",
+            expiresAt: {
+              gt: now
+            }
+          }
+        ]
       },
       include: {
-        event: {
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            location: true,
-            startDate: true,
-            endDate: true,
-            imageUrl: true,
-          },
-        },
+        event: true
       },
       orderBy: {
         event: {
-          startDate: "asc",
-        },
-      },
+          startDate: 'asc'
+        }
+      }
     });
     
-    // Separate upcoming and past events
-    const upcomingEvents = registrations
-      .filter(reg => new Date(reg.event.startDate) > now)
-      .map(reg => reg.event);
+    // Fetch past events for the user
+    const pastRegistrations = await prisma.registration.findMany({
+      where: {
+        userId: session.user.id,
+        status: "CONFIRMED",
+        event: {
+          endDate: {
+            lt: now
+          }
+        }
+      },
+      include: {
+        event: true
+      },
+      orderBy: {
+        event: {
+          startDate: 'desc'
+        }
+      }
+    });
     
-    const pastEvents = registrations
-      .filter(reg => new Date(reg.event.startDate) <= now)
-      .map(reg => reg.event);
-    
-    // Return the events data
+    // Return upcoming and past events
     return NextResponse.json({
-      events: upcomingEvents,
-      pastEvents: pastEvents,
+      upcoming: registrations,
+      past: pastRegistrations
     });
   } catch (error) {
     console.error("Error fetching user events:", error);
-    
     return NextResponse.json(
-      { error: "Failed to fetch user events" },
+      { error: "Failed to fetch events" },
       { status: 500 }
     );
   }

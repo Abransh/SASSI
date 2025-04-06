@@ -4,9 +4,32 @@ import Link from "next/link"
 import { Instagram, Mail, Twitter, LogOut } from "lucide-react"
 import Image from "next/image"
 import { useSession, signOut } from "next-auth/react"
+import { useRouter, usePathname } from "next/navigation"
 
 export default function Header() {
   const { data: session } = useSession()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // Function to handle smooth scrolling to anchors
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, anchor: string) => {
+    e.preventDefault()
+    
+    // Find the element to scroll to
+    const element = document.getElementById(anchor)
+    if (element) {
+      // If we're already on the home page, scroll to the element
+      if (pathname === "/") {
+        element.scrollIntoView({ behavior: "smooth" })
+      } else {
+        // If we're on another page, navigate to home page with the anchor
+        router.push(`/#${anchor}`)
+      }
+    } else {
+      // If element not found, just navigate to the anchor
+      router.push(`/#${anchor}`)
+    }
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm shadow-sm">
@@ -14,7 +37,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             {/* Logo placeholder - replace with your actual logo later */}
-            <Link href="/#home" className="font-bold text-2xl">
+            <Link href="/" className="font-bold text-2xl">
                <Image
                  src="/assests/SASSI.png"
                  alt="SASSI Logo"
@@ -28,24 +51,24 @@ export default function Header() {
 
           {/* Navigation Menu */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="#home" className="text-gray-800 hover:text-primary transition-colors">
+            <a href="/#home" onClick={(e) => handleAnchorClick(e, "home")} className="text-gray-800 hover:text-primary transition-colors">
               Home
-            </Link>
-            <Link href="#life-in-milan" className="text-gray-800 hover:text-primary transition-colors">
+            </a>
+            <a href="/#life-in-milan" onClick={(e) => handleAnchorClick(e, "life-in-milan")} className="text-gray-800 hover:text-primary transition-colors">
               Life in Milan
-            </Link>
-            <Link href="#uni-networks" className="text-gray-800 hover:text-primary transition-colors">
+            </a>
+            <a href="/#uni-networks" onClick={(e) => handleAnchorClick(e, "uni-networks")} className="text-gray-800 hover:text-primary transition-colors">
               Uni Networks
-            </Link>
-            <Link href="#events" className="text-gray-800 hover:text-primary transition-colors">
+            </a>
+            <a href="/#events" onClick={(e) => handleAnchorClick(e, "events")} className="text-gray-800 hover:text-primary transition-colors">
               Events
-            </Link>
-            <Link href="#join-us" className="text-gray-800 hover:text-primary transition-colors">
+            </a>
+            <a href="/#join-us" onClick={(e) => handleAnchorClick(e, "join-us")} className="text-gray-800 hover:text-primary transition-colors">
               Join Us
-            </Link>
-            <Link href="#contact-us" className="text-gray-800 hover:text-primary transition-colors">
+            </a>
+            <a href="/#contact-us" onClick={(e) => handleAnchorClick(e, "contact-us")} className="text-gray-800 hover:text-primary transition-colors">
               Contact Us
-            </Link>
+            </a>
             <Link href="/faqs" className="text-gray-800 hover:text-primary transition-colors">
               FAQs
             </Link>

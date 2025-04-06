@@ -118,6 +118,7 @@ model Registration {
   status       RegistrationStatus @default(PENDING)
   paymentStatus PaymentStatus     @default(UNPAID)
   paymentId    String?
+  expiresAt    DateTime?          // Adding the expiresAt field for PENDING registrations
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
   event        Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)

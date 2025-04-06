@@ -96,52 +96,78 @@ export async function getEvents(options?: {
     const events = await response.json();
     console.log(`Successfully fetched ${events.length} events`);
     
-    // Convert date strings to Date objects
-    return events.map((event: any) => ({
-      ...event,
-      startDate: new Date(event.startDate),
-      endDate: new Date(event.endDate),
-      createdAt: new Date(event.createdAt),
-      updatedAt: new Date(event.updatedAt),
-    }));
+    // Convert date strings to Date objects, with error handling
+    return events.map((event: any) => {
+      try {
+        return {
+          ...event,
+          startDate: event.startDate ? new Date(event.startDate) : new Date(),
+          endDate: event.endDate ? new Date(event.endDate) : new Date(),
+          createdAt: event.createdAt ? new Date(event.createdAt) : new Date(),
+          updatedAt: event.updatedAt ? new Date(event.updatedAt) : new Date(),
+        };
+      } catch (error) {
+        console.error(`Error parsing dates for event ${event.id}:`, error);
+        // Return with default dates if parsing fails
+        return {
+          ...event,
+          startDate: new Date(),
+          endDate: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
+    });
   } catch (error) {
     console.error('Error fetching events:', error);
-    throw new Error(`Failed to fetch events: ${error instanceof Error ? error.message : String(error)}`);
+    // Return empty array instead of throwing error to prevent app crash
+    return [];
   }
 }
 
 /**
  * Fetch a single event by ID
  */
-export async function getEvent(id: string): Promise<Event> {
+export async function getEvent(id: string): Promise<Event | null> {
   const baseUrl = getBaseUrl();
   
   const url = typeof window === 'undefined' 
     ? `${baseUrl}/api/events/${id}` 
     : `/api/events/${id}`;
   
-  const response = await fetch(url, { 
-    method: 'GET',
-    cache: 'no-store'
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch event');
+  try {
+    const response = await fetch(url, { 
+      method: 'GET',
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      console.error(`Failed to fetch event ${id}: ${response.status}`);
+      return null;
+    }
+    
+    const event = await response.json();
+    
+    try {
+      return {
+        ...event,
+        startDate: event.startDate ? new Date(event.startDate) : new Date(),
+        endDate: event.endDate ? new Date(event.endDate) : new Date(),
+        createdAt: event.createdAt ? new Date(event.createdAt) : new Date(),
+        updatedAt: event.updatedAt ? new Date(event.updatedAt) : new Date(),
+        gallery: event.gallery?.map((img: any) => ({
+          ...img,
+          createdAt: img.createdAt ? new Date(img.createdAt) : new Date(),
+        })) || [],
+      };
+    } catch (error) {
+      console.error(`Error parsing event data for ${id}:`, error);
+      return null;
+    }
+  } catch (error) {
+    console.error(`Error fetching event ${id}:`, error);
+    return null;
   }
-  
-  const event = await response.json();
-  
-  return {
-    ...event,
-    startDate: new Date(event.startDate),
-    endDate: new Date(event.endDate),
-    createdAt: new Date(event.createdAt),
-    updatedAt: new Date(event.updatedAt),
-    gallery: event.gallery?.map((img: any) => ({
-      ...img,
-      createdAt: new Date(img.createdAt),
-    })),
-  };
 }
 
 /**

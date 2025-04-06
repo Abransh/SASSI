@@ -4,7 +4,9 @@ import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { sendEventRegistrationEmail } from "@/lib/email";
 import { createEventCheckoutSession } from "@/lib/stripe";
-import crypto from 'crypto';
+import crypto from "crypto";
+import Stripe from "stripe";
+import { Registration } from "@prisma/client";
 
 // Define a complete event type based on the Prisma schema
 interface CompleteEvent {
@@ -31,218 +33,286 @@ interface CompleteEvent {
 // POST /api/events/[id]/register - Register for an event
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
       return NextResponse.json(
         { error: "You must be logged in to register for events" },
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
+
     // Check if event exists and isn't full
     const eventResult = await prisma.event.findUnique({
       where: {
-        id: id
+        id: id,
       },
       include: {
         _count: {
           select: {
             registrations: {
               where: {
-                status: "CONFIRMED"
-              }
-            }
-          }
-        }
-      }
+                status: "CONFIRMED",
+              },
+            },
+          },
+        },
+      },
     });
-    
+
     if (!eventResult) {
-      return NextResponse.json(
-        { error: "Event not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
-    
+
     // Cast to our complete event type
     const event = eventResult as unknown as CompleteEvent;
-    
-    if (event.maxAttendees && event._count.registrations >= event.maxAttendees) {
+
+    if (
+      event.maxAttendees &&
+      event._count.registrations >= event.maxAttendees
+    ) {
       return NextResponse.json(
         { error: "This event is at full capacity" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     // Check if user is already registered
-    const existingRegistration = await prisma.registration.findUnique({
+    const existingRegistration = (await prisma.registration.findUnique({
       where: {
         eventId_userId: {
           eventId: id,
-          userId: session.user.id
-        }
-      }
-    });
-    
+          userId: session.user.id,
+        },
+      },
+    })) as Registration | null;
+
     if (existingRegistration) {
       if (existingRegistration.status === "CANCELLED") {
         // If previously cancelled, update to pending (will be confirmed after payment if required)
         const registration = await prisma.registration.update({
           where: {
-            id: existingRegistration.id
+            id: existingRegistration.id,
           },
           data: {
-            status: event.requiresPayment ? "PENDING" : "CONFIRMED"
-          }
+            status: event.requiresPayment ? "PENDING" : "CONFIRMED",
+          },
         });
-        
+
         // For free events, send a confirmation email and return the registration
         if (!event.requiresPayment) {
           await sendEventRegistrationEmail(
             session.user.email as string,
             session.user.name as string,
             event.title,
-            event.startDate
+            event.startDate,
           );
-          
+
           return NextResponse.json(registration);
         }
-        
+
         // For paid events, create a Stripe checkout session
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-        const successUrl = `${baseUrl}/dashboard?registration=success`;
-        const cancelUrl = `${baseUrl}/events/${id}?registration=cancelled`;
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+        // Define base URL with proper protocol
+        let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
         
-        const stripeSession = await createEventCheckoutSession({
-          eventId: event.id,
-          userId: session.user.id,
-          eventTitle: event.title,
-          amount: event.price || 0,
-          successUrl,
-          cancelUrl
-        });
-        
-        // Create a payment record using raw SQL
-        const paymentId = crypto.randomUUID();
-        await prisma.$executeRaw`
-          INSERT INTO "StripePayment" (
-            id, "stripeSessionId", amount, currency, status,
-            "paymentType", "userId", "eventId", "createdAt", "updatedAt"
-          )
-          VALUES (
-            ${paymentId}, ${stripeSession.id}, ${event.price || 0}, 'eur', 'PENDING',
-            'EVENT_REGISTRATION', ${session.user.id}, ${event.id}, now(), now()
-          )
-        `;
-        
-        // Update the registration with the payment ID using Prisma
-        await prisma.registration.update({
-          where: {
-            id: registration.id
+        // Ensure baseUrl starts with http:// or https://
+        if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+          baseUrl = `https://${baseUrl}`;
+        }
+
+        // Create a checkout session
+        const checkoutSession = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price_data: {
+                currency: "eur",
+                product_data: {
+                  name: event.title,
+                  description: event.description,
+                },
+                unit_amount: Math.round(event.price * 100),
+              },
+              quantity: 1,
+            },
+          ],
+          metadata: {
+            eventId: event.id,
+            userId: session.user.id,
           },
-          data: {
-            paymentStatus: "PENDING",
-            payment: {
-              connect: {
-                id: paymentId
-              }
-            }
-          }
+          client_reference_id: stripePayment.id, // Reference to our payment record
+          mode: "payment",
+          success_url: `${baseUrl}/events/${event.id}?payment_status=success`,
+          cancel_url: `${baseUrl}/events/${event.id}?payment_status=canceled`,
         });
-        
-        // Return Stripe checkout URL
-        return NextResponse.json({
-          registration,
-          requiresPayment: true,
-          checkoutUrl: stripeSession.url
-        }, { status: 201 });
+
+        // For paid events, create a stripe payment record
+        const stripePayment = await prisma.stripePayment.create({
+          data: {
+            stripeSessionId: checkoutSession.id,
+            amount: event.price!,
+            status: "PENDING",
+            paymentType: "EVENT_REGISTRATION",
+            userId: session.user.id,
+            eventId: event.id,
+          },
+        });
+
+        // Set expiresAt to 30 minutes from now for pending registrations
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+        // Create a new registration or update an existing cancelled one
+        if (existingRegistration) {
+          // Update existing cancelled registration
+          await prisma.registration.update({
+            where: {
+              id: (existingRegistration as Registration).id,
+            },
+            data: {
+              status: "PENDING",
+              paymentStatus: "PENDING",
+              paymentId: stripePayment.id,
+              expiresAt: expiresAt,
+            },
+          });
+        } else {
+          // Create a new registration
+          await prisma.registration.create({
+            data: {
+              eventId: event.id,
+              userId: session.user.id,
+              status: "PENDING",
+              paymentStatus: "PENDING",
+              paymentId: stripePayment.id,
+              expiresAt: expiresAt,
+            },
+          });
+        }
+
+        return NextResponse.json({ url: checkoutSession.url });
       }
-      
+
       return NextResponse.json(
         { error: "You are already registered for this event" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
-    // Create new registration
-    const registration = await prisma.registration.create({
-      data: {
-        eventId: id,
-        userId: session.user.id,
-        status: event.requiresPayment ? "PENDING" : "CONFIRMED"
-      }
-    });
-    
-    // For free events, send a confirmation email and return the registration
+
+    // For non-paid events, create registration immediately
     if (!event.requiresPayment) {
+      // Create new registration
+      const registration = await prisma.registration.create({
+        data: {
+          eventId: id,
+          userId: session.user.id,
+          status: "CONFIRMED",
+          expiresAt: null,
+        },
+      });
+
+      // Send confirmation email
       await sendEventRegistrationEmail(
         session.user.email as string,
         session.user.name as string,
         event.title,
-        event.startDate
+        event.startDate,
       );
-      
+
       return NextResponse.json(registration, { status: 201 });
     }
-    
+
     // For paid events, create a Stripe checkout session
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const successUrl = `${baseUrl}/dashboard?registration=success`;
-    const cancelUrl = `${baseUrl}/events/${id}?registration=cancelled`;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+    // Define base URL with proper protocol
+    let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     
-    const stripeSession = await createEventCheckoutSession({
-      eventId: event.id,
-      userId: session.user.id,
-      eventTitle: event.title,
-      amount: event.price || 0,
-      successUrl,
-      cancelUrl
-    });
-    
-    // Create a payment record using raw SQL
-    const paymentId = crypto.randomUUID();
-    await prisma.$executeRaw`
-      INSERT INTO "StripePayment" (
-        id, "stripeSessionId", amount, currency, status,
-        "paymentType", "userId", "eventId", "createdAt", "updatedAt"
-      )
-      VALUES (
-        ${paymentId}, ${stripeSession.id}, ${event.price || 0}, 'eur', 'PENDING',
-        'EVENT_REGISTRATION', ${session.user.id}, ${event.id}, now(), now()
-      )
-    `;
-    
-    // Update the registration with the payment ID using Prisma
-    await prisma.registration.update({
-      where: {
-        id: registration.id
+    // Ensure baseUrl starts with http:// or https://
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+      baseUrl = `https://${baseUrl}`;
+    }
+
+    // Create a checkout session
+    const checkoutSession = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: event.title,
+              description: event.description,
+            },
+            unit_amount: Math.round(event.price * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        eventId: event.id,
+        userId: session.user.id,
       },
-      data: {
-        paymentStatus: "PENDING",
-        payment: {
-          connect: {
-            id: paymentId
-          }
-        }
-      }
+      client_reference_id: stripePayment.id, // Reference to our payment record
+      mode: "payment",
+      success_url: `${baseUrl}/events/${event.id}?payment_status=success`,
+      cancel_url: `${baseUrl}/events/${event.id}?payment_status=canceled`,
     });
-    
-    // Return Stripe checkout URL
-    return NextResponse.json({
-      registration,
-      requiresPayment: true,
-      checkoutUrl: stripeSession.url
-    }, { status: 201 });
+
+    // For paid events, create a stripe payment record
+    const stripePayment = await prisma.stripePayment.create({
+      data: {
+        stripeSessionId: checkoutSession.id,
+        amount: event.price!,
+        status: "PENDING",
+        paymentType: "EVENT_REGISTRATION",
+        userId: session.user.id,
+        eventId: event.id,
+      },
+    });
+
+    // Set expiresAt to 30 minutes from now for pending registrations
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+    // Create a new registration or update an existing cancelled one
+    if (existingRegistration) {
+      // Update existing cancelled registration
+      await prisma.registration.update({
+        where: {
+          id: (existingRegistration as Registration).id,
+        },
+        data: {
+          status: "PENDING",
+          paymentStatus: "PENDING",
+          paymentId: stripePayment.id,
+          expiresAt: expiresAt,
+        },
+      });
+    } else {
+      // Create a new registration
+      await prisma.registration.create({
+        data: {
+          eventId: event.id,
+          userId: session.user.id,
+          status: "PENDING",
+          paymentStatus: "PENDING",
+          paymentId: stripePayment.id,
+          expiresAt: expiresAt,
+        },
+      });
+    }
+
+    return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
     console.error("Error registering for event:", error);
     return NextResponse.json(
       { error: "Failed to register for event" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -250,51 +320,51 @@ export async function POST(
 // DELETE /api/events/[id]/register - Cancel registration
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
       return NextResponse.json(
         { error: "You must be logged in to cancel registration" },
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
-    const registration = await prisma.registration.findUnique({
+
+    const registration = (await prisma.registration.findUnique({
       where: {
         eventId_userId: {
           eventId: id,
-          userId: session.user.id
-        }
-      }
-    });
-    
+          userId: session.user.id,
+        },
+      },
+    })) as Registration | null;
+
     if (!registration) {
       return NextResponse.json(
         { error: "You are not registered for this event" },
-        { status: 404 }
+        { status: 404 },
       );
     }
-    
+
     // Update registration status to cancelled
     await prisma.registration.update({
       where: {
-        id: registration.id
+        id: registration.id,
       },
       data: {
-        status: "CANCELLED"
-      }
+        status: "CANCELLED",
+      },
     });
-    
+
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Error cancelling registration:", error);
     return NextResponse.json(
       { error: "Failed to cancel registration" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
