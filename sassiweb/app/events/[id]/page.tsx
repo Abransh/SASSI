@@ -73,7 +73,11 @@ export default async function EventPage({
           // Update it to cancelled
           await prisma.registration.update({
             where: { id: pendingRegistration.id },
-            data: { status: "CANCELLED" }
+            data: { 
+              status: "CANCELLED",
+              // Clear the expiresAt to ensure it won't cause confusion
+              expiresAt: null 
+            }
           });
           
           console.log(`Registration ${pendingRegistration.id} marked as cancelled due to payment cancellation`);

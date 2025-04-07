@@ -95,6 +95,7 @@ export async function POST(
     })) as Registration | null;
 
     if (existingRegistration) {
+      // If previously cancelled, allow re-registration
       if (existingRegistration.status === "CANCELLED") {
         // If previously cancelled, update to pending (will be confirmed after payment if required)
         const registration = await prisma.registration.update({
@@ -205,12 +206,38 @@ export async function POST(
         }
 
         return NextResponse.json({ url: checkoutSession.url });
+      } 
+      // If PENDING and not expired, treat as already registered
+      else if (existingRegistration.status === "PENDING") {
+        // Check if the registration has expired
+        const now = new Date();
+        if (existingRegistration.expiresAt && existingRegistration.expiresAt < now) {
+          // If expired, update it to cancelled first, then create a new registration
+          await prisma.registration.update({
+            where: {
+              id: existingRegistration.id,
+            },
+            data: {
+              status: "CANCELLED",
+            },
+          });
+          
+          // Continue with the registration flow (next section handles the actual registration)
+        } else {
+          // Not expired, so they're still considered registered
+          return NextResponse.json(
+            { error: "You are already registered for this event" },
+            { status: 400 },
+          );
+        }
       }
-
-      return NextResponse.json(
-        { error: "You are already registered for this event" },
-        { status: 400 },
-      );
+      // If CONFIRMED, user is already registered
+      else {
+        return NextResponse.json(
+          { error: "You are already registered for this event" },
+          { status: 400 },
+        );
+      }
     }
 
     // For non-paid events, create registration immediately
