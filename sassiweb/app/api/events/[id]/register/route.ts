@@ -157,8 +157,8 @@ export async function POST(req : any, { params } : any ) {
       apiVersion: "2025-03-31.basil",
     });
 
-    // Set expiresAt to 30 minutes from now for pending registrations
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+    // Set expiresAt to 5 minutes from now for pending registrations
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
     // First create a stripe payment record
     const stripePayment = await prisma.stripePayment.create({
