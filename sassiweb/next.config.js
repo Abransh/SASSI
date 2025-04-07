@@ -1,41 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    domains: ['drive.google.com', 'localhost'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'drive.google.com',
+        pathname: '/**',
+      },
+    ],
+  },
   experimental: {
-    // Exclude dist directories from page resolution
-   
+    serverActions: true,
   },
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
-    images: {
-      remotePatterns: [
-        {
-          protocol: 'https',
-          hostname: 'res.cloudinary.com',
-        },
-        {
-          protocol: 'https',
-          hostname: 'drive.google.com',
-          pathname: '**',
-        },
-      ], 
-      domains: [
-        'example.com',
-        'res.cloudinary.com',
-        'images.unsplash.com',
-        'via.placeholder.com',
-        'placehold.co',
-        'placekitten.com',
-        'drive.google.com'
-      ],
-    
-    },
-    webpack: (config) => {
-      config.watchOptions = {
-        ...config.watchOptions,
-        ignored: ['**/dist/**', '**/node_modules/**'],
-      };
-      return config;
-    },
+  webpack: (config) => {
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: ['**/dist/**', '**/node_modules/**'],
+    };
+    return config;
+  },
+};
 
-  };
-  
-  export default nextConfig;
+export default nextConfig;

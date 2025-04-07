@@ -41,10 +41,10 @@ export default function Header() {
                <Image
                  src="/assests/SASSI.png"
                  alt="SASSI Logo"
-                 height={200}
-                 width={200}
-                 objectFit="cover"
-                 className="rounded-lg"
+                 width={150}
+                 height={50}
+                 priority
+                 className="h-12 w-auto"
                  />
             </Link>
           </div>

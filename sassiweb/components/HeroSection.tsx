@@ -41,12 +41,13 @@ export default function HeroSection() {
         {/* Replace with actual background image later */}
         <div className="absolute inset-0 bg-white "></div>
         <Image
-                 src="/assests/banner.png"
-                 alt="Group Diwali Image"
-                 layout="fill"
-                 objectFit="cover"
-                 className="rounded-lg"
-                 />
+          src="/assests/banner.png"
+          alt="Hero Banner"
+          width={1920}
+          height={1080}
+          priority
+          className="w-full h-full object-cover"
+        />
       </div>
 
       <div className="container mx-auto text-center relative z-10">
