@@ -36,24 +36,22 @@ export default function HeroSection() {
 
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center py-20 px-4" ref={sectionRef}>
-      {/* Background image - will be added later */}
-      <div className="absolute inset-0 bg-gray-900/50 z-0">
-        {/* Replace with actual background image later */}
-        <div className="absolute inset-0 bg-white "></div>
+      {/* Background image */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-white"></div>
         <Image
           src="/assests/banner.png"
           alt="Hero Banner"
-          width={1920}
-          height={1080}
+          fill
           priority
-          className="w-full h-full object-cover"
+          className="object-cover"
         />
       </div>
 
       <div className="container mx-auto text-center relative z-10">
         <h1 className="text-4xl md:text-6xl font-bold text-black mb-4">Students&apos; Association of Indians</h1>
-        <p className="text-xl md:text-2xl text-black/90 mb-6">A community by the students, for the students.</p>
-        <p className="max-w-3xl mx-auto text-lg text-black/80">
+        <p className="text-xl md:text-2xl text-black mb-6">A community by the students, for the students.</p>
+        <p className="max-w-3xl mx-auto text-lg text-black">
           Bringing Indian students in Italy together, celebrating our culture, supporting each other, and making every
           step of this journey feel like home
         </p>

@@ -14,7 +14,6 @@ model User {
   password             String
   image                String?
   role                 Role                @default(USER)
-  isSuperAdmin         Boolean             @default(false)
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
   bio                  String?
@@ -28,14 +27,15 @@ model User {
   university           String?
   membershipExpiryDate DateTime?
   paymentVerified      Boolean             @default(false)
+  isSuperAdmin         Boolean             @default(false)
   events               Event[]
   membershipRequests   MembershipRequest[]
+  passwordReset        PasswordReset?
   profile              Profile?
   registrations        Registration[]
   resourceViews        ResourceView[]
-  teamApplications     TeamApplication[]
   payments             StripePayment[]
-  passwordReset        PasswordReset?
+  teamApplications     TeamApplication[]
 }
 
 model Profile {
@@ -74,56 +74,56 @@ model MembershipRequest {
 }
 
 model TeamApplication {
-  id          String        @id @default(cuid())
-  department  String
-  motivation  String?
-  status      RequestStatus @default(PENDING)
-  notes       String?
-  userId      String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  reviewedBy  String?
-  reviewedAt  DateTime?
-  paymentId   String?       @unique
-  user        User          @relation(fields: [userId], references: [id])
-  payment     StripePayment? @relation("TeamApplicationPayment")
+  id         String         @id @default(cuid())
+  department String
+  motivation String?
+  status     RequestStatus  @default(PENDING)
+  notes      String?
+  userId     String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  reviewedBy String?
+  reviewedAt DateTime?
+  paymentId  String?        @unique
+  payment    StripePayment? @relation("TeamApplicationPayment")
+  user       User           @relation(fields: [userId], references: [id])
 }
 
 model Event {
-  id            String         @id @default(cuid())
-  title         String
-  description   String
-  content       String?
-  location      String
-  startDate     DateTime
-  endDate       DateTime
-  imageUrl      String?
-  maxAttendees  Int?
-  price         Float?         // Optional price in EUR (null means free)
-  requiresPayment Boolean      @default(false)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  createdBy     String
-  published     Boolean        @default(false)
-  author        User           @relation(fields: [createdBy], references: [id])
-  gallery       EventImage[]
-  registrations Registration[]
-  payments      StripePayment[]
+  id              String          @id @default(cuid())
+  title           String
+  description     String
+  content         String?
+  location        String
+  startDate       DateTime
+  endDate         DateTime
+  imageUrl        String?
+  maxAttendees    Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  createdBy       String
+  published       Boolean         @default(false)
+  price           Float?
+  requiresPayment Boolean         @default(false)
+  author          User            @relation(fields: [createdBy], references: [id])
+  gallery         EventImage[]
+  registrations   Registration[]
+  payments        StripePayment[]
 }
 
 model Registration {
-  id           String             @id @default(cuid())
-  eventId      String
-  userId       String
-  status       RegistrationStatus @default(PENDING)
-  paymentStatus PaymentStatus     @default(UNPAID)
-  paymentId    String?
-  expiresAt    DateTime?          // Adding the expiresAt field for PENDING registrations
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  event        Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payment      StripePayment?     @relation(fields: [paymentId], references: [id])
+  id            String             @id @default(cuid())
+  eventId       String
+  userId        String
+  status        RegistrationStatus @default(PENDING)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  paymentId     String?
+  paymentStatus PaymentStatus      @default(UNPAID)
+  expiresAt     DateTime?
+  event         Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  payment       StripePayment?     @relation(fields: [paymentId], references: [id])
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId])
 }
@@ -166,13 +166,13 @@ model Resource {
   fileUrl       String
   thumbnailUrl  String?
   categoryId    String
-  slug          String           @unique
   featured      Boolean          @default(false)
   resourceType  ResourceType     @default(DOCUMENT)
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   viewCount     Int              @default(0)
   downloadCount Int              @default(0)
+  slug          String           @unique
   category      ResourceCategory @relation(fields: [categoryId], references: [id])
   resourceViews ResourceView[]
 }
@@ -199,22 +199,22 @@ model PasswordReset {
 }
 
 model StripePayment {
-  id                String            @id @default(cuid())
-  stripeSessionId   String            @unique
+  id                String           @id @default(cuid())
+  stripeSessionId   String           @unique
   stripePaymentId   String?
   amount            Float
-  currency          String            @default("eur")
-  status            PaymentStatus     @default(PENDING)
+  currency          String           @default("eur")
+  status            PaymentStatus    @default(PENDING)
   paymentType       PaymentType
   userId            String
   eventId           String?
-  teamApplicationId String?           @unique
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  user              User              @relation(fields: [userId], references: [id])
-  event             Event?            @relation(fields: [eventId], references: [id])
-  teamApplication   TeamApplication?  @relation("TeamApplicationPayment", fields: [teamApplicationId], references: [id])
+  teamApplicationId String?          @unique
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
   registrations     Registration[]
+  event             Event?           @relation(fields: [eventId], references: [id])
+  teamApplication   TeamApplication? @relation("TeamApplicationPayment", fields: [teamApplicationId], references: [id])
+  user              User             @relation(fields: [userId], references: [id])
 }
 
 enum Role {
@@ -257,4 +257,3 @@ enum PaymentType {
   EVENT_REGISTRATION
   TEAM_APPLICATION
 }
-

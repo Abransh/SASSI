@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 // GET handler for checking registration status
 export async function GET(req: any , { params }: any ) {
   try {
+    const resolvedParams = await params;
     const eventId = params.id;
     const session = await getServerSession(authOptions);
     

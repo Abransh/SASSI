@@ -42,7 +42,29 @@ export async function GET(request: NextRequest) {
         ]
       },
       include: {
-        event: true
+        event: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            startDate: true,
+            endDate: true,
+            location: true,
+            imageUrl: true,
+            maxAttendees: true,
+            requiresPayment: true,
+            price: true,
+            _count: {
+              select: {
+                registrations: {
+                  where: {
+                    status: "CONFIRMED"
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       orderBy: {
         event: {
@@ -63,7 +85,29 @@ export async function GET(request: NextRequest) {
         }
       },
       include: {
-        event: true
+        event: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            startDate: true,
+            endDate: true,
+            location: true,
+            imageUrl: true,
+            maxAttendees: true,
+            requiresPayment: true,
+            price: true,
+            _count: {
+              select: {
+                registrations: {
+                  where: {
+                    status: "CONFIRMED"
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       orderBy: {
         event: {

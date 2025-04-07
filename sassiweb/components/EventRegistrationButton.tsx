@@ -164,14 +164,70 @@ export default function EventRegistrationButton({
     // Show pending status if applicable
     if (registrationStatus === "PENDING") {
       return (
-        <Button 
-          variant="outline" 
-          disabled
-          className="w-full md:w-auto bg-yellow-50 text-yellow-800 border-yellow-300"
-        >
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Registration Pending
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button 
+            variant="outline" 
+            disabled
+            className="w-full md:w-auto bg-yellow-50 text-yellow-800 border-yellow-300"
+          >
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Registration Pending
+          </Button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                // First, get the registration details to check if we have a payment ID
+                const statusResponse = await fetch(`/api/events/${eventId}/register/status`);
+                const statusData = await statusResponse.json();
+                
+                if (statusData.paymentId) {
+                  // If we have a payment ID, get the checkout URL from the payment record
+                  const paymentResponse = await fetch(`/api/payments/${statusData.paymentId}`);
+                  if (!paymentResponse.ok) {
+                    throw new Error('Failed to get payment details');
+                  }
+                  
+                  const paymentData = await paymentResponse.json();
+                  if (paymentData.checkoutUrl) {
+                    window.location.href = paymentData.checkoutUrl;
+                    return;
+                  }
+                }
+                
+                // If no payment ID or checkout URL found, create a new registration
+                const response = await fetch(`/api/events/${eventId}/register`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    successUrl: `${window.location.origin}/events/${eventId}?payment_status=success`,
+                    cancelUrl: `${window.location.origin}/events/${eventId}?payment_status=canceled`,
+                  }),
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.error || 'Failed to get payment link');
+                }
+
+                const data = await response.json();
+                if (data.checkoutUrl) {
+                  window.location.href = data.checkoutUrl;
+                } else {
+                  throw new Error('No checkout URL available');
+                }
+              } catch (error) {
+                console.error('Error getting payment link:', error);
+                toast.error(error instanceof Error ? error.message : 'Failed to get payment link');
+              }
+            }}
+            className="w-full md:w-auto text-sm"
+          >
+            Complete Payment
+          </Button>
+        </div>
       );
     }
     
