@@ -11,6 +11,7 @@ import EventRegistrationButton from "@/components/EventRegistrationButton";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import prisma from "@/lib/prisma";
+import { toast } from "react-hot-toast";
 
 type EventDetailProps = {
   event: any; // We'll use any for now, but ideally this would match your Event type
@@ -24,8 +25,9 @@ export default function EventDetail({ event }: EventDetailProps) {
 
   // Check registration status and event capacity
   useEffect(() => {
+    // Always check registration status when the component mounts
+    // or when the user returns from payment flow
     if (session?.user) {
-      // Check if user is registered
       fetch(`/api/events/${event.id}/register/status`)
         .then(res => res.json())
         .then(data => {
@@ -38,6 +40,16 @@ export default function EventDetail({ event }: EventDetailProps) {
     if (event.maxAttendees) {
       setAttendeeCount(event._count?.registrations || 0);
       setIsFull(event.maxAttendees != null && event._count?.registrations >= event.maxAttendees);
+    }
+
+    // Check for payment status in URL (returning from Stripe)
+    const searchParams = new URLSearchParams(window.location.search);
+    const paymentStatus = searchParams.get('payment_status');
+    
+    if (paymentStatus === 'canceled') {
+      toast.error("Payment was cancelled. Please try again if you still want to register.");
+    } else if (paymentStatus === 'success') {
+      toast.success("Registration successful! Payment completed.");
     }
   }, [event, session]);
 

@@ -14,16 +14,21 @@ interface EventRegistrationButtonProps {
 
 export default function EventRegistrationButton({
   eventId,
-  isRegistered,
+  isRegistered: initialIsRegistered,
   isPaid,
   isFull,
 }: EventRegistrationButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [statusChecked, setStatusChecked] = useState(false);
+  // Track registration status internally to allow for overrides
+  const [isRegistered, setIsRegistered] = useState(initialIsRegistered);
   
-  // Check registration status when navigating back from Stripe
+  // Check registration status when component mounts or when returning from Stripe
   useEffect(() => {
+    // Update internal state when prop changes
+    setIsRegistered(initialIsRegistered);
+    
     const searchParams = new URLSearchParams(window.location.search);
     const paymentStatus = searchParams.get('payment_status');
     
@@ -31,14 +36,35 @@ export default function EventRegistrationButton({
       if (paymentStatus === 'success') {
         toast.success("Registration successful! Payment completed.");
         setStatusChecked(true);
-        router.refresh();
+        // Force refresh registration status
+        checkRegistrationStatus();
       } else if (paymentStatus === 'canceled') {
-        toast("Payment was cancelled. Your registration is pending.");
+        toast.error("Payment was cancelled. You can try registering again.");
         setStatusChecked(true);
-        router.refresh();
+        setIsRegistered(false);
+        // Force refresh registration status
+        checkRegistrationStatus();
       }
     }
-  }, [router, statusChecked]);
+  }, [initialIsRegistered, statusChecked]);
+
+  // Function to check registration status directly from API
+  const checkRegistrationStatus = async () => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/register/status`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsRegistered(data.isRegistered);
+        
+        // If the registration state doesn't match what we're showing, refresh the page
+        if (data.isRegistered !== initialIsRegistered) {
+          router.refresh();
+        }
+      }
+    } catch (error) {
+      console.error("Error checking registration status:", error);
+    }
+  };
 
   const registerForEvent = async () => {
     try {
@@ -54,6 +80,10 @@ export default function EventRegistrationButton({
       
       if (!response.ok) {
         toast.error(data.error || "Failed to register for event");
+        // If the error is about an existing PENDING registration, refresh the UI to show correct state
+        if (data.error && data.error.includes("already registered")) {
+          checkRegistrationStatus();
+        }
         return;
       }
       
@@ -66,6 +96,7 @@ export default function EventRegistrationButton({
       
       // For free events that don't need payment
       toast.success("Registration successful!");
+      setIsRegistered(true);
       router.refresh();
     } catch (error) {
       console.error("Error registering for event:", error);
@@ -89,6 +120,7 @@ export default function EventRegistrationButton({
       }
       
       toast.success("Registration cancelled");
+      setIsRegistered(false);
       router.refresh();
     } catch (error) {
       console.error("Error cancelling registration:", error);

@@ -70,13 +70,13 @@ export default async function EventPage({
         });
 
         if (pendingRegistration) {
-          // Update it to cancelled
+          // Update it to cancelled and clear expiration
           await prisma.registration.update({
             where: { id: pendingRegistration.id },
             data: { 
               status: "CANCELLED",
-              // Clear the expiresAt to ensure it won't cause confusion
-              expiresAt: null 
+              expiresAt: null, // Clear the expiration date
+              paymentStatus: "FAILED" // Explicitly mark payment as failed
             }
           });
           
@@ -84,6 +84,39 @@ export default async function EventPage({
         }
       } catch (error) {
         console.error("Error updating registration after payment cancellation:", error);
+      }
+      
+      // Redirect to remove the query parameter
+      redirect(`/events/${resolvedParams.id}`);
+    }
+
+    // Also handle success URL by explicitly confirming the status
+    if (paymentStatus === 'success' && session?.user?.id) {
+      try {
+        // Find the pending registration (it might still be pending if webhook hasn't processed yet)
+        const pendingRegistration = await prisma.registration.findFirst({
+          where: {
+            eventId: resolvedParams.id,
+            userId: session.user.id,
+            status: "PENDING"
+          }
+        });
+
+        if (pendingRegistration) {
+          // Update it to confirmed status
+          await prisma.registration.update({
+            where: { id: pendingRegistration.id },
+            data: { 
+              status: "CONFIRMED",
+              expiresAt: null,
+              paymentStatus: "PAID"
+            }
+          });
+          
+          console.log(`Registration ${pendingRegistration.id} confirmed after successful payment`);
+        }
+      } catch (error) {
+        console.error("Error confirming registration after payment success:", error);
       }
       
       // Redirect to remove the query parameter

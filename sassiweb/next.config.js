@@ -10,14 +10,21 @@ const nextConfig = {
         {
           protocol: 'https',
           hostname: 'res.cloudinary.com',
-        },], 
+        },
+        {
+          protocol: 'https',
+          hostname: 'drive.google.com',
+          pathname: '**',
+        },
+      ], 
       domains: [
         'example.com',
         'res.cloudinary.com',
         'images.unsplash.com',
         'via.placeholder.com',
         'placehold.co',
-        'placekitten.com'
+        'placekitten.com',
+        'drive.google.com'
       ],
     
     },

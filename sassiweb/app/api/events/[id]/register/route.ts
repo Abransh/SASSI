@@ -95,147 +95,37 @@ export async function POST(
     })) as Registration | null;
 
     if (existingRegistration) {
-      // If previously cancelled, allow re-registration
-      if (existingRegistration.status === "CANCELLED") {
-        // If previously cancelled, update to pending (will be confirmed after payment if required)
-        const registration = await prisma.registration.update({
-          where: {
-            id: existingRegistration.id,
-          },
-          data: {
-            status: completeEvent.requiresPayment ? "PENDING" : "CONFIRMED",
-          },
-        });
-
-        // For free events, send a confirmation email and return the registration
-        if (!completeEvent.requiresPayment) {
-          await sendEventRegistrationEmail(
-            session.user.email as string,
-            session.user.name as string,
-            completeEvent.title,
-            completeEvent.startDate,
-          );
-
-          return NextResponse.json(registration);
-        }
-
-        // For paid events, create a Stripe checkout session
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-        // Define base URL with proper protocol
-        let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-        
-        // Ensure baseUrl starts with http:// or https://
-        if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-          baseUrl = `https://${baseUrl}`;
-        }
-
-        // Set expiresAt to 30 minutes from now for pending registrations
-        const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
-
-        // First create a stripe payment record
-        const stripePayment = await prisma.stripePayment.create({
-          data: {
-            stripeSessionId: "", // Will update this after creating the checkout session
-            amount: completeEvent.price || 0,
-            status: "PENDING",
-            paymentType: "EVENT_REGISTRATION",
-            userId: session.user.id,
-            eventId: completeEvent.id,
-          },
-        });
-
-        // Then create a checkout session
-        const checkoutSession = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
-          line_items: [
-            {
-              price_data: {
-                currency: "eur",
-                product_data: {
-                  name: completeEvent.title,
-                  description: completeEvent.description,
-                },
-                unit_amount: Math.round((completeEvent.price || 0) * 100),
-              },
-              quantity: 1,
-            },
-          ],
-          metadata: {
-            eventId: completeEvent.id,
-            userId: session.user.id,
-          },
-          client_reference_id: stripePayment.id,
-          mode: "payment",
-          success_url: `${baseUrl}/events/${completeEvent.id}?payment_status=success`,
-          cancel_url: `${baseUrl}/events/${completeEvent.id}?payment_status=canceled`,
-        });
-
-        // Update the stripe payment record with the session ID
-        await prisma.stripePayment.update({
-          where: { id: stripePayment.id },
-          data: { stripeSessionId: checkoutSession.id }
-        });
-
-        // Create a new registration or update an existing cancelled one
-        if (existingRegistration) {
-          // Update existing cancelled registration
-          await prisma.registration.update({
-            where: {
-              id: (existingRegistration as Registration).id,
-            },
-            data: {
-              status: "PENDING",
-              paymentStatus: "PENDING",
-              paymentId: stripePayment.id,
-              expiresAt: expiresAt,
-            },
-          });
-        } else {
-          // Create a new registration
-          await prisma.registration.create({
-            data: {
-              eventId: completeEvent.id,
-              userId: session.user.id,
-              status: "PENDING",
-              paymentStatus: "PENDING",
-              paymentId: stripePayment.id,
-              expiresAt: expiresAt,
-            },
-          });
-        }
-
-        return NextResponse.json({ url: checkoutSession.url });
-      } 
-      // If PENDING and not expired, treat as already registered
-      else if (existingRegistration.status === "PENDING") {
-        // Check if the registration has expired
+      // Check PENDING registrations for expiration
+      if (existingRegistration.status === "PENDING") {
         const now = new Date();
+        // If the registration has expired, we can allow re-registration
         if (existingRegistration.expiresAt && existingRegistration.expiresAt < now) {
-          // If expired, update it to cancelled first, then create a new registration
+          // Update it to CANCELLED
           await prisma.registration.update({
-            where: {
-              id: existingRegistration.id,
-            },
-            data: {
+            where: { id: existingRegistration.id },
+            data: { 
               status: "CANCELLED",
-            },
+              expiresAt: null
+            }
           });
-          
-          // Continue with the registration flow (next section handles the actual registration)
+          // Continue with new registration process (fall through)
         } else {
-          // Not expired, so they're still considered registered
+          // PENDING registration is still valid
           return NextResponse.json(
-            { error: "You are already registered for this event" },
-            { status: 400 },
+            { error: "You are already registered for this event. Please complete your payment." },
+            { status: 400 }
           );
         }
       }
-      // If CONFIRMED, user is already registered
-      else {
+      // For CANCELLED registrations, allow re-registration
+      else if (existingRegistration.status === "CANCELLED") {
+        // Continue with registration process (fall through)
+      }
+      // For CONFIRMED registrations, prevent re-registration
+      else if (existingRegistration.status === "CONFIRMED") {
         return NextResponse.json(
           { error: "You are already registered for this event" },
-          { status: 400 },
+          { status: 400 }
         );
       }
     }
