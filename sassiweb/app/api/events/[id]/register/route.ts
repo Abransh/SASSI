@@ -130,8 +130,11 @@ export async function POST(
       }
     }
 
+    // Check if the event requires payment
+    const requiresPayment = completeEvent.requiresPayment && (completeEvent.price || 0) > 0;
+    
     // For non-paid events, create registration immediately
-    if (!completeEvent.requiresPayment) {
+    if (!requiresPayment) {
       // Create new registration
       const registration = await prisma.registration.create({
         data: {
@@ -239,7 +242,10 @@ export async function POST(
       });
     }
 
-    return NextResponse.json({ url: checkoutSession.url });
+    return NextResponse.json({ 
+      requiresPayment: true,
+      checkoutUrl: checkoutSession.url 
+    });
   } catch (error) {
     console.error("Error registering for event:", error);
     return NextResponse.json(

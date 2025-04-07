@@ -186,7 +186,22 @@ export async function registerForEvent(eventId: string): Promise<any> {
     throw new Error(error.error || 'Failed to register for event');
   }
   
-  return response.json();
+  const result = await response.json();
+  
+  // If registration was successful and doesn't require payment, mark as free event success
+  if (!result.requiresPayment && !result.checkoutUrl) {
+    return { 
+      success: true, 
+      requiresPayment: false 
+    };
+  }
+  
+  // If it requires payment, return the checkout URL
+  return {
+    success: true,
+    requiresPayment: true,
+    checkoutUrl: result.checkoutUrl
+  };
 }
 
 /**

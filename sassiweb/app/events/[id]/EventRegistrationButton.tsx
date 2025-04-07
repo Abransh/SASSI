@@ -32,6 +32,7 @@ export default function EventRegistrationButton({ eventId }: EventRegistrationBu
       
       // Check if payment is required
       if (response.requiresPayment && response.checkoutUrl) {
+        console.log("Redirecting to checkout:", response.checkoutUrl);
         // Redirect to Stripe checkout
         window.location.href = response.checkoutUrl;
         return;

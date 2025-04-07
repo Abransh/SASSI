@@ -4,30 +4,35 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useSession } from 'next-auth/react';
+import { Loader2 } from 'lucide-react';
 
 interface EventRegistrationButtonProps {
   eventId: string;
-  isRegistered: boolean;
-  isPaid: boolean;
-  isFull: boolean;
+  isRegistered?: boolean;
+  isPending?: boolean;
+  isFull?: boolean;
+  price?: number;
 }
 
 export default function EventRegistrationButton({
   eventId,
-  isRegistered: initialIsRegistered,
-  isPaid,
-  isFull,
+  isRegistered = false,
+  isPending = false,
+  isFull = false,
+  price = 0,
 }: EventRegistrationButtonProps) {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [statusChecked, setStatusChecked] = useState(false);
   // Track registration status internally to allow for overrides
-  const [isRegistered, setIsRegistered] = useState(initialIsRegistered);
+  const [isRegisteredInternal, setIsRegisteredInternal] = useState(isRegistered);
   
   // Check registration status when component mounts or when returning from Stripe
   useEffect(() => {
     // Update internal state when prop changes
-    setIsRegistered(initialIsRegistered);
+    setIsRegisteredInternal(isRegistered);
     
     const searchParams = new URLSearchParams(window.location.search);
     const paymentStatus = searchParams.get('payment_status');
@@ -41,12 +46,12 @@ export default function EventRegistrationButton({
       } else if (paymentStatus === 'canceled') {
         toast.error("Payment was cancelled. You can try registering again.");
         setStatusChecked(true);
-        setIsRegistered(false);
+        setIsRegisteredInternal(false);
         // Force refresh registration status
         checkRegistrationStatus();
       }
     }
-  }, [initialIsRegistered, statusChecked]);
+  }, [isRegistered, statusChecked]);
 
   // Function to check registration status directly from API
   const checkRegistrationStatus = async () => {
@@ -54,10 +59,10 @@ export default function EventRegistrationButton({
       const response = await fetch(`/api/events/${eventId}/register/status`);
       if (response.ok) {
         const data = await response.json();
-        setIsRegistered(data.isRegistered);
+        setIsRegisteredInternal(data.isRegistered);
         
         // If the registration state doesn't match what we're showing, refresh the page
-        if (data.isRegistered !== initialIsRegistered) {
+        if (data.isRegistered !== isRegistered) {
           router.refresh();
         }
       }
@@ -66,41 +71,46 @@ export default function EventRegistrationButton({
     }
   };
 
-  const registerForEvent = async () => {
+  const handleRegistration = async () => {
+    // Check if user is logged in
+    if (status !== 'authenticated') {
+      router.push(`/login?callbackUrl=/events/${eventId}`);
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      setIsLoading(true);
       const response = await fetch(`/api/events/${eventId}/register`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          successUrl: `${window.location.origin}/events/${eventId}?registration=success`,
+          cancelUrl: `${window.location.origin}/events/${eventId}?registration=cancelled`,
+        }),
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
-        toast.error(data.error || "Failed to register for event");
-        // If the error is about an existing PENDING registration, refresh the UI to show correct state
-        if (data.error && data.error.includes("already registered")) {
-          checkRegistrationStatus();
-        }
+        throw new Error(data.error || 'Failed to register for event');
+      }
+
+      // If there's a checkout URL, redirect to it
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
         return;
       }
-      
-      // If we received a URL, redirect to Stripe checkout
-      if (data.url) {
-        console.log("Redirecting to Stripe:", data.url);
-        window.location.href = data.url;
-        return;
-      }
-      
-      // For free events that don't need payment
-      toast.success("Registration successful!");
-      setIsRegistered(true);
+
+      // Otherwise, show success message
+      toast.success('Successfully registered for event!');
+      setIsRegisteredInternal(true);
       router.refresh();
     } catch (error) {
-      console.error("Error registering for event:", error);
-      toast.error("Failed to register for event");
+      console.error('Registration error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to register for event');
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +130,7 @@ export default function EventRegistrationButton({
       }
       
       toast.success("Registration cancelled");
-      setIsRegistered(false);
+      setIsRegisteredInternal(false);
       router.refresh();
     } catch (error) {
       console.error("Error cancelling registration:", error);
@@ -130,7 +140,7 @@ export default function EventRegistrationButton({
     }
   };
 
-  if (isRegistered) {
+  if (isRegisteredInternal) {
     return (
       <Button 
         onClick={cancelRegistration} 
@@ -143,13 +153,36 @@ export default function EventRegistrationButton({
     );
   }
 
+  if (isPending) {
+    return (
+      <Button variant="outline" disabled className="w-full sm:w-auto">
+        Registration Pending
+      </Button>
+    );
+  }
+
+  if (isFull) {
+    return (
+      <Button variant="outline" disabled className="w-full sm:w-auto">
+        Event Full
+      </Button>
+    );
+  }
+
   return (
     <Button
-      onClick={registerForEvent}
-      disabled={isFull || isLoading}
-      className="w-full md:w-auto"
+      onClick={handleRegistration}
+      disabled={isLoading}
+      className="w-full sm:w-auto"
     >
-      {isLoading ? "Processing..." : isFull ? "Event Full" : isPaid ? "Register (Paid)" : "Register (Free)"}
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          {price > 0 ? 'Processing...' : 'Registering...'}
+        </>
+      ) : (
+        <>{price > 0 ? `Register - €${price.toFixed(2)}` : 'Register for Free'}</>
+      )}
     </Button>
   );
 } 

@@ -57,6 +57,37 @@ export default async function EventPage({
 
     // Handle payment_status=canceled from Stripe
     const paymentStatus = resolvedSearchParams.payment_status;
+    
+    // If there's a user session, check for expired registrations
+    if (session?.user?.id) {
+      // Find any pending registration for this event by this user
+      const pendingRegistration = await prisma.registration.findFirst({
+        where: {
+          eventId: resolvedParams.id,
+          userId: session.user.id,
+          status: "PENDING"
+        }
+      });
+      
+      // If there's a pending registration, check if it has expired
+      if (pendingRegistration) {
+        const now = new Date();
+        if (pendingRegistration.expiresAt && pendingRegistration.expiresAt < now) {
+          // Update it to cancelled and clear expiration
+          await prisma.registration.update({
+            where: { id: pendingRegistration.id },
+            data: { 
+              status: "CANCELLED",
+              expiresAt: null,
+              paymentStatus: "FAILED"
+            }
+          });
+          
+          console.log(`Registration ${pendingRegistration.id} marked as cancelled due to expiration`);
+        }
+      }
+    }
+    
     if (paymentStatus === 'canceled' && session?.user?.id) {
       // Mark the registration as cancelled if payment was canceled
       try {

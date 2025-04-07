@@ -2,6 +2,8 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -82,4 +84,17 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
-}; 
+};
+
+export async function validateRequest() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return { user: null };
+    }
+    return { user: session.user };
+  } catch (error) {
+    console.error("Error validating request:", error);
+    return { user: null };
+  }
+} 
