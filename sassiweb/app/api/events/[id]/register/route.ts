@@ -178,7 +178,7 @@ export async function POST(req : any, { params } : any ) {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "eur",
             product_data: {
               name: event.title,
               description: event.description,
