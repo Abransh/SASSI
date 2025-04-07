@@ -248,6 +248,9 @@ enum PaymentStatus {
   FAILED
   REFUNDED
   UNPAID
+  EXPIRED
+  CANCELLED
+  PROCESSING
 }
 
 enum PaymentType {
