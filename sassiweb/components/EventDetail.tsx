@@ -10,8 +10,7 @@ import EventGallery from "@/components/EventGallery";
 import EventRegistrationButton from "@/components/EventRegistrationButton";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import prisma from "@/lib/prisma";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 type EventDetailProps = {
   event: any; // We'll use any for now, but ideally this would match your Event type
@@ -25,22 +24,40 @@ export default function EventDetail({ event }: EventDetailProps) {
 
   // Check registration status and event capacity
   useEffect(() => {
-    // Always check registration status when the component mounts
-    // or when the user returns from payment flow
-    if (session?.user) {
-      fetch(`/api/events/${event.id}/register/status`)
-        .then(res => res.json())
-        .then(data => {
+    const fetchData = async () => {
+      // Always check registration status when the component mounts
+      // or when the user returns from payment flow
+      if (session?.user) {
+        try {
+          const response = await fetch(`/api/events/${event.id}/register/status`);
+          const data = await response.json();
           setIsRegistered(data.isRegistered);
-        })
-        .catch(err => console.error("Error checking registration:", err));
-    }
+          
+          // If there's a pending registration with time remaining, show a message
+          if (data.status === "PENDING" && data.expiresIn) {
+            toast.info(`Your registration is pending. Please complete payment within ${data.expiresIn} minutes.`);
+          }
+        } catch (err) {
+          console.error("Error checking registration:", err);
+        }
+      }
+      
+      // Check event capacity
+      if (event.maxAttendees) {
+        try {
+          const eventResponse = await fetch(`/api/events/${event.id}`);
+          if (eventResponse.ok) {
+            const eventData = await eventResponse.json();
+            setAttendeeCount(eventData._count?.registrations || 0);
+            setIsFull(event.maxAttendees != null && eventData._count?.registrations >= event.maxAttendees);
+          }
+        } catch (err) {
+          console.error("Error fetching event capacity:", err);
+        }
+      }
+    };
     
-    // Check event capacity
-    if (event.maxAttendees) {
-      setAttendeeCount(event._count?.registrations || 0);
-      setIsFull(event.maxAttendees != null && event._count?.registrations >= event.maxAttendees);
-    }
+    fetchData();
 
     // Check for payment status in URL (returning from Stripe)
     const searchParams = new URLSearchParams(window.location.search);
@@ -50,6 +67,13 @@ export default function EventDetail({ event }: EventDetailProps) {
       toast.error("Payment was cancelled. Please try again if you still want to register.");
     } else if (paymentStatus === 'success') {
       toast.success("Registration successful! Payment completed.");
+    }
+    
+    // Clean URL by removing payment_status parameter without full page reload
+    if (paymentStatus) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('payment_status');
+      window.history.replaceState({}, '', newUrl);
     }
   }, [event, session]);
 
@@ -150,7 +174,7 @@ export default function EventDetail({ event }: EventDetailProps) {
                   </div>
                 )}
                 
-                {event.price !== null && (
+                {event.price !== null && event.price > 0 && (
                   <div className="flex items-start">
                     <span className="text-xl mr-3 text-indigo-600">€</span>
                     <div>
@@ -177,22 +201,26 @@ export default function EventDetail({ event }: EventDetailProps) {
                 </div>
               ) : (
                 <div>
-                  {isRegistered ? (
-                    <p className="mb-4 text-green-700">You are registered for this event.</p>
-                  ) : isFull ? (
-                    <p className="mb-4 text-red-700">This event is at full capacity.</p>
-                  ) : (
-                    <p className="mb-4 text-gray-700">
-                      {event.price ? 'Registration requires payment.' : 'Registration is free.'}
+                  <EventRegistrationButton 
+                    eventId={event.id} 
+                    isPaid={!!event.price && event.price > 0} 
+                    isFull={isFull}
+                    price={event.price || 0}
+                  />
+                  
+                  {isRegistered && (
+                    <p className="mt-4 text-sm text-gray-600">
+                      You are registered for this event. You'll receive updates via email.
                     </p>
                   )}
                   
-                  <EventRegistrationButton 
-                    eventId={event.id} 
-                    isRegistered={isRegistered} 
-                    isPaid={!!event.price} 
-                    isFull={isFull} 
-                  />
+                  {!isRegistered && !isFull && (
+                    <p className="mt-4 text-sm text-gray-600">
+                      {event.price && event.price > 0 
+                        ? 'Registration requires payment which can be made securely via credit card.' 
+                        : 'Registration is free and only takes a moment.'}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -202,4 +230,4 @@ export default function EventDetail({ event }: EventDetailProps) {
       <Footer />
     </div>
   );
-} 
+}

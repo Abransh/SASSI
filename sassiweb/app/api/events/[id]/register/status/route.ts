@@ -1,20 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+// This route handles checking event registration status
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
-// GET /api/events/[id]/register/status - Check if user is registered for an event
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+// GET handler for checking registration status
+export async function GET(req: any , { params }: any ) {
   try {
-    const { id } = await context.params;
+    const eventId = params.id;
     const session = await getServerSession(authOptions);
     
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { isRegistered: false },
+    if (!session?.user) {
+      return Response.json(
+        { isRegistered: false, status: null, paymentStatus: null },
         { status: 200 }
       );
     }
@@ -23,17 +20,21 @@ export async function GET(
     const registration = await prisma.registration.findUnique({
       where: {
         eventId_userId: {
-          eventId: id,
+          eventId: eventId,
           userId: session.user.id,
         },
       },
+      include: {
+        payment: true
+      }
     });
     
     // If no registration exists, they're not registered
     if (!registration) {
-      return NextResponse.json({ 
+      return Response.json({ 
         isRegistered: false,
-        status: null
+        status: null,
+        paymentStatus: null
       });
     }
     
@@ -41,61 +42,63 @@ export async function GET(
     if (registration.status === "PENDING") {
       const now = new Date();
       
-      // If the registration has no expiration set, add one (30 minutes from now)
-      if (!registration.expiresAt) {
-        const expiresAt = new Date(registration.createdAt);
-        expiresAt.setMinutes(expiresAt.getMinutes() + 30);
-        
-        // Update the registration with the expiration
-        await prisma.registration.update({
-          where: { id: registration.id },
-          data: { expiresAt }
-        });
-        
-        // If this newly calculated expiration is in the past, it's expired
-        if (expiresAt < now) {
-          await prisma.registration.update({
-            where: { id: registration.id },
-            data: { 
-              status: "CANCELLED",
-              expiresAt: null
-            }
-          });
-          return NextResponse.json({ 
-            isRegistered: false,
-            status: "CANCELLED"
-          });
-        }
-      }
-      // If the registration has expired, consider them not registered
-      else if (registration.expiresAt < now) {
-        // Automatically update to CANCELLED
+      // If the registration has expired, mark as cancelled
+      if (registration.expiresAt && registration.expiresAt < now) {
+        // Update it to cancelled and clear expiration
         await prisma.registration.update({
           where: { id: registration.id },
           data: { 
             status: "CANCELLED",
-            expiresAt: null
+            expiresAt: null,
+            paymentStatus: "EXPIRED"
           }
         });
-        return NextResponse.json({ 
+        
+        console.log(`Registration ${registration.id} marked as cancelled due to expiration`);
+        
+        return Response.json({ 
           isRegistered: false,
-          status: "CANCELLED"
+          status: "CANCELLED",
+          paymentStatus: "EXPIRED",
+          expiryReason: "Payment time expired"
+        });
+      }
+      
+      // For still-valid pending registrations, return time remaining
+      if (registration.expiresAt) {
+        const timeRemaining = Math.max(0, registration.expiresAt.getTime() - now.getTime());
+        const minutesRemaining = Math.floor(timeRemaining / (1000 * 60));
+        
+        return Response.json({ 
+          isRegistered: true,
+          status: "PENDING",
+          paymentStatus: registration.paymentStatus,
+          expiresIn: minutesRemaining,
+          paymentId: registration.paymentId
         });
       }
     }
     
-    // Consider them registered if status is CONFIRMED or unexpired PENDING
-    const isRegistered = registration.status === "CONFIRMED" || registration.status === "PENDING";
+    // For CONFIRMED registrations
+    if (registration.status === "CONFIRMED") {
+      return Response.json({ 
+        isRegistered: true,
+        status: "CONFIRMED",
+        paymentStatus: registration.paymentStatus
+      });
+    }
     
-    return NextResponse.json({ 
-      isRegistered,
-      status: registration.status
+    // For all other cases (including CANCELLED)
+    return Response.json({ 
+      isRegistered: false,
+      status: registration.status,
+      paymentStatus: registration.paymentStatus
     });
   } catch (error) {
     console.error("Error checking registration status:", error);
-    return NextResponse.json(
+    return Response.json(
       { error: "Failed to check registration status" },
       { status: 500 }
     );
   }
-} 
+}

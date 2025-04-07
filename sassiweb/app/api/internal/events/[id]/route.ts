@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+// Using a simpler parameter structure
+export async function GET(request: any, context: any) {
   try {
+    // Get the ID from the context
+    const id = context.params.id;
+    
     // Check API key
-    const apiKey = req.headers.get("x-api-key");
+    const apiKey = request.headers.get("x-api-key");
     if (apiKey !== process.env.EVENT_SERVICE_API_KEY) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -15,8 +16,7 @@ export async function GET(
       );
     }
 
-    const eventId = params.id;
-    if (!eventId) {
+    if (!id) {
       return NextResponse.json(
         { error: "Event ID is required" },
         { status: 400 }
@@ -24,8 +24,8 @@ export async function GET(
     }
 
     // Find the event
-    const event = await db.event.findUnique({
-      where: { id: eventId },
+    const event = await prisma.event.findUnique({
+      where: { id },
     });
 
     if (!event) {
@@ -52,4 +52,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

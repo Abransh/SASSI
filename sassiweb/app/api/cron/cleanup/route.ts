@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export const runtime = 'edge';
+// Remove Edge runtime configuration
+// export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 // This function will be called by the cron job

@@ -25,7 +25,7 @@ export async function generateMetadata({
         title: "Event Not Found - SASSI Milan",
       };
     }
-
+    
     return {
       title: `${event.title} - SASSI Milan Events`,
       description: event.description,
@@ -52,9 +52,9 @@ export default async function EventPage({
     const session = await getServerSession(authOptions);
 
     if (!event) {
-      notFound();
-    }
-
+    notFound();
+  }
+  
     // Handle payment_status=canceled from Stripe
     const paymentStatus = resolvedSearchParams.payment_status;
     

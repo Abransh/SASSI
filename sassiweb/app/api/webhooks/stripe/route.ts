@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripeClient } from "@/lib/stripe";
 import prisma from "@/lib/prisma";
+import { sendEventRegistrationEmail } from "@/lib/email";
+import { PaymentStatus, RegistrationStatus, Prisma } from "@prisma/client";
 
-// Process Stripe webhook events
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
@@ -19,79 +20,70 @@ export async function POST(request: NextRequest) {
     const stripe = getStripeClient();
 
     // Verify and construct the event
-    const event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET as string
-    );
-
-    // Handle the event
-    switch (event.type) {
-      // Checkout Session Events
-      case "checkout.session.completed": {
-        const session = event.data.object;
-        await handleCheckoutCompleted(session);
-        break;
-      }
-      
-      case "checkout.session.expired": {
-        const session = event.data.object;
-        await handleCheckoutExpired(session);
-        break;
-      }
-
-      case "checkout.session.async_payment_succeeded": {
-        const session = event.data.object;
-        await handleCheckoutCompleted(session);
-        break;
-      }
-
-      case "checkout.session.async_payment_failed": {
-        const session = event.data.object;
-        await handleCheckoutExpired(session);
-        break;
-      }
-      
-      // Payment Intent Events
-      case "payment_intent.succeeded": {
-        const paymentIntent = event.data.object;
-        await handlePaymentIntentSucceeded(paymentIntent);
-        break;
-      }
-      
-      case "payment_intent.payment_failed": {
-        const paymentIntent = event.data.object;
-        await handlePaymentFailed(paymentIntent);
-        break;
-      }
-
-      case "payment_intent.canceled": {
-        const paymentIntent = event.data.object;
-        await handlePaymentCanceled(paymentIntent);
-        break;
-      }
-
-      case "payment_intent.processing": {
-        const paymentIntent = event.data.object;
-        await handlePaymentProcessing(paymentIntent);
-        break;
-      }
-
-      // Refund Events
-      case "charge.refunded": {
-        const charge = event.data.object;
-        await handleChargeRefunded(charge);
-        break;
-      }
-
-      case "charge.refund.updated": {
-        const refund = event.data.object;
-        await handleRefundUpdated(refund);
-        break;
-      }
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET as string
+      );
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      console.error(`Webhook signature verification failed: ${errorMessage}`);
+      return NextResponse.json({ error: `Webhook error: ${errorMessage}` }, { status: 400 });
     }
 
-    return NextResponse.json({ received: true }, { status: 200 });
+    console.log(`Received stripe webhook event: ${event.type}`);
+
+    // Handle the event
+    try {
+      switch (event.type) {
+        // Checkout Session Events
+        case "checkout.session.completed": {
+          await handleCheckoutCompleted(event.data.object);
+          break;
+        }
+        
+        case "checkout.session.expired": {
+          await handleCheckoutExpired(event.data.object);
+          break;
+        }
+
+        case "checkout.session.async_payment_succeeded": {
+          await handleCheckoutCompleted(event.data.object);
+          break;
+        }
+
+        case "checkout.session.async_payment_failed": {
+          await handleCheckoutFailed(event.data.object);
+          break;
+        }
+        
+        // Payment Intent Events
+        case "payment_intent.succeeded": {
+          await handlePaymentIntentSucceeded(event.data.object);
+          break;
+        }
+        
+        case "payment_intent.payment_failed": {
+          await handlePaymentFailed(event.data.object);
+          break;
+        }
+
+        case "payment_intent.canceled": {
+          await handlePaymentCanceled(event.data.object);
+          break;
+        }
+
+        default:
+          console.log(`Unhandled event type ${event.type}`);
+      }
+    } catch (error) {
+      console.error(`Error handling webhook event ${event.type}:`, error);
+      // Continue processing to acknowledge receipt to Stripe
+    }
+
+    return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Error handling webhook:", error);
     return NextResponse.json(
@@ -103,170 +95,318 @@ export async function POST(request: NextRequest) {
 
 // Handle checkout.session.completed event
 async function handleCheckoutCompleted(session: any) {
-  // Find the payment in our database
-  const payment = await prisma.$queryRaw`
-    SELECT * FROM "StripePayment" WHERE "stripeSessionId" = ${session.id}
-  `;
-
-  const paymentRecord = Array.isArray(payment) && payment.length > 0 ? payment[0] : null;
-
-  if (!paymentRecord) {
-    console.error(`Payment not found for session ${session.id}`);
-    return;
-  }
-
-  // Update the payment status
-  await prisma.$executeRaw`
-    UPDATE "StripePayment" SET status = 'PAID' WHERE id = ${paymentRecord.id}
-  `;
-
-  // Process based on payment type
-  if (paymentRecord.paymentType === "EVENT_REGISTRATION") {
-    // Update registration status and clear expiresAt field
-    await prisma.$executeRaw`
-      UPDATE "Registration" 
-      SET "status" = 'CONFIRMED', "paymentStatus" = 'PAID', "expiresAt" = NULL
-      WHERE "paymentId" = ${paymentRecord.id}
-    `;
-  } else if (paymentRecord.paymentType === "TEAM_APPLICATION") {
-    // Update user payment verification
-    await prisma.user.update({
-      where: {
-        id: paymentRecord.userId,
-      },
-      data: {
-        paymentVerified: true,
-        membershipExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
-      },
+  console.log(`Processing completed checkout session: ${session.id}`);
+  
+  try {
+    // Find the payment record using stripeSessionId
+    const payment = await prisma.stripePayment.findUnique({
+      where: { stripeSessionId: session.id },
+      include: {
+        user: true,
+        event: true,
+        registrations: true
+      }
     });
+
+    if (!payment) {
+      console.error(`Payment not found for session ${session.id}`);
+      return;
+    }
+
+    console.log(`Found payment record: ${payment.id}, type: ${payment.paymentType}`);
+
+    // Update the payment status to PAID
+    await prisma.stripePayment.update({
+      where: { id: payment.id },
+      data: { 
+        status: "PAID" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
+        stripePaymentId: session.payment_intent || null,
+      }
+    });
+
+    // Process based on payment type
+    if (payment.paymentType === "EVENT_REGISTRATION" && payment.eventId) {
+      // Find and update associated registration
+      const registration = payment.registrations[0] || await prisma.registration.findFirst({
+        where: { 
+          paymentId: payment.id,
+          userId: payment.userId,
+          eventId: payment.eventId
+        },
+        include: {
+          user: true,
+          event: true
+        }
+      });
+
+      if (registration) {
+        console.log(`Updating registration ${registration.id} to CONFIRMED`);
+        
+        // Update registration status
+        const updatedRegistration = await prisma.registration.update({
+          where: { id: registration.id },
+          data: {
+            status: "CONFIRMED" as Prisma.EnumRegistrationStatusFieldUpdateOperationsInput["set"],
+            paymentStatus: "PAID" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
+            expiresAt: null
+          },
+          include: {
+            user: {
+              select: {
+                email: true,
+                name: true
+              }
+            },
+            event: {
+              select: {
+                title: true,
+                startDate: true
+              }
+            }
+          }
+        });
+
+        // Send confirmation email if we have user and event data
+        if (updatedRegistration.user?.email && updatedRegistration.event) {
+          try {
+            await sendEventRegistrationEmail(
+              updatedRegistration.user.email,
+              updatedRegistration.user.name || "",
+              updatedRegistration.event.title,
+              updatedRegistration.event.startDate,
+            );
+          } catch (emailError) {
+            console.error("Error sending registration email:", emailError);
+            // Continue even if email fails
+          }
+        }
+      } else {
+        console.error(`No registration found for payment ${payment.id}`);
+      }
+    } else if (payment.paymentType === "TEAM_APPLICATION") {
+      // Update user payment verification for team applications
+      await prisma.user.update({
+        where: { id: payment.userId },
+        data: {
+          paymentVerified: true,
+          membershipExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error processing checkout.session.completed:", error);
+    throw error; // Rethrow to be caught by main handler
   }
 }
 
 // Handle checkout.session.expired event
 async function handleCheckoutExpired(session: any) {
-  // Find the payment in our database
-  const payment = await prisma.$queryRaw`
-    SELECT * FROM "StripePayment" WHERE "stripeSessionId" = ${session.id}
-  `;
+  console.log(`Processing expired checkout session: ${session.id}`);
+  
+  try {
+    // Find the payment record using stripeSessionId
+    const payment = await prisma.stripePayment.findUnique({
+      where: { stripeSessionId: session.id },
+      include: {
+        registrations: true
+      }
+    });
 
-  const paymentRecord = Array.isArray(payment) && payment.length > 0 ? payment[0] : null;
+    if (!payment) {
+      console.error(`Payment not found for expired session ${session.id}`);
+      return;
+    }
 
-  if (!paymentRecord) {
-    console.error(`Payment not found for expired session ${session.id}`);
-    return;
-  }
+    console.log(`Found payment for expired session: ${payment.id}`);
 
-  // Update the payment status to expired
-  await prisma.$executeRaw`
-    UPDATE "StripePayment" SET status = 'EXPIRED' WHERE id = ${paymentRecord.id}
-  `;
+    // Update the payment status to EXPIRED
+    await prisma.stripePayment.update({
+      where: { id: payment.id },
+      data: { 
+        status: "EXPIRED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"]
+      }
+    });
 
-  // If this was an event registration, update the registration status
-  if (paymentRecord.paymentType === "EVENT_REGISTRATION") {
-    // Update registration status to cancelled
-    await prisma.$executeRaw`
-      UPDATE "Registration" 
-      SET "status" = 'CANCELLED', "paymentStatus" = 'FAILED'
-      WHERE "paymentId" = ${paymentRecord.id}
-    `;
+    // If this was an event registration, update the registration status
+    if (payment.paymentType === "EVENT_REGISTRATION") {
+      const registration = payment.registrations[0] || await prisma.registration.findFirst({
+        where: { paymentId: payment.id }
+      });
+
+      if (registration) {
+        console.log(`Cancelling registration ${registration.id} due to payment expiration`);
+        
+        // Update registration status to cancelled
+        await prisma.registration.update({
+          where: { id: registration.id },
+          data: {
+            status: "CANCELLED" as Prisma.EnumRegistrationStatusFieldUpdateOperationsInput["set"],
+            paymentStatus: "EXPIRED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
+            expiresAt: null
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error processing checkout.session.expired:", error);
+    throw error;
   }
 }
 
-// Handle payment_intent.succeeded event
+// Handle checkout.session.async_payment_failed
+async function handleCheckoutFailed(session: any) {
+  console.log(`Processing failed checkout session: ${session.id}`);
+  
+  try {
+    // Find the payment record
+    const payment = await prisma.stripePayment.findUnique({
+      where: { stripeSessionId: session.id },
+      include: {
+        registrations: true
+      }
+    });
+
+    if (!payment) {
+      console.error(`Payment not found for failed session ${session.id}`);
+      return;
+    }
+
+    // Update payment status to FAILED
+    await prisma.stripePayment.update({
+      where: { id: payment.id },
+      data: { status: "FAILED" }
+    });
+
+    // Handle registration if it exists
+    if (payment.paymentType === "EVENT_REGISTRATION") {
+      const registration = payment.registrations[0] || await prisma.registration.findFirst({
+        where: { paymentId: payment.id }
+      });
+
+      if (registration) {
+        await prisma.registration.update({
+          where: { id: registration.id },
+          data: {
+            status: "CANCELLED",
+            paymentStatus: "FAILED",
+            expiresAt: null
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error processing checkout.session.async_payment_failed:", error);
+    throw error;
+  }
+}
+
+// Handle payment_intent.succeeded
 async function handlePaymentIntentSucceeded(paymentIntent: any) {
-  // Update payment with payment intent ID
-  if (paymentIntent.metadata?.checkout_session_id) {
-    await prisma.$executeRaw`
-      UPDATE "StripePayment" 
-      SET "stripePaymentId" = ${paymentIntent.id}
-      WHERE "stripeSessionId" = ${paymentIntent.metadata.checkout_session_id}
-    `;
+  console.log(`Processing succeeded payment intent: ${paymentIntent.id}`);
+  
+  try {
+    // If we have a session ID in metadata, update our payment record
+    if (paymentIntent.metadata?.checkout_session_id) {
+      const payment = await prisma.stripePayment.findFirst({
+        where: { stripeSessionId: paymentIntent.metadata.checkout_session_id }
+      });
+
+      if (payment) {
+        await prisma.stripePayment.update({
+          where: { id: payment.id },
+          data: { 
+            stripePaymentId: paymentIntent.id,
+            status: "PAID" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"]
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error processing payment_intent.succeeded:", error);
+    throw error;
   }
 }
 
-// Handle payment_intent.payment_failed event
+// Handle payment_intent.payment_failed
 async function handlePaymentFailed(paymentIntent: any) {
-  // Mark payment as failed
-  if (paymentIntent.metadata?.checkout_session_id) {
-    await prisma.$executeRaw`
-      UPDATE "StripePayment" 
-      SET "status" = 'FAILED'
-      WHERE "stripeSessionId" = ${paymentIntent.metadata.checkout_session_id}
-    `;
+  console.log(`Processing failed payment intent: ${paymentIntent.id}`);
+  
+  try {
+    if (paymentIntent.metadata?.checkout_session_id) {
+      const payment = await prisma.stripePayment.findFirst({
+        where: { stripeSessionId: paymentIntent.metadata.checkout_session_id },
+        include: {
+          registrations: true
+        }
+      });
+
+      if (payment) {
+        // Update payment status
+        await prisma.stripePayment.update({
+          where: { id: payment.id },
+          data: { 
+            stripePaymentId: paymentIntent.id,
+            status: "FAILED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"]
+          }
+        });
+
+        // Update any associated registrations
+        if (payment.registrations.length > 0) {
+          await prisma.registration.updateMany({
+            where: { paymentId: payment.id },
+            data: {
+              status: "CANCELLED" as Prisma.EnumRegistrationStatusFieldUpdateOperationsInput["set"],
+              paymentStatus: "FAILED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
+              expiresAt: null
+            }
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error processing payment_intent.payment_failed:", error);
+    throw error;
   }
 }
 
-// Handle payment_intent.canceled event
+// Handle payment_intent.canceled
 async function handlePaymentCanceled(paymentIntent: any) {
-  if (paymentIntent.metadata?.checkout_session_id) {
-    await prisma.$executeRaw`
-      UPDATE "StripePayment" 
-      SET "status" = 'CANCELLED'
-      WHERE "stripeSessionId" = ${paymentIntent.metadata.checkout_session_id}
-    `;
+  console.log(`Processing canceled payment intent: ${paymentIntent.id}`);
+  
+  try {
+    if (paymentIntent.metadata?.checkout_session_id) {
+      const payment = await prisma.stripePayment.findFirst({
+        where: { stripeSessionId: paymentIntent.metadata.checkout_session_id },
+        include: {
+          registrations: true
+        }
+      });
 
-    // Update registration status if it exists
-    await prisma.$executeRaw`
-      UPDATE "Registration" 
-      SET "status" = 'CANCELLED', "paymentStatus" = 'FAILED'
-      WHERE "paymentId" IN (
-        SELECT id FROM "StripePayment" 
-        WHERE "stripeSessionId" = ${paymentIntent.metadata.checkout_session_id}
-      )
-    `;
+      if (payment) {
+        // Update payment status
+        await prisma.stripePayment.update({
+          where: { id: payment.id },
+          data: { 
+            stripePaymentId: paymentIntent.id,
+            status: "CANCELLED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"]
+          }
+        });
+
+        // Update any associated registrations
+        if (payment.registrations.length > 0) {
+          await prisma.registration.updateMany({
+            where: { paymentId: payment.id },
+            data: {
+              status: "CANCELLED" as Prisma.EnumRegistrationStatusFieldUpdateOperationsInput["set"],
+              paymentStatus: "CANCELLED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
+              expiresAt: null
+            }
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error processing payment_intent.canceled:", error);
+    throw error;
   }
 }
-
-// Handle payment_intent.processing event
-async function handlePaymentProcessing(paymentIntent: any) {
-  if (paymentIntent.metadata?.checkout_session_id) {
-    await prisma.$executeRaw`
-      UPDATE "StripePayment" 
-      SET "status" = 'PROCESSING'
-      WHERE "stripeSessionId" = ${paymentIntent.metadata.checkout_session_id}
-    `;
-  }
-}
-
-// Handle charge.refunded event
-async function handleChargeRefunded(charge: any) {
-  if (charge.payment_intent) {
-    await prisma.$executeRaw`
-      UPDATE "StripePayment" 
-      SET "status" = 'REFUNDED'
-      WHERE "stripePaymentId" = ${charge.payment_intent}
-    `;
-
-    // Update registration status if it exists
-    await prisma.$executeRaw`
-      UPDATE "Registration" 
-      SET "status" = 'CANCELLED', "paymentStatus" = 'REFUNDED'
-      WHERE "paymentId" IN (
-        SELECT id FROM "StripePayment" 
-        WHERE "stripePaymentId" = ${charge.payment_intent}
-      )
-    `;
-  }
-}
-
-// Handle charge.refund.updated event
-async function handleRefundUpdated(refund: any) {
-  if (refund.payment_intent) {
-    await prisma.$executeRaw`
-      UPDATE "StripePayment" 
-      SET "status" = ${refund.status === 'succeeded' ? 'REFUNDED' : 'FAILED'}
-      WHERE "stripePaymentId" = ${refund.payment_intent}
-    `;
-
-    // Update registration status if it exists
-    await prisma.$executeRaw`
-      UPDATE "Registration" 
-      SET "status" = 'CANCELLED', 
-          "paymentStatus" = ${refund.status === 'succeeded' ? 'REFUNDED' : 'FAILED'}
-      WHERE "paymentId" IN (
-        SELECT id FROM "StripePayment" 
-        WHERE "stripePaymentId" = ${refund.payment_intent}
-      )
-    `;
-  }
-} 
