@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Event } from "@/types/event";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/event-service";
+import ImageUpload from "./ImageUpload";
 
 // Form validation schema
 const eventFormSchema = z.object({
@@ -61,7 +62,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     location: event?.location || "",
     startDate: defaultStartDate,
     endDate: defaultEndDate,
-    imageUrl: event?.imageUrl || "",
+    imageUrl: event?.imageUrl || null,
     maxAttendees: event?.maxAttendees || null,
     price: event?.price || null,
     requiresPayment: event?.requiresPayment || false,
@@ -434,20 +435,17 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         <div className="space-y-2">
           <label htmlFor="imageUrl" className="text-sm font-medium flex items-center">
             <Image size={16} className="mr-2" />
-            Image URL (Optional)
+            Event Image (Optional)
           </label>
-          <Input
-            id="imageUrl"
-            name="imageUrl"
-            value={formData.imageUrl || ""}
-            onChange={handleChange}
-            className={errors.imageUrl ? "border-red-500" : ""}
+          <ImageUpload
+            value={formData.imageUrl || undefined}
+            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
           />
           {errors.imageUrl && (
             <p className="text-red-500 text-xs mt-1">{errors.imageUrl}</p>
           )}
           <p className="text-xs text-gray-500">
-            Add a URL to an image for this event
+            Upload an image for this event (max 5MB)
           </p>
         </div>
         
