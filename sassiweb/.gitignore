@@ -40,7 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
+# Environment files
+.env
+.env.local
+.env.*
+!.env.example
 
 # Dist directories
 **/dist/
