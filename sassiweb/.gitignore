@@ -58,3 +58,5 @@ out/
 scripts/update-admin-password.js
 scripts/update-admin-password.cjs
 scripts/update-admin-password.ts
+scripts/ensure-admin.ts
+scripts/fix-admin-status.ts

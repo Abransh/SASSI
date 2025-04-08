@@ -443,67 +443,77 @@ export default function TeamRegistrationPage() {
       <MobileMenu />
       
       <div className="pt-32 pb-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-6 border-b">
-                <h1 className="text-2xl font-bold mb-1">Join the SASSI Team</h1>
-                <p className="text-gray-600">
-                  Select the department you&apos;d like to contribute to. Each plays a vital role in our community.
-                </p>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Join the SASSI Team
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Be part of our mission to support and empower Indian students in Milan
+            </p>
+            
+            {/* Benefits Section */}
+            <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                Team Member Benefits
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-orange-50 p-6 rounded-lg">
+                  <div className="text-3xl mb-4">🎟️</div>
+                  <h3 className="text-lg font-semibold mb-2">Pre-access to Events</h3>
+                  <p className="text-gray-600">Get early access to register for all open events before they're available to the general public.</p>
+                </div>
+                <div className="bg-orange-50 p-6 rounded-lg">
+                  <div className="text-3xl mb-4">🔒</div>
+                  <h3 className="text-lg font-semibold mb-2">Exclusive Events</h3>
+                  <p className="text-gray-600">Access to special member-only events, workshops, and networking opportunities.</p>
+                </div>
+                <div className="bg-orange-50 p-6 rounded-lg">
+                  <div className="text-3xl mb-4">🤝</div>
+                  <h3 className="text-lg font-semibold mb-2">Team Membership</h3>
+                  <p className="text-gray-600">Join our dedicated team and contribute to building a stronger Indian student community in Milan.</p>
+                </div>
               </div>
-              
-              <div className="p-6">
-                {session ? (
-                  <>
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-6 flex items-center">
-                      <User className="text-green-600 mr-3 h-5 w-5" />
-                      <p className="text-green-800">
-                        Signed in as <span className="font-medium">{session.user.email}</span>
-                      </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      {DEPARTMENTS.map((dept) => (
-                        <div
-                          key={dept.id}
-                          className="border rounded-lg p-4 cursor-pointer hover:border-orange-500 hover:shadow-md transition-all"
-                          onClick={() => handleDepartmentSelect(dept.id)}
-                        >
-                          <h3 className="text-lg font-bold flex items-center">
-                            <span className="text-2xl mr-2">{dept.icon}</span>
-                            {dept.title}
-                          </h3>
-                          <p className="text-gray-600 mt-2 text-sm">{dept.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="text-sm text-gray-600 bg-gray-50 p-4 rounded-md">
-                      <p>
-                        <strong>Note:</strong> By joining the team, you&apos;re committing to actively participate in SASSI activities. The time commitment is flexible, but we appreciate your dedication to our community's mission.
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <ShieldAlert size={32} className="text-yellow-600" />
-                    </div>
-                    
-                    <h2 className="text-xl font-bold mb-2">Member Registration Required</h2>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                      To join the SASSI team, you need to be a registered member first. Please complete your membership registration.
-                    </p>
-                    
-                    <Link
-                      href="/join/member"
-                      className="px-6 py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors inline-block"
-                    >
-                      Register as a Member
-                    </Link>
-                  </div>
-                )}
+            </div>
+            
+            {/* Membership Fee Section */}
+            <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                Membership Fee
+              </h2>
+              <p className="text-gray-600 mb-4">
+                A one-time membership fee of €5.00 is required to join the SASSI team. This helps us cover operational costs and ensures commitment from our team members.
+              </p>
+              <p className="text-red-500 font-semibold mb-4">
+                Early membership price for the first 50 members!
+              </p>
+              <div className="flex items-center justify-center space-x-4">
+                <div className="text-4xl font-bold text-orange-600">€5.00</div>
+                <div className="text-gray-500 line-through">€10.00</div>
+              </div>
+            </div>
+            
+            {/* Department Selection */}
+            <div className="bg-white rounded-lg shadow-md p-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                Choose Your Department
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {DEPARTMENTS.map((dept) => (
+                  <button
+                    key={dept.id}
+                    onClick={() => handleDepartmentSelect(dept.id)}
+                    className={`p-6 rounded-lg border-2 transition-all ${
+                      selectedDepartment === dept.id
+                        ? "border-orange-500 bg-orange-50"
+                        : "border-gray-200 hover:border-orange-300"
+                    }`}
+                  >
+                    <div className="text-3xl mb-4">{dept.icon}</div>
+                    <h3 className="text-lg font-semibold mb-2">{dept.title}</h3>
+                    <p className="text-gray-600">{dept.description}</p>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
