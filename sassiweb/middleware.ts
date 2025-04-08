@@ -9,6 +9,7 @@ export default async function middleware(request: NextRequestWithAuth) {
   const token = await getToken({ req: request });
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
   const isJoinTeamRoute = request.nextUrl.pathname === "/join/team";
+  const isDevelopment = process.env.NODE_ENV === "development";
 
   // Handle admin routes
   if (isAdminRoute) {
@@ -50,11 +51,21 @@ export default async function middleware(request: NextRequestWithAuth) {
   // Add more secure Content-Security-Policy headers
   const response = NextResponse.next();
   
-  // Add security headers
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*; font-src 'self' data:; connect-src 'self' https://*;"
-  );
+  // Add security headers with different CSP for development and production
+  if (isDevelopment) {
+    // More permissive CSP for development
+    response.headers.set(
+      'Content-Security-Policy',
+      "default-src 'self' 'unsafe-eval' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*; font-src 'self' data:; connect-src 'self' https://*;"
+    );
+  } else {
+    // Strict CSP for production
+    response.headers.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*; font-src 'self' data:; connect-src 'self' https://*;"
+    );
+  }
+  
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');

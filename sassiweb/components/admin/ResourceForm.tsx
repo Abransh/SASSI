@@ -41,6 +41,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import FileUpload from "@/components/FileUpload";
 
 // Resource schema for validation
 const resourceSchema = z.object({
@@ -517,112 +518,22 @@ const handleSubmit = async (e: React.FormEvent) => {
                 {errors.fileUrl && <p className="text-red-500 text-xs mt-1">{errors.fileUrl}</p>}
               </>
             ) : (
-              <>
-                <div className="flex space-x-3">
-                  <div className="flex-1">
-                    {!formData.fileUrl ? (
-                      <div className="border border-dashed rounded-md p-6 text-center">
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={(e) => handleFileUpload(e, "file")}
-                          className="hidden"
-                        />
-                        <div className="flex flex-col items-center justify-center space-y-2">
-                          <File className="h-8 w-8 text-gray-400" />
-                          <div className="text-sm text-gray-500">
-                            <button
-                              type="button"
-                              onClick={() => handleUploadClick("file")}
-                              className="text-blue-600 hover:text-blue-800"
-                              disabled={isUploading === "file"}
-                            >
-                              {isUploading === "file" ? (
-                                <span className="flex items-center">
-                                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                                  Uploading...
-                                </span>
-                              ) : (
-                                "Click to upload"
-                              )}
-                            </button>{" "}
-                            or drag and drop
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            PDF, DOC, PPT, XLS, etc. (max. 10MB)
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="border rounded-md p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            {getResourceTypeIcon(formData.resourceType)}
-                            <div className="text-sm font-medium truncate max-w-xs">
-                              {formData.fileUrl.split("/").pop() || formData.fileUrl}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => window.open(formData.fileUrl, "_blank")}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <ExternalLink size={16} className="mr-1" />
-                              View
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleClearFileUrl("file")}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash size={16} className="mr-1" />
-                              Remove
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-none">
-                    <div className="flex flex-col items-center">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleUploadClick("file")}
-                        disabled={isUploading === "file"}
-                        className="h-full w-full flex flex-col items-center py-3"
-                      >
-                        {isUploading === "file" ? (
-                          <Loader2 className="h-6 w-6 animate-spin" />
-                        ) : (
-                          <Upload className="h-6 w-6 mb-1" />
-                        )}
-                        <span className="text-xs">Upload</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <FileUpload
+                  value={formData.fileUrl}
+                  onChange={(url) => {
+                    if (url) {
+                      setFormData((prev) => ({ ...prev, fileUrl: url }));
+                      if (errors.fileUrl) {
+                        setErrors((prev) => ({ ...prev, fileUrl: undefined }));
+                      }
+                    }
+                  }}
+                  accept={formData.resourceType === "DOCUMENT" ? ".pdf,.doc,.docx,.txt" : undefined}
+                  label={formData.resourceType === "DOCUMENT" ? "Upload Document" : "Upload File"}
+                />
                 {errors.fileUrl && <p className="text-red-500 text-xs mt-1">{errors.fileUrl}</p>}
-                
-                <div className="text-sm text-gray-500 mt-2">
-                  <div className="flex items-center">
-                    <Input
-                      id="fileUrl"
-                      name="fileUrl"
-                      value={formData.fileUrl}
-                      onChange={handleChange}
-                      placeholder="Or enter file URL directly"
-                      className={errors.fileUrl ? "border-red-500" : ""}
-                    />
-                  </div>
-                </div>
-              </>
+              </div>
             )}
           </div>
           
