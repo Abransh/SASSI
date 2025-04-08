@@ -125,68 +125,8 @@ export default function EventDetail({ event }: EventDetailProps) {
               </div>
             </div>
             
-            {/* Photo Gallery */}
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">Event Photos</h2>
-              <EventGallery eventId={event.id} />
-            </div>
-          </div>
-          
-          <div>
+            {/* Registration Section */}
             <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Event Information</h2>
-              
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <Calendar className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Date</p>
-                    <p className="text-gray-600">{formattedDate}</p>
-                    {isMultiDay && <p className="text-gray-600">to {formattedEndDate}</p>}
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <Clock className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Time</p>
-                    <p className="text-gray-600">{formattedStartTime} - {formattedEndTime}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <MapPin className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Location</p>
-                    <p className="text-gray-600">{event.location}</p>
-                  </div>
-                </div>
-                
-                {event.maxAttendees && (
-                  <div className="flex items-start">
-                    <Users className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Capacity</p>
-                      <p className="text-gray-600">
-                        {attendeeCount} / {event.maxAttendees} registered
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                {event.price !== null && event.price > 0 && (
-                  <div className="flex items-start">
-                    <span className="text-xl mr-3 text-indigo-600">€</span>
-                    <div>
-                      <p className="font-medium">Registration Fee</p>
-                      <p className="text-gray-600">€{event.price.toFixed(2)}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="bg-white shadow-md rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Registration</h2>
               
               {!session ? (
@@ -223,6 +163,92 @@ export default function EventDetail({ event }: EventDetailProps) {
                   )}
                 </div>
               )}
+            </div>
+            
+            {/* Photo Gallery */}
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4">Event Photos</h2>
+              <div className="bg-white shadow-md rounded-lg p-6">
+                <p className="text-gray-600 text-center">
+                  Photos Google Drive Link will be posted after the event
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold mb-4">Event Information</h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <Calendar className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Date</p>
+                    <p className="text-gray-600">{formattedDate}</p>
+                    {isMultiDay && <p className="text-gray-600">to {formattedEndDate}</p>}
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Clock className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Time</p>
+                    <p className="text-gray-600">{formattedStartTime} - {formattedEndTime}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <MapPin className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Location</p>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-800 hover:underline flex items-center"
+                    >
+                      {event.location}
+                      <svg
+                        className="w-4 h-4 ml-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+                
+                {event.maxAttendees && (
+                  <div className="flex items-start">
+                    <Users className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Capacity</p>
+                      <p className="text-gray-600">
+                        {attendeeCount} / {event.maxAttendees} registered
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {event.price !== null && event.price > 0 && (
+                  <div className="flex items-start">
+                    <span className="text-xl mr-3 text-indigo-600">€</span>
+                    <div>
+                      <p className="font-medium">Registration Fee</p>
+                      <p className="text-gray-600">€{event.price.toFixed(2)}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
