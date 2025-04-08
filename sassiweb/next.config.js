@@ -40,12 +40,12 @@ const nextConfig = {
             value: `
               default-src 'self';
               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com;
-              style-src 'self' 'unsafe-inline' https://ucarecdn.com;
+              style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
               img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com;
-              font-src 'self' https://ucarecdn.com;
-              connect-src 'self' https://api.uploadcare.com https://uploadcare.com;
-              frame-src 'self' https://uploadcare.com;
               media-src 'self' blob: https://ucarecdn.com;
+              font-src 'self' https://fonts.gstatic.com;
+              connect-src 'self' https://ucarecdn.com https://uploadcare.com;
+              frame-src 'self' https://uploadcare.com;
               object-src 'none';
               base-uri 'self';
               form-action 'self';

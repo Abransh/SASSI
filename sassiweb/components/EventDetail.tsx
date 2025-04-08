@@ -168,6 +168,69 @@ export default function EventDetail({ event }: EventDetailProps) {
               </div>
             </div>
             
+            {/* Event Information */}
+            <div className="mt-8">
+              <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+                <h2 className="text-xl font-semibold mb-4">Event Information</h2>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <Calendar className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Date</p>
+                      <p className="text-gray-600">{formattedDate}</p>
+                      {isMultiDay && <p className="text-gray-600">to {formattedEndDate}</p>}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <Clock className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Time</p>
+                      <p className="text-gray-600">{formattedStartTime} - {formattedEndTime}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <MapPin className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Location</p>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                      >
+                        {event.location}
+                      </a>
+                    </div>
+                  </div>
+                  
+                  {event.maxAttendees && (
+                    <div className="flex items-start">
+                      <Users className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Capacity</p>
+                        <p className="text-gray-600">
+                          {attendeeCount} / {event.maxAttendees} registered
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {event.price !== null && event.price > 0 && (
+                    <div className="flex items-start">
+                      <span className="text-xl mr-3 text-indigo-600">€</span>
+                      <div>
+                        <p className="font-medium">Registration Fee</p>
+                        <p className="text-gray-600">€{event.price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
             {/* Photo Gallery */}
             <div className="mt-8">
               <h2 className="text-xl font-semibold mb-4">Event Photos</h2>
@@ -202,14 +265,7 @@ export default function EventDetail({ event }: EventDetailProps) {
                   <MapPin className="w-5 h-5 mr-3 text-indigo-600 mt-0.5" />
                   <div>
                     <p className="font-medium">Location</p>
-                    <a 
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                    >
-                      {event.location}
-                    </a>
+                    <p className="text-gray-600">{event.location}</p>
                   </div>
                 </div>
                 
@@ -235,6 +291,45 @@ export default function EventDetail({ event }: EventDetailProps) {
                   </div>
                 )}
               </div>
+            </div>
+            
+            <div className="bg-white shadow-md rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Registration</h2>
+              
+              {!session ? (
+                <div>
+                  <p className="mb-4 text-gray-700">Please sign in to register for this event.</p>
+                  <Link 
+                    href={`/auth/signin?callbackUrl=/events/${event.id}`}
+                    className="w-full block text-center bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              ) : (
+                <div>
+                  <EventRegistrationButton 
+                    eventId={event.id} 
+                    isPaid={!!event.price && event.price > 0} 
+                    isFull={isFull}
+                    price={event.price || 0}
+                  />
+                  
+                  {isRegistered && (
+                    <p className="mt-4 text-sm text-gray-600">
+                      You are registered for this event. You'll receive updates via email.
+                    </p>
+                  )}
+                  
+                  {!isRegistered && !isFull && (
+                    <p className="mt-4 text-sm text-gray-600">
+                      {event.price && event.price > 0 
+                        ? 'Registration requires payment which can be made securely via credit card.' 
+                        : 'Registration is free and only takes a moment.'}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

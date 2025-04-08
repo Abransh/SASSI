@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import Script from "next/script";
 
@@ -20,16 +20,20 @@ interface UploadcareFile {
   mimeType: string;
 }
 
+interface UploadcareDialog {
+  done: (callback: (file: UploadcareFile) => void) => any;
+  fail: (callback: (error: Error) => void) => any;
+  always: (callback: () => void) => any;
+}
+
+interface UploadcareWidget {
+  start: (options: { publicKey: string }) => void;
+  openDialog: (files: null, options: any) => UploadcareDialog;
+}
+
 declare global {
   interface Window {
-    uploadcare: {
-      start: (options: { publicKey: string }) => void;
-      openDialog: (files: null, options: any) => {
-        done: (callback: (file: UploadcareFile) => void) => any;
-        fail: (callback: (error: Error) => void) => any;
-        always: (callback: () => void) => any;
-      };
-    };
+    uploadcare: UploadcareWidget;
   }
 }
 
@@ -42,12 +46,14 @@ export default function FileUpload({
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const widgetRef = useRef<UploadcareWidget | null>(null);
 
   useEffect(() => {
     if (isScriptLoaded && typeof window !== 'undefined') {
       window.uploadcare.start({
         publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!
       });
+      widgetRef.current = window.uploadcare;
     }
   }, [isScriptLoaded]);
 
@@ -57,9 +63,11 @@ export default function FileUpload({
       return;
     }
 
+    if (!widgetRef.current) return;
+
     setIsUploading(true);
     
-    const dialog = window.uploadcare.openDialog(null, {
+    const dialog = widgetRef.current.openDialog(null, {
       publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!,
       multiple: false,
       accept,
@@ -68,19 +76,31 @@ export default function FileUpload({
       crop: false,
       imagesOnly: false,
     });
-
+    
     dialog.done((file: UploadcareFile) => {
-      if (file && file.cdnUrl) {
-        const fileUrl = file.cdnUrl;
-        onChange(fileUrl);
-        toast.success("File uploaded successfully");
-      } else {
-        console.error("Invalid file object received:", file);
-        toast.error("Failed to get file URL. Please try again.");
+      if (!file || typeof file !== 'object') {
+        console.error('Invalid file object received:', file);
+        toast.error('Failed to upload file. Please try again.');
+        setIsUploading(false);
+        return;
       }
+
+      // Get the file URL from the file object
+      const fileUrl = file.cdnUrl;
+      if (!fileUrl) {
+        console.error('No file URL found in file object:', file);
+        toast.error('Failed to get file URL. Please try again.');
+        setIsUploading(false);
+        return;
+      }
+
+      onChange(fileUrl);
+      toast.success('File uploaded successfully!');
+      setIsUploading(false);
     }).fail((error: Error) => {
-      console.error("Upload error:", error);
-      toast.error("Failed to upload file. Please try again.");
+      console.error('Upload error:', error);
+      toast.error('Failed to upload file. Please try again.');
+      setIsUploading(false);
     }).always(() => {
       setIsUploading(false);
     });
