@@ -70,10 +70,13 @@ export default function FileUpload({
     });
 
     dialog.done((file: UploadcareFile) => {
-      if (file) {
-        const fileUrl = file.cdnUrl.split('/preview/')[0];
+      if (file && file.cdnUrl) {
+        const fileUrl = file.cdnUrl;
         onChange(fileUrl);
         toast.success("File uploaded successfully");
+      } else {
+        console.error("Invalid file object received:", file);
+        toast.error("Failed to get file URL. Please try again.");
       }
     }).fail((error: Error) => {
       console.error("Upload error:", error);

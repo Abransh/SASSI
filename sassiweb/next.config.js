@@ -39,13 +39,13 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com;
-              style-src 'self' 'unsafe-inline';
-              img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com;
-              font-src 'self';
-              connect-src 'self' https://api.uploadcare.com;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com;
+              style-src 'self' 'unsafe-inline' https://ucarecdn.com;
+              img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com;
+              font-src 'self' https://ucarecdn.com;
+              connect-src 'self' https://api.uploadcare.com https://uploadcare.com;
               frame-src 'self' https://uploadcare.com;
-              media-src 'self';
+              media-src 'self' blob: https://ucarecdn.com;
               object-src 'none';
               base-uri 'self';
               form-action 'self';
