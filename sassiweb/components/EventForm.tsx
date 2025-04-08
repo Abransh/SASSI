@@ -17,21 +17,23 @@ import { createEvent, updateEvent, deleteEvent } from "@/lib/event-service";
 import ImageUpload from "./ImageUpload";
 
 // Form validation schema
-const eventFormSchema = z.object({
+const eventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
   content: z.string().optional(),
   location: z.string().min(1, "Location is required"),
-  startDate: z.date(),
-  endDate: z.date(),
-  imageUrl: z.string().optional().nullable(),
-  maxAttendees: z.number().optional().nullable(),
-  price: z.number().optional().nullable(),
-  requiresPayment: z.boolean().default(false),
+  startDate: z.string().min(1, "Start date is required"),
+  startTime: z.string().min(1, "Start time is required"),
+  endDate: z.string().optional(),
+  endTime: z.string().optional(),
+  maxAttendees: z.number().min(1, "Must be at least 1").optional(),
+  price: z.number().min(0, "Price cannot be negative").optional(),
+  imageUrl: z.string().optional(),
   published: z.boolean().default(false),
+  requiresPayment: z.boolean().default(false),
 });
 
-type EventFormData = z.infer<typeof eventFormSchema>;
+type EventFormData = z.infer<typeof eventSchema>;
 
 type EventFormProps = {
   event?: Event;
@@ -60,44 +62,23 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     description: event?.description || "",
     content: event?.content || "",
     location: event?.location || "",
-    startDate: defaultStartDate,
-    endDate: defaultEndDate,
-    imageUrl: event?.imageUrl || null,
-    maxAttendees: event?.maxAttendees || null,
-    price: event?.price || null,
-    requiresPayment: event?.requiresPayment || false,
+    startDate: format(defaultStartDate, "yyyy-MM-dd"),
+    startTime: format(defaultStartDate, "HH:mm"),
+    endDate: event?.endDate ? format(new Date(event.endDate), "yyyy-MM-dd") : undefined,
+    endTime: event?.endDate ? format(new Date(event.endDate), "HH:mm") : undefined,
+    maxAttendees: event?.maxAttendees || undefined,
+    price: event?.price || undefined,
+    imageUrl: event?.imageUrl || undefined,
     published: event?.published || false,
+    requiresPayment: event?.price ? event.price > 0 : false,
   });
-  
-  const [startTime, setStartTime] = useState(
-    event ? format(new Date(event.startDate), "HH:mm") : "18:00"
-  );
-  
-  const [endTime, setEndTime] = useState(
-    event ? format(new Date(event.endDate), "HH:mm") : "20:00"
-  );
   
   // Error handling
   const [errors, setErrors] = useState<Partial<Record<keyof EventFormData, string>>>({});
   
   const validateForm = (): boolean => {
     try {
-      // Combine date and time
-      const updatedFormData = {
-        ...formData,
-        startDate: combineDateTime(formData.startDate, startTime),
-        endDate: combineDateTime(formData.endDate, endTime),
-      };
-      
-      // Check if end date is after start date
-      if (updatedFormData.endDate <= updatedFormData.startDate) {
-        setErrors({
-          endDate: "End date must be after start date",
-        });
-        return false;
-      }
-      
-      eventFormSchema.parse(updatedFormData);
+      eventSchema.parse(formData);
       setErrors({});
       return true;
     } catch (error) {
@@ -140,102 +121,66 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   
   const handleDateChange = (field: "startDate" | "endDate", date: Date | undefined) => {
     if (date) {
-      setFormData((prev) => ({ ...prev, [field]: date }));
-      
-      // Clear error when field is edited
-      if (errors[field]) {
-        setErrors((prev) => ({ ...prev, [field]: undefined }));
-      }
+      setFormData((prev) => ({ ...prev, [field]: format(date, "yyyy-MM-dd") }));
+    } else if (field === "endDate") {
+      setFormData((prev) => ({ ...prev, endDate: undefined, endTime: undefined }));
     }
   };
   
-  const handleTimeChange = (
-    field: "startTime" | "endTime",
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleTimeChange = (field: "startTime" | "endTime", e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    if (field === "startTime") {
-      setStartTime(value);
-    } else {
-      setEndTime(value);
-    }
-    
-    // Clear related date errors
-    if (errors.startDate || errors.endDate) {
-      setErrors((prev) => ({ 
-        ...prev, 
-        startDate: undefined,
-        endDate: undefined 
-      }));
-    }
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
   
   const handlePublishedChange = (checked: boolean) => {
     setFormData((prev) => ({ ...prev, published: checked }));
   };
   
-  const handleRequiresPaymentChange = (checked: boolean) => {
-    setFormData({
-      ...formData,
-      requiresPayment: checked,
-      price: checked ? (formData.price || 0) : null,
-    });
-  };
-  
-  // Helper to combine date and time values
-  const combineDateTime = (date: Date, timeString: string): Date => {
-    const [hours, minutes] = timeString.split(":").map(Number);
-    const result = new Date(date);
-    result.setHours(hours);
-    result.setMinutes(minutes);
-    return result;
-  };
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      toast.error("Please fix the errors in the form");
-      return;
-    }
-    
-    setIsSubmitting(true);
+    if (!validateForm()) return;
     
     try {
-      // Combine date and time for start and end dates
+      setIsSubmitting(true);
+      
+      // Combine date and time for start date
+      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+      
+      // Only combine end date and time if both are provided
+      const endDateTime = formData.endDate && formData.endTime 
+        ? new Date(`${formData.endDate}T${formData.endTime}`)
+        : undefined;
+      
       const eventData = {
         ...formData,
-        startDate: combineDateTime(formData.startDate, startTime),
-        endDate: combineDateTime(formData.endDate, endTime),
+        startDate: startDateTime.toISOString(),
+        endDate: endDateTime?.toISOString(),
       };
       
-      // Convert Date objects to ISO strings for API
-      const apiEventData = {
-        ...eventData,
-        startDate: eventData.startDate.toISOString(),
-        endDate: eventData.endDate.toISOString()
-      };
+      // Remove time fields from the final data
+      const { startTime, endTime, ...apiEventData } = eventData;
       
-      if (isEdit && event) {
-        // Update existing event
-        await updateEvent(event.id, apiEventData);
-        toast.success("Event updated successfully");
-      } else {
-        // Create new event
-        await createEvent(apiEventData);
-        toast.success("Event created successfully");
+      const response = await fetch(
+        `/api/events${event ? `/${event.id}` : ""}`,
+        {
+          method: event ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(apiEventData),
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error("Failed to save event");
       }
       
-      // Redirect to events list
+      toast.success(`Event ${event ? "updated" : "created"} successfully`);
       router.push("/admin/events");
-      router.refresh();
     } catch (error) {
       console.error("Error saving event:", error);
-      toast.error(
-        error instanceof Error 
-          ? error.message 
-          : "Failed to save event. Please try again."
-      );
+      toast.error("Failed to save event. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -327,88 +272,69 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       </div>
       
       {/* Date, Time and Location */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center">
-            <Calendar size={16} className="mr-2" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
             Start Date
           </label>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-start text-left font-normal ${
-                    errors.startDate ? "border-red-500" : ""
-                  }`}
-                >
-                  {format(formData.startDate, "PPP")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <CalendarUI
-                  mode="single"
-                  selected={formData.startDate}
-                  onSelect={(date) => handleDateChange("startDate", date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            
-            <div className="relative flex items-center">
-              <Clock size={16} className="absolute left-3 text-gray-500" />
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e) => handleTimeChange("startTime", e)}
-                className="pl-10"
-              />
-            </div>
-          </div>
+          <input
+            type="date"
+            id="startDate"
+            value={formData.startDate}
+            onChange={(e) => handleDateChange("startDate", new Date(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
           {errors.startDate && (
-            <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
           )}
         </div>
-        
-        <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center">
-            <Calendar size={16} className="mr-2" />
-            End Date
+
+        <div>
+          <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">
+            Start Time
           </label>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-start text-left font-normal ${
-                    errors.endDate ? "border-red-500" : ""
-                  }`}
-                >
-                  {format(formData.endDate, "PPP")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <CalendarUI
-                  mode="single"
-                  selected={formData.endDate}
-                  onSelect={(date) => handleDateChange("endDate", date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            
-            <div className="relative flex items-center">
-              <Clock size={16} className="absolute left-3 text-gray-500" />
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => handleTimeChange("endTime", e)}
-                className="pl-10"
-              />
-            </div>
-          </div>
+          <input
+            type="time"
+            id="startTime"
+            value={formData.startTime}
+            onChange={(e) => handleTimeChange("startTime", e)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          {errors.startTime && (
+            <p className="mt-1 text-sm text-red-600">{errors.startTime}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+            End Date (Optional)
+          </label>
+          <input
+            type="date"
+            id="endDate"
+            value={formData.endDate || ""}
+            onChange={(e) => handleDateChange("endDate", e.target.value ? new Date(e.target.value) : undefined)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
           {errors.endDate && (
-            <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">
+            End Time (Optional)
+          </label>
+          <input
+            type="time"
+            id="endTime"
+            value={formData.endTime || ""}
+            onChange={(e) => handleTimeChange("endTime", e)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            disabled={!formData.endDate}
+          />
+          {errors.endTime && (
+            <p className="mt-1 text-sm text-red-600">{errors.endTime}</p>
           )}
         </div>
       </div>
@@ -456,8 +382,8 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             Event Image (Optional)
           </label>
           <ImageUpload
-            value={formData.imageUrl || undefined}
-            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+            value={formData.imageUrl}
+            onChange={(url) => setFormData((prev) => ({ ...prev, imageUrl: url || undefined }))}
           />
           {errors.imageUrl && (
             <p className="text-red-500 text-xs mt-1">{errors.imageUrl}</p>
@@ -490,48 +416,47 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         </div>
       </div>
       
-      {/* Payment Options */}
-      <div className="border-t pt-6 space-y-4">
-        <h3 className="text-md font-medium">Payment Options</h3>
-        
+      {/* Payment Settings */}
+      <div className="space-y-4">
         <div className="flex items-center space-x-2">
-          <Switch
+          <input
+            type="checkbox"
             id="requiresPayment"
             checked={formData.requiresPayment}
-            onCheckedChange={handleRequiresPaymentChange}
+            onChange={(e) => {
+              setFormData((prev) => ({
+                ...prev,
+                requiresPayment: e.target.checked,
+                price: e.target.checked ? prev.price || 0 : undefined,
+              }));
+            }}
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
           />
-          <label htmlFor="requiresPayment" className="text-sm font-medium">
-            {formData.requiresPayment ? "Payment Required" : "Free Event"}
+          <label htmlFor="requiresPayment" className="text-sm font-medium text-gray-700">
+            This event requires payment
           </label>
-          <p className="text-xs text-gray-500 ml-2">
-            {formData.requiresPayment
-              ? "Attendees will need to pay to register"
-              : "Attendees can register for free"}
-          </p>
         </div>
-        
+
         {formData.requiresPayment && (
-          <div className="space-y-2">
-            <label htmlFor="price" className="text-sm font-medium flex items-center">
+          <div>
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
               Price (€)
             </label>
-            <Input
-              id="price"
-              name="price"
+            <input
               type="number"
+              id="price"
               min="0"
               step="0.01"
               value={formData.price || ""}
-              onChange={handleChange}
-              className={errors.price ? "border-red-500" : ""}
-              placeholder="e.g. 5.00"
+              onChange={(e) => {
+                const value = e.target.value ? parseFloat(e.target.value) : undefined;
+                setFormData((prev) => ({ ...prev, price: value }));
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             {errors.price && (
-              <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+              <p className="mt-1 text-sm text-red-600">{errors.price}</p>
             )}
-            <p className="text-xs text-gray-500">
-              Amount in Euro that attendees will be charged
-            </p>
           </div>
         )}
       </div>
