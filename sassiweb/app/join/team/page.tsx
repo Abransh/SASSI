@@ -288,6 +288,30 @@ export default function TeamRegistrationPage() {
                 </div>
                 
                 <div className="p-6">
+                  {/* Benefits Section */}
+                  <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                      Team Member Benefits
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="bg-orange-50 p-6 rounded-lg">
+                        <div className="text-3xl mb-4">🎟️</div>
+                        <h3 className="text-lg font-semibold mb-2">Pre-access to Events</h3>
+                        <p className="text-gray-600">Get early access to register for all open events before they're available to the general public.</p>
+                      </div>
+                      <div className="bg-orange-50 p-6 rounded-lg">
+                        <div className="text-3xl mb-4">🔒</div>
+                        <h3 className="text-lg font-semibold mb-2">Exclusive Events</h3>
+                        <p className="text-gray-600">Access to special member-only events, workshops, and networking opportunities.</p>
+                      </div>
+                      <div className="bg-orange-50 p-6 rounded-lg">
+                        <div className="text-3xl mb-4">🤝</div>
+                        <h3 className="text-lg font-semibold mb-2">Team Membership</h3>
+                        <p className="text-gray-600">Join our dedicated team and contribute to building a stronger Indian student community in Milan.</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
                     <h3 className="font-medium text-blue-800 flex items-center">
                       <CreditCard className="mr-2 h-5 w-5" />
@@ -299,7 +323,7 @@ export default function TeamRegistrationPage() {
                   </div>
                   
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                    <h3 className="font-medium text-gray-800 mb-2">Benefits of membership:</h3>
+                    <h3 className="font-medium text-gray-800 mb-2">Additional Benefits:</h3>
                     <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
                       <li>Contribute to the Indian student community in Milan</li>
                       <li>Develop leadership and organizational skills</li>
@@ -451,47 +475,6 @@ export default function TeamRegistrationPage() {
             <p className="text-xl text-gray-600 mb-8">
               Be part of our mission to support and empower Indian students in Milan
             </p>
-            
-            {/* Benefits Section */}
-            <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                Team Member Benefits
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-orange-50 p-6 rounded-lg">
-                  <div className="text-3xl mb-4">🎟️</div>
-                  <h3 className="text-lg font-semibold mb-2">Pre-access to Events</h3>
-                  <p className="text-gray-600">Get early access to register for all open events before they're available to the general public.</p>
-                </div>
-                <div className="bg-orange-50 p-6 rounded-lg">
-                  <div className="text-3xl mb-4">🔒</div>
-                  <h3 className="text-lg font-semibold mb-2">Exclusive Events</h3>
-                  <p className="text-gray-600">Access to special member-only events, workshops, and networking opportunities.</p>
-                </div>
-                <div className="bg-orange-50 p-6 rounded-lg">
-                  <div className="text-3xl mb-4">🤝</div>
-                  <h3 className="text-lg font-semibold mb-2">Team Membership</h3>
-                  <p className="text-gray-600">Join our dedicated team and contribute to building a stronger Indian student community in Milan.</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Membership Fee Section */}
-            <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                Membership Fee
-              </h2>
-              <p className="text-gray-600 mb-4">
-                A one-time membership fee of €5.00 is required to join the SASSI team. This helps us cover operational costs and ensures commitment from our team members.
-              </p>
-              <p className="text-red-500 font-semibold mb-4">
-                Early membership price for the first 50 members!
-              </p>
-              <div className="flex items-center justify-center space-x-4">
-                <div className="text-4xl font-bold text-orange-600">€5.00</div>
-                <div className="text-gray-500 line-through">€10.00</div>
-              </div>
-            </div>
             
             {/* Department Selection */}
             <div className="bg-white rounded-lg shadow-md p-8">

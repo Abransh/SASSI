@@ -523,7 +523,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                   value={formData.fileUrl}
                   onChange={(url) => {
                     if (url) {
-                      setFormData((prev) => ({ ...prev, fileUrl: url }));
+                      // Ensure we're using the CDN URL
+                      const cleanUrl = url.replace(/\/preview\//, '/');
+                      setFormData((prev) => ({ ...prev, fileUrl: cleanUrl }));
                       if (errors.fileUrl) {
                         setErrors((prev) => ({ ...prev, fileUrl: undefined }));
                       }

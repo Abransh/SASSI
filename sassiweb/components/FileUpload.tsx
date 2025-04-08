@@ -71,7 +71,7 @@ export default function FileUpload({
 
     dialog.done((file: UploadcareFile) => {
       if (file) {
-        const fileUrl = file.cdnUrl;
+        const fileUrl = file.cdnUrl.split('/preview/')[0];
         onChange(fileUrl);
         toast.success("File uploaded successfully");
       }
