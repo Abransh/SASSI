@@ -424,7 +424,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            className={errors.location ? "border-red-500" : ""}
+            className={errors.location ? "border-red-600" : ""}
             placeholder="Enter event location"
           />
           {formData.location && (
