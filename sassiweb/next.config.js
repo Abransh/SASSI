@@ -62,7 +62,16 @@ const nextConfig = {
         ]
       }
     ]
-  }
+  },
+  // Add Uploadcare script to the page
+  async rewrites() {
+    return [
+      {
+        source: '/uploadcare-widget.js',
+        destination: 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
