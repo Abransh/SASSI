@@ -418,16 +418,34 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           <MapPin size={16} className="mr-2" />
           Location
         </label>
-        <Input
-          id="location"
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          className={errors.location ? "border-red-500" : ""}
-        />
+        <div className="flex gap-2">
+          <Input
+            id="location"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className={errors.location ? "border-red-500" : ""}
+            placeholder="Enter event location"
+          />
+          {formData.location && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formData.location)}`;
+                window.open(mapsUrl, '_blank');
+              }}
+            >
+              View on Maps
+            </Button>
+          )}
+        </div>
         {errors.location && (
           <p className="text-red-500 text-xs mt-1">{errors.location}</p>
         )}
+        <p className="text-xs text-gray-500">
+          Enter the event location. Click "View on Maps" to open in Google Maps.
+        </p>
       </div>
       
       {/* Additional Info */}
