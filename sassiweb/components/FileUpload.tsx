@@ -63,11 +63,9 @@ export default function FileUpload({
       return;
     }
 
-    if (!widgetRef.current) return;
-
     setIsUploading(true);
     
-    const dialog = widgetRef.current.openDialog(null, {
+    const dialog = window.uploadcare.openDialog(null, {
       publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!,
       multiple: false,
       accept,
@@ -77,7 +75,7 @@ export default function FileUpload({
       imagesOnly: false,
     });
     
-    dialog.done((file: UploadcareFile) => {
+    dialog.done((file) => {
       if (!file || typeof file !== 'object') {
         console.error('Invalid file object received:', file);
         toast.error('Failed to upload file. Please try again.');
