@@ -7,17 +7,22 @@ import Link from "next/link";
 
 const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) => {
   const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
+    let currentIndex = 0;
 
     const startTyping = () => {
       if (currentIndex < text.length) {
+        setIsTyping(true);
         timeout = setTimeout(() => {
           setDisplayText((prev) => prev + text[currentIndex]);
-          setCurrentIndex((prev) => prev + 1);
+          currentIndex++;
+          startTyping();
         }, 50);
+      } else {
+        setIsTyping(false);
       }
     };
 
@@ -29,7 +34,7 @@ const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) =
       clearTimeout(timer);
       clearTimeout(timeout);
     };
-  }, [currentIndex, text, delay]);
+  }, [text, delay]);
 
   return (
     <motion.div
@@ -39,7 +44,7 @@ const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) =
       className="text-lg md:text-xl text-gray-800 font-mono"
     >
       {displayText}
-      {currentIndex < text.length && <span className="animate-blink">|</span>}
+      {isTyping && <span className="animate-blink">|</span>}
     </motion.div>
   );
 };
