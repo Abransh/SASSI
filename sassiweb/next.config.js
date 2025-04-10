@@ -41,7 +41,7 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value: `
-              default-src 'self';
+              default-src 'self' https://ucarecdn.com https://uploadcare.com;
               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com;
               style-src 'self' 'unsafe-inline' https://ucarecdn.com https://uploadcare.com;
               img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com;

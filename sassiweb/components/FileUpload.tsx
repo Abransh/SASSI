@@ -37,38 +37,27 @@ declare global {
 }
 
 export default function FileUpload({ onChange, value, accept, label = 'Upload File' }: FileUploadProps) {
-  const widgetRef = useRef<UploadcareWidget | null>(null)
   const [isScriptLoaded, setIsScriptLoaded] = useState(false)
+  const widgetRef = useRef<UploadcareWidget | null>(null)
 
-  useEffect(() => {
-    const initializeWidget = () => {
-      if (typeof window !== 'undefined' && window.uploadcare) {
-        window.uploadcare.start({
-          publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || ''
-        })
-        widgetRef.current = window.uploadcare
-        setIsScriptLoaded(true)
-      }
+  const initializeWidget = () => {
+    if (typeof window !== 'undefined' && window.uploadcare) {
+      window.uploadcare.start({
+        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || ''
+      })
+      widgetRef.current = window.uploadcare
+      setIsScriptLoaded(true)
     }
-
-    if (typeof window !== 'undefined') {
-      initializeWidget()
-    }
-
-    return () => {
-      if (widgetRef.current) {
-        widgetRef.current.openDialog(null, {}).always(() => {
-          // Cleanup
-        })
-      }
-    }
-  }, [])
+  }
 
   const handleUpload = () => {
     if (!isScriptLoaded || !widgetRef.current) {
+      console.error('Uploadcare widget not loaded:', { isScriptLoaded, widgetRef: !!widgetRef.current });
       toast.error('Uploadcare widget is not loaded yet. Please try again in a moment.')
       return
     }
+
+    console.log('Initializing upload dialog with key:', process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY);
 
     const dialog = widgetRef.current.openDialog(null, {
       publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || '',
@@ -88,14 +77,17 @@ export default function FileUpload({ onChange, value, accept, label = 'Upload Fi
     })
 
     dialog.done((file: UploadcareFile) => {
+      console.log('File uploaded successfully:', file);
       if (file && file.cdnUrl) {
         onChange(file.cdnUrl)
         toast.success('File uploaded successfully')
       } else {
-        toast.error('Failed to upload file')
+        console.error('File upload failed: No CDN URL returned');
+        toast.error('Failed to upload file: No CDN URL returned')
       }
-    }).fail(() => {
-      toast.error('Failed to upload file')
+    }).fail((error: Error) => {
+      console.error('File upload failed:', error);
+      toast.error(`Failed to upload file: ${error.message || 'Unknown error'}`)
     })
   }
 
@@ -104,15 +96,7 @@ export default function FileUpload({ onChange, value, accept, label = 'Upload Fi
       <Script
         src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"
         strategy="beforeInteractive"
-        onLoad={() => {
-          if (typeof window !== 'undefined') {
-            window.uploadcare.start({
-              publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || ''
-            })
-            widgetRef.current = window.uploadcare
-            setIsScriptLoaded(true)
-          }
-        }}
+        onLoad={initializeWidget}
       />
       <button
         type="button"
