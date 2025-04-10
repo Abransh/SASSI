@@ -176,4 +176,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-For questions or support, please contact the SASSI team at team@sassimilan.com.
+For questions or support, please contact the SASSI team at tech@sassimilan.com.
