@@ -51,7 +51,7 @@ export async function POST(req: Request) {
         amount: 5.00,
         currency: 'eur',
         status: 'PENDING',
-        paymentType: PaymentType.TEAM_APPLICATION, // Using this as it's the closest match
+        paymentType: PaymentType.EXCLUSIVE_MEMBERSHIP,
         userId: session.user.id,
       },
     });

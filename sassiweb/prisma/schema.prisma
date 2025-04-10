@@ -268,4 +268,5 @@ enum PaymentStatus {
 enum PaymentType {
   EVENT_REGISTRATION
   TEAM_APPLICATION
+  EXCLUSIVE_MEMBERSHIP
 }

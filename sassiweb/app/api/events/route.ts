@@ -10,8 +10,10 @@ const eventSchema = z.object({
   description: z.string().min(1, "Description is required"),
   content: z.string().optional(),
   location: z.string().min(1, "Location is required"),
-  startDate: z.string().transform(str => new Date(str)),
-  endDate: z.string().transform(str => new Date(str)),
+  startDate: z.string().min(1, "Start date is required"),
+  startTime: z.string().min(1, "Start time is required"),
+  endDate: z.string().optional(),
+  endTime: z.string().optional(),
   imageUrl: z.string().optional().nullable(),
   maxAttendees: z.number().optional().nullable(),
   price: z.number().optional().nullable(),
@@ -109,11 +111,20 @@ export async function POST(request: NextRequest) {
     const json = await request.json();
     const validatedData = eventSchema.parse(json);
     
-    console.log("Creating event with user ID:", session.user.id);
+    // Combine date and time fields
+    const startDateTime = new Date(`${validatedData.startDate}T${validatedData.startTime}`);
+    const endDateTime = validatedData.endDate && validatedData.endTime 
+      ? new Date(`${validatedData.endDate}T${validatedData.endTime}`)
+      : null;
+    
+    // Remove time fields from the final data
+    const { startTime, endTime, ...eventData } = validatedData;
     
     const event = await prisma.event.create({
       data: {
-        ...validatedData,
+        ...eventData,
+        startDate: startDateTime,
+        endDate: endDateTime || startDateTime,
         createdBy: session.user.id,
       }
     });
@@ -122,7 +133,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.errors },
+        { error: error.errors.map(err => err.message).join(", ") },
         { status: 400 }
       );
     }

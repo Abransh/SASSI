@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripeClient } from "@/lib/stripe";
 import prisma from "@/lib/prisma";
 import { sendEventRegistrationEmail } from "@/lib/email";
-import { PaymentStatus, RegistrationStatus, Prisma, PaymentType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { headers } from 'next/headers';
 import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
@@ -72,8 +72,10 @@ export async function POST(req: Request) {
             currency: session.currency || 'eur',
             status: 'PAID',
             paymentType: metadata.type === 'event_registration' 
-              ? PaymentType.EVENT_REGISTRATION 
-              : PaymentType.TEAM_APPLICATION,
+              ? 'EVENT_REGISTRATION' 
+              : metadata.type === 'exclusive_membership' 
+                ? 'EXCLUSIVE_MEMBERSHIP' 
+                : 'TEAM_APPLICATION',
             userId: metadata.userId,
             eventId: metadata.eventId || null,
           },
@@ -97,6 +99,38 @@ export async function POST(req: Request) {
                 status: 'CONFIRMED',
                 paymentId: payment.id,
                 paymentStatus: 'PAID',
+              },
+            });
+            break;
+          }
+          case 'exclusive_membership': {
+            // Generate a unique membership code
+            let membershipCode;
+            let isUnique = false;
+            
+            while (!isUnique) {
+              membershipCode = generateMembershipCode();
+              const existingCode = await prisma.exclusiveMembership.findUnique({
+                where: { code: membershipCode },
+              });
+              isUnique = !existingCode;
+            }
+
+            // Create exclusive membership record
+            await prisma.exclusiveMembership.create({
+              data: {
+                userId: metadata.userId,
+                code: membershipCode!,
+                paymentId: payment.id,
+              },
+            });
+
+            // Update user's payment verification status
+            await prisma.user.update({
+              where: { id: metadata.userId },
+              data: {
+                paymentVerified: true,
+                membershipExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
               },
             });
             break;
@@ -147,92 +181,80 @@ async function handleCheckoutCompleted(session: any) {
   console.log(`Processing completed checkout session: ${session.id}`);
   
   try {
-    // Find the payment record using stripeSessionId
+    // Get the payment record
     const payment = await prisma.stripePayment.findUnique({
       where: { stripeSessionId: session.id },
       include: {
         user: true,
-        event: true,
-        registrations: true
-      }
+      },
     });
 
     if (!payment) {
-      console.error(`Payment not found for session ${session.id}`);
+      console.error(`No payment record found for session ${session.id}`);
       return;
     }
 
-    console.log(`Found payment record: ${payment.id}, type: ${payment.paymentType}`);
-
-    // Update the payment status to PAID
+    // Update payment status
     await prisma.stripePayment.update({
       where: { id: payment.id },
-      data: { 
-        status: "PAID" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
-        stripePaymentId: session.payment_intent || null,
-      }
+      data: {
+        status: 'PAID',
+        stripePaymentId: session.payment_intent,
+      },
     });
 
-    // Process based on payment type
-    if (payment.paymentType === "EVENT_REGISTRATION" && payment.eventId) {
-      // Find and update associated registration
-      const registration = payment.registrations[0] || await prisma.registration.findFirst({
-        where: { 
-          paymentId: payment.id,
-          userId: payment.userId,
-          eventId: payment.eventId
-        },
-        include: {
-          user: true,
-          event: true
-        }
+    // Handle different payment types
+    if (payment.paymentType === 'EVENT_REGISTRATION') {
+      // Update registration status
+      await prisma.registration.updateMany({
+        where: { paymentId: payment.id },
+        data: { status: 'CONFIRMED' },
       });
 
-      if (registration) {
-        console.log(`Updating registration ${registration.id} to CONFIRMED`);
-        
-        // Update registration status
-        const updatedRegistration = await prisma.registration.update({
-          where: { id: registration.id },
-          data: {
-            status: "CONFIRMED" as Prisma.EnumRegistrationStatusFieldUpdateOperationsInput["set"],
-            paymentStatus: "PAID" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
-            expiresAt: null
-          },
-          include: {
-            user: {
-              select: {
-                email: true,
-                name: true
-              }
-            },
-            event: {
-              select: {
-                title: true,
-                startDate: true
-              }
-            }
-          }
-        });
+      // Send confirmation email
+      const event = await prisma.event.findUnique({
+        where: { id: payment.eventId! },
+      });
 
-        // Send confirmation email if we have user and event data
-        if (updatedRegistration.user?.email && updatedRegistration.event) {
-          try {
-            await sendEventRegistrationEmail(
-              updatedRegistration.user.email,
-              updatedRegistration.user.name || "",
-              updatedRegistration.event.title,
-              updatedRegistration.event.startDate,
-            );
-          } catch (emailError) {
-            console.error("Error sending registration email:", emailError);
-            // Continue even if email fails
-          }
-        }
-      } else {
-        console.error(`No registration found for payment ${payment.id}`);
+      if (event && payment.user) {
+        await sendEventRegistrationEmail(
+          payment.user.email,
+          payment.user.name || "",
+          event.title,
+          event.startDate
+        );
       }
-    } else if (payment.paymentType === "TEAM_APPLICATION") {
+    } else if (payment.paymentType === 'EXCLUSIVE_MEMBERSHIP') {
+      // Generate a unique membership code
+      let membershipCode;
+      let isUnique = false;
+      
+      while (!isUnique) {
+        membershipCode = generateMembershipCode();
+        const existingCode = await prisma.exclusiveMembership.findUnique({
+          where: { code: membershipCode },
+        });
+        isUnique = !existingCode;
+      }
+
+      // Create exclusive membership record
+      await prisma.exclusiveMembership.create({
+        data: {
+          userId: payment.userId,
+          code: membershipCode!,
+          paymentId: payment.id,
+        },
+      });
+
+      // Update user's payment verification status
+      await prisma.user.update({
+        where: { id: payment.userId },
+        data: {
+          paymentVerified: true,
+          membershipExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+        },
+      });
+    } else if (payment.paymentType === 'TEAM_APPLICATION') {
       // Update user payment verification for team applications
       await prisma.user.update({
         where: { id: payment.userId },
@@ -272,7 +294,7 @@ async function handleCheckoutExpired(session: any) {
     await prisma.stripePayment.update({
       where: { id: payment.id },
       data: { 
-        status: "EXPIRED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"]
+        status: "EXPIRED"
       }
     });
 
@@ -289,8 +311,8 @@ async function handleCheckoutExpired(session: any) {
         await prisma.registration.update({
           where: { id: registration.id },
           data: {
-            status: "CANCELLED" as Prisma.EnumRegistrationStatusFieldUpdateOperationsInput["set"],
-            paymentStatus: "EXPIRED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
+            status: "CANCELLED",
+            paymentStatus: "EXPIRED",
             expiresAt: null
           }
         });
@@ -365,7 +387,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
           where: { id: payment.id },
           data: { 
             stripePaymentId: paymentIntent.id,
-            status: "PAID" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"]
+            status: "PAID"
           }
         });
       }
@@ -395,7 +417,7 @@ async function handlePaymentFailed(paymentIntent: any) {
           where: { id: payment.id },
           data: { 
             stripePaymentId: paymentIntent.id,
-            status: "FAILED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"]
+            status: "FAILED"
           }
         });
 
@@ -404,8 +426,8 @@ async function handlePaymentFailed(paymentIntent: any) {
           await prisma.registration.updateMany({
             where: { paymentId: payment.id },
             data: {
-              status: "CANCELLED" as Prisma.EnumRegistrationStatusFieldUpdateOperationsInput["set"],
-              paymentStatus: "FAILED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
+              status: "CANCELLED",
+              paymentStatus: "FAILED",
               expiresAt: null
             }
           });
@@ -437,7 +459,7 @@ async function handlePaymentCanceled(paymentIntent: any) {
           where: { id: payment.id },
           data: { 
             stripePaymentId: paymentIntent.id,
-            status: "CANCELLED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"]
+            status: "CANCELLED"
           }
         });
 
@@ -446,8 +468,8 @@ async function handlePaymentCanceled(paymentIntent: any) {
           await prisma.registration.updateMany({
             where: { paymentId: payment.id },
             data: {
-              status: "CANCELLED" as Prisma.EnumRegistrationStatusFieldUpdateOperationsInput["set"],
-              paymentStatus: "CANCELLED" as Prisma.EnumPaymentStatusFieldUpdateOperationsInput["set"],
+              status: "CANCELLED",
+              paymentStatus: "CANCELLED",
               expiresAt: null
             }
           });

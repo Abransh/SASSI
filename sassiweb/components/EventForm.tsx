@@ -44,6 +44,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Default form values
   const defaultStartDate = event ? new Date(event.startDate) : new Date();
@@ -138,50 +139,42 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
-    
+    setIsSubmitting(true);
+    setError(null);
+
     try {
-      setIsSubmitting(true);
-      
-      // Combine date and time for start date
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
-      
-      // Only combine end date and time if both are provided
-      const endDateTime = formData.endDate && formData.endTime 
-        ? new Date(`${formData.endDate}T${formData.endTime}`)
-        : undefined;
-      
-      const eventData = {
-        ...formData,
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime?.toISOString(),
-      };
-      
-      // Remove time fields from the final data
-      const { startTime, endTime, ...apiEventData } = eventData;
-      
-      const response = await fetch(
-        `/api/events${event ? `/${event.id}` : ""}`,
-        {
-          method: event ? "PATCH" : "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(apiEventData),
-        }
-      );
-      
+      const response = await fetch("/api/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          content: formData.content,
+          location: formData.location,
+          startDate: formData.startDate,
+          startTime: formData.startTime,
+          endDate: formData.endDate,
+          endTime: formData.endTime,
+          imageUrl: formData.imageUrl,
+          maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees.toString()) : null,
+          price: formData.price ? parseFloat(formData.price.toString()) : null,
+          requiresPayment: formData.requiresPayment,
+          published: formData.published,
+        }),
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to save event");
       }
-      
-      toast.success(`Event ${event ? "updated" : "created"} successfully`);
-      router.push("/admin/events");
-    } catch (error) {
-      console.error("Error saving event:", error);
-      toast.error("Failed to save event. Please try again.");
+
+      const event = await response.json();
+      router.push(`/admin/events/${event.id}`);
+    } catch (err) {
+      console.error("Error saving event:", err);
+      setError(err instanceof Error ? err.message : "Failed to save event. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -534,6 +527,12 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           </Button>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md mb-4">
+          {error}
+        </div>
+      )}
     </form>
   );
 }
