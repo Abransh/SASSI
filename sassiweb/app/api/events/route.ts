@@ -109,38 +109,51 @@ export async function POST(request: NextRequest) {
     }
     
     const json = await request.json();
-    const validatedData = eventSchema.parse(json);
+    console.log("Received event data:", json);
     
-    // Combine date and time fields
-    const startDateTime = new Date(`${validatedData.startDate}T${validatedData.startTime}`);
-    const endDateTime = validatedData.endDate && validatedData.endTime 
-      ? new Date(`${validatedData.endDate}T${validatedData.endTime}`)
-      : null;
-    
-    // Remove time fields from the final data
-    const { startTime, endTime, ...eventData } = validatedData;
-    
-    const event = await prisma.event.create({
-      data: {
-        ...eventData,
-        startDate: startDateTime,
-        endDate: endDateTime || startDateTime,
-        createdBy: session.user.id,
+    try {
+      const validatedData = eventSchema.parse(json);
+      console.log("Validated event data:", validatedData);
+      
+      // Combine date and time fields
+      const startDateTime = new Date(`${validatedData.startDate}T${validatedData.startTime}`);
+      const endDateTime = validatedData.endDate && validatedData.endTime 
+        ? new Date(`${validatedData.endDate}T${validatedData.endTime}`)
+        : null;
+      
+      console.log("Parsed dates:", { startDateTime, endDateTime });
+      
+      // Remove time fields from the final data
+      const { startTime, endTime, ...eventData } = validatedData;
+      
+      const event = await prisma.event.create({
+        data: {
+          ...eventData,
+          startDate: startDateTime,
+          endDate: endDateTime || startDateTime,
+          createdBy: session.user.id,
+        }
+      });
+      
+      console.log("Successfully created event:", event);
+      return NextResponse.json(event, { status: 201 });
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        console.error("Validation error:", validationError.errors);
+        return NextResponse.json(
+          { error: "Validation failed", details: validationError.errors },
+          { status: 400 }
+        );
       }
-    });
-    
-    return NextResponse.json(event, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.errors.map(err => err.message).join(", ") },
-        { status: 400 }
-      );
+      throw validationError;
     }
-    
+  } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(
-      { error: "Failed to create event" },
+      { 
+        error: "Failed to create event",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }
