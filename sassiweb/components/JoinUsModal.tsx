@@ -37,7 +37,7 @@ export default function JoinUsModal({ isOpen, onClose }: JoinUsModalProps) {
   };
 
   const handleTeamClick = () => {
-    router.push("/join/team");
+    router.push("/join/exclusive-member");
     onClose();
   };
 

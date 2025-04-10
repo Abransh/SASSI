@@ -9,6 +9,8 @@ import Header from "@/components/Header";
 import MobileMenu from "@/components/MobileMenu";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { getStripeClient } from "@/lib/stripe";
+import { loadStripe } from "@stripe/stripe-js";
 
 export default function ExclusiveMemberPage() {
   const router = useRouter();
@@ -49,42 +51,46 @@ export default function ExclusiveMemberPage() {
     }
   };
   
-  const handleInitiatePayment = async () => {
-    if (!session) return;
-    
-    setIsPaymentProcessing(true);
-    
+  const handlePayment = async () => {
     try {
-      const response = await fetch('/api/user/exclusive-membership', {
+      setIsLoading(true);
+      
+      // Get the base URL for the current environment
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      
+      const response = await fetch('/api/payments/create-exclusive-membership', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          successUrl: `${baseUrl}/join/exclusive-member?success=true`,
+          cancelUrl: `${baseUrl}/join/exclusive-member?canceled=true`,
+        }),
       });
-      
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to initiate payment');
+        throw new Error('Failed to create payment session');
+      }
+
+      const { sessionId } = await response.json();
+      
+      // Redirect to Stripe Checkout using client-side Stripe
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+      if (!stripe) {
+        throw new Error('Stripe failed to initialize');
       }
       
-      const data = await response.json();
+      const { error } = await stripe.redirectToCheckout({ sessionId });
       
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-        return;
-      }
-      
-      if (data.paymentVerified && data.membershipCode) {
-        setPaymentVerified(true);
-        setMembershipCode(data.membershipCode);
-        setIsSuccess(true);
-        toast.success("Your payment has been verified");
+      if (error) {
+        throw error;
       }
     } catch (error) {
-      console.error('Error initiating payment:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to initiate payment');
+      console.error('Error creating exclusive membership:', error);
+      toast.error('Failed to create payment session. Please try again.');
     } finally {
-      setIsPaymentProcessing(false);
+      setIsLoading(false);
     }
   };
   
@@ -252,7 +258,7 @@ export default function ExclusiveMemberPage() {
                     
                     <button
                       type="button"
-                      onClick={handleInitiatePayment}
+                      onClick={handlePayment}
                       className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors flex items-center"
                       disabled={isPaymentProcessing}
                     >

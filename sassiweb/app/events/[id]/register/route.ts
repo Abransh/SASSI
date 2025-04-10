@@ -113,7 +113,7 @@ export async function POST(request: any, context: any) {
             where: { id: existingRegistration.id },
             data: {
               status: "CONFIRMED",
-              paymentStatus: "UNPAID", // No payment needed
+              paymentStatus: "PAID", // No payment needed
               expiresAt: null,
             }
           })
@@ -122,7 +122,7 @@ export async function POST(request: any, context: any) {
               eventId: eventId,
               userId: session.user.id,
               status: "CONFIRMED",
-              paymentStatus: "UNPAID",
+              paymentStatus: "PAID",
             }
           });
 

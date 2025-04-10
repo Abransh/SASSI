@@ -7,7 +7,7 @@ import { sendEventRegistrationEmail } from "@/lib/email";
 import { createEventCheckoutSession } from "@/lib/stripe";
 import crypto from "crypto";
 import Stripe from "stripe";
-import { Registration, PaymentStatus, RegistrationStatus, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 // POST handler for event registration
 export async function POST(req : any, { params } : any ) {
@@ -116,7 +116,7 @@ export async function POST(req : any, { params } : any ) {
             where: { id: existingRegistration.id },
             data: {
               status: "CONFIRMED",
-              paymentStatus: "UNPAID", // No payment needed
+              paymentStatus: "PAID",
               expiresAt: null,
             }
           })
@@ -125,7 +125,7 @@ export async function POST(req : any, { params } : any ) {
               eventId: eventId,
               userId: session.user.id,
               status: "CONFIRMED",
-              paymentStatus: "UNPAID",
+              paymentStatus: "PAID",
             }
           });
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Find the event
-    const event = await db.event.findUnique({
+    const event = await prisma.event.findUnique({
       where: { id: eventId },
     });
 
@@ -34,9 +34,8 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
-
     // Update registration
-    const registration = await db.registration.upsert({
+    const registration = await prisma.registration.upsert({
       where: {
         eventId_userId: {
           eventId: event.id,

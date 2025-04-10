@@ -67,7 +67,8 @@ export async function sendEventRegistrationEmail(
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p>
-        <p>We look forward to seeing you there! If you have any questions, please log in to your account or contact us. https://sassimilan.com/dashboard </p>
+       <p> Please join the whatsapp group for event updates https://chat.whatsapp.com/EliM19BFkTZBS278gA3sqi</p>
+        <p>We look forward to seeing you there! If you have any questions, Please contact us ,log in to your dashboard for any updates. https://sassimilan.com/dashboard </p>
         <p>Best regards,<br>The SASSI Team</p>
       `,
     });
