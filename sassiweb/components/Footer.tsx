@@ -106,6 +106,23 @@ const Footer = () => {
           <p>&copy; {currentYear} SASSI. All rights reserved.</p>
         </div>
       </div>
+
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="flex items-center space-x-4">
+          <Link href="/finally-you-here" className="text-orange-600 hover:text-orange-700 transition-colors">
+            Developed and Maintained by Abransh
+          </Link>
+        </div>
+        <div className="flex items-center space-x-4">
+          <Link href="/privacy" className="text-gray-600 hover:text-gray-800 transition-colors">
+            Privacy Policy
+          </Link>
+          <span className="text-gray-400">•</span>
+          <Link href="/terms" className="text-gray-600 hover:text-gray-800 transition-colors">
+            Terms of Service
+          </Link>
+        </div>
+      </div>
     </footer>
   );
 };
