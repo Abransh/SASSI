@@ -25,10 +25,11 @@ export default function FinallyYouHere() {
     "Here is the GitHub if you'd like to clone.",
     "No but seriously...",
     "If you have any suggestions, DM me anywhere or mail at tech@sassimilan.com.",
-    "If you think you can do better, think again. 🤔",
     "Well, that's enough for today.",
     "I hope this website is useful for you.",
-    "If you have a good idea about a new feature, do let me know!"
+    "If you have a good idea about a new feature, do let me know!",
+    "I'm not sure if you can do better, but I'm sure you can't do worse. 🤷‍♂️",
+    
   ];
 
   // Tech stacks
