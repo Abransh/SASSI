@@ -189,8 +189,8 @@ export async function POST(req : any, { params } : any ) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/events/confirmation?eventId=${event.id}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/events/${event.id}`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         eventId: event.id,
         userId: session.user.id,

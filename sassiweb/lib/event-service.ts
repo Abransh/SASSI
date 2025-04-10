@@ -174,11 +174,19 @@ export async function getEvent(id: string): Promise<Event | null> {
  * Register current user for an event
  */
 export async function registerForEvent(eventId: string): Promise<any> {
+  const baseUrl = getBaseUrl();
+  const successUrl = `${baseUrl}/events/${eventId}?payment_status=success`;
+  const cancelUrl = `${baseUrl}/events/${eventId}?payment_status=canceled`;
+
   const response = await fetch(`/api/events/${eventId}/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      successUrl,
+      cancelUrl
+    }),
   });
   
   if (!response.ok) {
