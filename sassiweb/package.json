@@ -41,6 +41,7 @@
     "nodemailer": "^6.10.0",
     "react": "^19.0.0",
     "react-big-calendar": "^1.18.0",
+    "react-canvas-confetti": "^2.0.7",
     "react-day-picker": "^9.6.3",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
