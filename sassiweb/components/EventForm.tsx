@@ -164,7 +164,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       const response = await fetch(
         `/api/events${event ? `/${event.id}` : ""}`,
         {
-          method: event ? "PUT" : "POST",
+          method: event ? "PATCH" : "POST",
           headers: {
             "Content-Type": "application/json",
           },
@@ -173,7 +173,8 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       );
       
       if (!response.ok) {
-        throw new Error("Failed to save event");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save event");
       }
       
       toast.success(`Event ${event ? "updated" : "created"} successfully`);

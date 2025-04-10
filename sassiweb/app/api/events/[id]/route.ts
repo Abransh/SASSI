@@ -90,11 +90,18 @@ export async function PATCH(
     const json = await request.json();
     const validatedData = eventUpdateSchema.parse(json);
     
+    // Ensure dates are properly formatted
+    const eventData = {
+      ...validatedData,
+      startDate: validatedData.startDate ? new Date(validatedData.startDate) : undefined,
+      endDate: validatedData.endDate ? new Date(validatedData.endDate) : undefined,
+    };
+    
     const event = await prisma.event.update({
       where: {
         id: id
       },
-      data: validatedData
+      data: eventData
     });
     
     return NextResponse.json(event);
