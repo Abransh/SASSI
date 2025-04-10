@@ -59,137 +59,121 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         const metadata = session.metadata;
 
-        if (!metadata?.type || !metadata.userId) {
+        if (!metadata?.paymentId || !metadata.userId) {
           return new NextResponse('Invalid metadata', { status: 400 });
         }
 
-        // First create the payment record
-        const payment = await prisma.stripePayment.create({
+        // First update the payment record
+        const payment = await prisma.stripePayment.update({
+          where: { id: metadata.paymentId },
           data: {
             stripeSessionId: session.id,
             stripePaymentId: session.payment_intent?.toString() || '',
             amount: session.amount_total ? session.amount_total / 100 : 0,
             currency: session.currency || 'eur',
             status: 'PAID',
-            paymentType: metadata.type === 'event_registration' 
-              ? 'EVENT_REGISTRATION' 
-              : metadata.type === 'exclusive_membership' 
-                ? 'EXCLUSIVE_MEMBERSHIP' 
-                : 'TEAM_APPLICATION',
-            userId: metadata.userId,
-            eventId: metadata.eventId || null,
           },
         });
 
-        switch (metadata.type) {
-          case 'event_registration': {
-            if (!metadata.eventId) {
-              return new NextResponse('Missing eventId for event registration', { status: 400 });
-            }
+        // Handle event registration
+        if (payment.paymentType === 'EVENT_REGISTRATION' && payment.eventId) {
+          // Get event and user details for email
+          const [event, user] = await Promise.all([
+            prisma.event.findUnique({
+              where: { id: payment.eventId },
+            }),
+            prisma.user.findUnique({
+              where: { id: payment.userId },
+            }),
+          ]);
 
-            // Get event and user details for email
-            const [event, user] = await Promise.all([
-              prisma.event.findUnique({
-                where: { id: metadata.eventId },
-              }),
-              prisma.user.findUnique({
-                where: { id: metadata.userId },
-              }),
-            ]);
-
-            if (!event || !user) {
-              return new NextResponse('Event or user not found', { status: 404 });
-            }
-
-            // Handle event registration payment
-            await prisma.registration.update({
-              where: {
-                eventId_userId: {
-                  eventId: metadata.eventId,
-                  userId: metadata.userId,
-                },
-              },
-              data: {
-                status: 'CONFIRMED',
-                paymentId: payment.id,
-                paymentStatus: 'PAID',
-                expiresAt: null,
-              },
-            });
-
-            // Send confirmation email
-            try {
-              await sendEventRegistrationEmail(
-                user.email,
-                user.name || "",
-                event.title,
-                event.startDate
-              );
-            } catch (emailError) {
-              console.error("Error sending registration email:", emailError);
-              // Continue even if email fails
-            }
-            break;
+          if (!event || !user) {
+            return new NextResponse('Event or user not found', { status: 404 });
           }
-          case 'exclusive_membership': {
-            // Generate a unique membership code
-            let membershipCode;
-            let isUnique = false;
-            
-            while (!isUnique) {
-              membershipCode = generateMembershipCode();
-              const existingCode = await prisma.exclusiveMembership.findUnique({
-                where: { code: membershipCode },
-              });
-              isUnique = !existingCode;
-            }
 
-            // Create exclusive membership record
-            await prisma.exclusiveMembership.create({
-              data: {
-                userId: metadata.userId,
-                code: membershipCode!,
-                paymentId: payment.id,
-              },
-            });
+          // Update registration status
+          await prisma.registration.updateMany({
+            where: {
+              eventId: payment.eventId,
+              userId: payment.userId,
+              paymentId: payment.id,
+            },
+            data: {
+              status: 'CONFIRMED',
+              paymentStatus: 'PAID',
+              expiresAt: null,
+            },
+          });
 
-            // Update user's payment verification status
-            await prisma.user.update({
-              where: { id: metadata.userId },
-              data: {
-                paymentVerified: true,
-                membershipExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
-              },
-            });
-            break;
+          // Send confirmation email
+          try {
+            await sendEventRegistrationEmail(
+              user.email,
+              user.name || "",
+              event.title,
+              event.startDate
+            );
+          } catch (emailError) {
+            console.error("Error sending registration email:", emailError);
+            // Continue even if email fails
           }
-          case 'team_application': {
-            // Find the team application first
-            const teamApplication = await prisma.teamApplication.findFirst({
-              where: {
-                userId: metadata.userId,
-                status: 'PENDING',
-              },
+        }
+        // Handle exclusive membership
+        else if (payment.paymentType === 'EXCLUSIVE_MEMBERSHIP') {
+          // Generate a unique membership code
+          let membershipCode;
+          let isUnique = false;
+          
+          while (!isUnique) {
+            membershipCode = generateMembershipCode();
+            const existingCode = await prisma.exclusiveMembership.findUnique({
+              where: { code: membershipCode },
             });
-
-            if (!teamApplication) {
-              return new NextResponse('No pending team application found', { status: 400 });
-            }
-
-            // Handle team application payment
-            await prisma.teamApplication.update({
-              where: {
-                id: teamApplication.id,
-              },
-              data: {
-                status: 'APPROVED',
-                paymentId: payment.id,
-              },
-            });
-            break;
+            isUnique = !existingCode;
           }
-          default:
-            return new NextResponse(`Unknown payment type: ${metadata.type}`, { status: 400 });
+
+          // Create exclusive membership record
+          await prisma.exclusiveMembership.create({
+            data: {
+              userId: payment.userId,
+              code: membershipCode!,
+              paymentId: payment.id,
+            },
+          });
+
+          // Update user's payment verification status
+          await prisma.user.update({
+            where: { id: payment.userId },
+            data: {
+              paymentVerified: true,
+              membershipExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+            },
+          });
+        }
+        // Handle team application
+        else if (payment.paymentType === 'TEAM_APPLICATION') {
+          // Find the team application first
+          const teamApplication = await prisma.teamApplication.findFirst({
+            where: {
+              userId: payment.userId,
+              status: 'PENDING',
+            },
+          });
+
+          if (!teamApplication) {
+            return new NextResponse('No pending team application found', { status: 400 });
+          }
+
+          // Update team application status
+          await prisma.teamApplication.update({
+            where: {
+              id: teamApplication.id,
+            },
+            data: {
+              status: 'APPROVED',
+              paymentId: payment.id,
+            },
+          });
         }
 
         return new NextResponse('Payment processed successfully', { status: 200 });
