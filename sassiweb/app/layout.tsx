@@ -6,6 +6,7 @@ import Providers from "./providers"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "react-hot-toast"
+import Link from "next/link"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -47,7 +48,9 @@ export default function RootLayout({
           <Analytics/>
           {children}
           <div className="fixed bottom-0 left-0 p-2 text-xs text-black bg-white/80 backdrop-blur-sm z-50">
-            Developed and Maintained by Abransh
+            <Link href="/finally-you-here" className="hover:text-orange-600 transition-colors">
+              Developed and Maintained by Abransh
+            </Link>
           </div>
         </Providers>
         <Toaster position="top-center" />

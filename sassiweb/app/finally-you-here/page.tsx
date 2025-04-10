@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Github, Mail, MessageSquare, PartyPopper, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import { Github, Mail } from "lucide-react";
 import Link from "next/link";
 
 const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) => {
@@ -84,7 +84,6 @@ const TechStackItem = ({ category, items }: { category: string; items: string[] 
 );
 
 export default function FinallyYouHere() {
-  const [showConfetti, setShowConfetti] = useState(false);
   const emojis = ["🎉", "✨", "🌟", "🎊", "🎈", "🎨", "💻", "🚀"];
 
   const texts = [
