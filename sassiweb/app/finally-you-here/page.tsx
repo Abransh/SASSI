@@ -11,20 +11,24 @@ const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) =
   const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
-    if (!isTyping) {
-      setIsTyping(true);
-      const timeout = setTimeout(() => {
-        if (currentIndex < text.length) {
+    const startTyping = () => {
+      if (currentIndex < text.length) {
+        setIsTyping(true);
+        const timeout = setTimeout(() => {
           setDisplayText((prev) => prev + text[currentIndex]);
           setCurrentIndex((prev) => prev + 1);
-        } else {
           setIsTyping(false);
-        }
-      }, 50);
+        }, 50);
+        return () => clearTimeout(timeout);
+      }
+    };
 
-      return () => clearTimeout(timeout);
-    }
-  }, [currentIndex, text, isTyping]);
+    const timer = setTimeout(() => {
+      startTyping();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [currentIndex, text, delay]);
 
   return (
     <motion.div
