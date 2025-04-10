@@ -46,8 +46,9 @@ const nextConfig = {
               style-src 'self' 'unsafe-inline' https://ucarecdn.com https://uploadcare.com;
               img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com;
               media-src 'self' blob: https://ucarecdn.com https://uploadcare.com;
-              connect-src 'self' https://ucarecdn.com https://uploadcare.com;
-              font-src 'self' https://ucarecdn.com https://uploadcare.com;
+              connect-src 'self' https://ucarecdn.com https://uploadcare.com https://api.uploadcare.com;
+              frame-src 'self' https://ucarecdn.com https://uploadcare.com;
+              font-src 'self' data:;
               object-src 'none';
               base-uri 'self';
               form-action 'self';

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import Script from 'next/script'
 
@@ -38,6 +38,7 @@ declare global {
 
 export default function FileUpload({ onChange, value, accept, label = 'Upload File' }: FileUploadProps) {
   const widgetRef = useRef<UploadcareWidget | null>(null)
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false)
 
   useEffect(() => {
     const initializeWidget = () => {
@@ -46,6 +47,7 @@ export default function FileUpload({ onChange, value, accept, label = 'Upload Fi
           publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || ''
         })
         widgetRef.current = window.uploadcare
+        setIsScriptLoaded(true)
       }
     }
 
@@ -63,8 +65,8 @@ export default function FileUpload({ onChange, value, accept, label = 'Upload Fi
   }, [])
 
   const handleUpload = () => {
-    if (!widgetRef.current) {
-      toast.error('Uploadcare widget is not loaded yet')
+    if (!isScriptLoaded || !widgetRef.current) {
+      toast.error('Uploadcare widget is not loaded yet. Please try again in a moment.')
       return
     }
 
@@ -101,22 +103,24 @@ export default function FileUpload({ onChange, value, accept, label = 'Upload Fi
     <div className="w-full">
       <Script
         src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"
-        strategy="lazyOnload"
+        strategy="beforeInteractive"
         onLoad={() => {
           if (typeof window !== 'undefined') {
             window.uploadcare.start({
               publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || ''
             })
             widgetRef.current = window.uploadcare
+            setIsScriptLoaded(true)
           }
         }}
       />
       <button
         type="button"
         onClick={handleUpload}
-        className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        disabled={!isScriptLoaded}
+        className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {label}
+        {!isScriptLoaded ? 'Loading upload widget...' : label}
       </button>
       {value && (
         <div className="mt-2">
