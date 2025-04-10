@@ -171,7 +171,7 @@ export default function LifeInMilanSection() {
                 Essential tips to prepare before you arrive in Italy - visas, documentation, and pre-departure checklist.
               </p>
               <Link
-                href="/resources/before-arrival"
+                href="/resources/"
                 className="inline-flex items-center text-yellow-600 font-medium hover:text-yellow-700"
               >
                 Explore Resources
@@ -197,7 +197,7 @@ export default function LifeInMilanSection() {
                 A guide to settling in and navigating life in Milan - housing, transportation, healthcare, and daily life.
               </p>
               <Link
-                href="/resources/living-in-milan"
+                href="/resources/"
                 className="inline-flex items-center text-blue-600 font-medium hover:text-blue-700"
               >
                 Explore Resources
@@ -223,7 +223,7 @@ export default function LifeInMilanSection() {
                 Resources for your next steps after completing your studies - career opportunities, staying in Italy, and more.
               </p>
               <Link
-                href="/resources/after-graduation"
+                href="/resources/"
                 className="inline-flex items-center text-green-600 font-medium hover:text-green-700"
               >
                 Explore Resources

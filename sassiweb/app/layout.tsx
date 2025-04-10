@@ -47,7 +47,7 @@ export default function RootLayout({
           <SpeedInsights/>
           <Analytics/>
           {children}
-          <div className="fixed bottom-0 left-0 p-2 text-xs text-black  backdrop-blur-sm z-50">
+          <div className="fixed bottom-0 left-0 p-2 text-[10px] text-black backdrop-blur-sm z-50">
             <Link href="/finally-you-here" className="hover:text-orange-600 transition-colors">
               Developed and Maintained by Abransh
             </Link>
