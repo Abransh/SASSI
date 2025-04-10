@@ -530,6 +530,7 @@ export default function FinallyYouHere() {
             {/* Social Media Buttons */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
+              
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.5 }}
               className="mt-12 flex flex-wrap justify-center items-center gap-4 pointer-events-auto"
