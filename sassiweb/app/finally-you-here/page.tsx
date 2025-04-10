@@ -21,7 +21,7 @@ export default function FinallyYouHere() {
     "Glad you are here! 🎉",
     "This is the coolest page of this website.",
     "Hi, I am Abransh, and I hope you like the website.",
-    "Even if you don't... I don't care. 😎",
+    "Even if you don't... I don't care. ",
     "Here is the GitHub if you'd like to clone.",
     "No but seriously...",
     "If you have any suggestions, DM me anywhere or mail at tech@sassimilan.com.",
@@ -530,7 +530,7 @@ export default function FinallyYouHere() {
             {/* Social Media Buttons */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
-              
+
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.5 }}
               className="mt-12 flex flex-wrap justify-center items-center gap-4 pointer-events-auto"
