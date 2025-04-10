@@ -8,18 +8,16 @@ import Link from "next/link";
 const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) => {
   const [displayText, setDisplayText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
     const startTyping = () => {
       if (currentIndex < text.length) {
-        setIsTyping(true);
-        const timeout = setTimeout(() => {
+        timeout = setTimeout(() => {
           setDisplayText((prev) => prev + text[currentIndex]);
           setCurrentIndex((prev) => prev + 1);
-          setIsTyping(false);
         }, 50);
-        return () => clearTimeout(timeout);
       }
     };
 
@@ -27,7 +25,10 @@ const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) =
       startTyping();
     }, delay);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timeout);
+    };
   }, [currentIndex, text, delay]);
 
   return (
@@ -91,9 +92,9 @@ export default function FinallyYouHere() {
   const emojis = ["🎉", "✨", "🌟", "🎊", "🎈", "🎨", "💻", "🚀"];
 
   const texts = [
-    "glad you are here, the only cool page of this website,",
+    "glad you are here, the coolest page of this website,",
     "Hi, I am Abransh, and I hope you like the website, even if you dont i dont care.",
-    "here is the github if you would like to clone:",
+    "here is the github if you would like to clone",
     "No but seriously If you have any suggestions dm me anywhere or mail at tech@sassimilan.com.",
     "if you think you can do better, think again.",
     "Well, thats enough for today, I hope this website be useful for you unlike your exisitence.",
