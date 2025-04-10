@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   images: {
     domains: [
       "drive.google.com",
@@ -8,6 +9,8 @@ const nextConfig = {
       "lh5.googleusercontent.com",
       "lh6.googleusercontent.com",
       "ucarecdn.com", 
+      "sassimilan.com",
+      "uploadcare.com",
     ],
     remotePatterns: [
       {
@@ -40,12 +43,11 @@ const nextConfig = {
             value: `
               default-src 'self';
               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com;
-              style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+              style-src 'self' 'unsafe-inline' https://ucarecdn.com https://uploadcare.com;
               img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com;
-              media-src 'self' blob: https://ucarecdn.com;
-              font-src 'self' https://fonts.gstatic.com;
+              media-src 'self' blob: https://ucarecdn.com https://uploadcare.com;
               connect-src 'self' https://ucarecdn.com https://uploadcare.com;
-              frame-src 'self' https://uploadcare.com;
+              font-src 'self' https://ucarecdn.com https://uploadcare.com;
               object-src 'none';
               base-uri 'self';
               form-action 'self';
