@@ -102,6 +102,7 @@ export default function AdminEventsClient() {
 
   const handleTabClick = (tab: TabType) => {
     setActiveTab(tab);
+    setSearchQuery(""); // Reset search when changing tabs
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
