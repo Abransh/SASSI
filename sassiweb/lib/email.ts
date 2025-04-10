@@ -67,7 +67,7 @@ export async function sendEventRegistrationEmail(
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p>
-        <p>We look forward to seeing you there! If you need to cancel your registration or have any questions, please log in to your account or contact us. https://sassimilan.com/dashboard </p>
+        <p>We look forward to seeing you there! If you have any questions, please log in to your account or contact us. https://sassimilan.com/dashboard </p>
         <p>Best regards,<br>The SASSI Team</p>
       `,
     });

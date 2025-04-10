@@ -2,94 +2,143 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripeClient } from "@/lib/stripe";
 import prisma from "@/lib/prisma";
 import { sendEventRegistrationEmail } from "@/lib/email";
-import { PaymentStatus, RegistrationStatus, Prisma } from "@prisma/client";
+import { PaymentStatus, RegistrationStatus, Prisma, PaymentType } from "@prisma/client";
+import { headers } from 'next/headers';
+import { stripe } from '@/lib/stripe';
+import Stripe from 'stripe';
 
-export async function POST(request: NextRequest) {
+// Helper function to generate membership code
+function generateMembershipCode(): string {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  
+  // Generate 2 random letters
+  const randomLetters = Array.from({ length: 2 }, () => 
+    letters.charAt(Math.floor(Math.random() * letters.length))
+  ).join('');
+  
+  // Generate 4 random numbers
+  const randomNumbers = Array.from({ length: 4 }, () => 
+    numbers.charAt(Math.floor(Math.random() * numbers.length))
+  ).join('');
+  
+  return randomLetters + randomNumbers;
+}
+
+if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
+}
+
+export async function POST(req: Request) {
   try {
-    const body = await request.text();
-    const signature = request.headers.get("stripe-signature") as string;
+    const body = await req.text();
+    const headersList = await headers();
+    const signature = headersList.get('stripe-signature');
 
     if (!signature) {
-      return NextResponse.json(
-        { error: "Missing stripe-signature header" },
-        { status: 400 }
-      );
+      return new NextResponse('No signature found', { status: 400 });
     }
 
-    // Get the Stripe client
-    const stripe = getStripeClient();
-
-    // Verify and construct the event
-    let event;
+    // Verify webhook signature
+    let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(
         body,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET as string
+        process.env.STRIPE_WEBHOOK_SECRET!
       );
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      console.error(`Webhook signature verification failed: ${errorMessage}`);
-      return NextResponse.json({ error: `Webhook error: ${errorMessage}` }, { status: 400 });
+      const error = err as Error;
+      console.error('Webhook signature verification failed:', error);
+      return new NextResponse(`Webhook signature verification failed: ${error.message}`, { status: 400 });
     }
 
-    console.log(`Received stripe webhook event: ${event.type}`);
+    // Handle different event types
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const metadata = session.metadata;
 
-    // Handle the event
-    try {
-      switch (event.type) {
-        // Checkout Session Events
-        case "checkout.session.completed": {
-          await handleCheckoutCompleted(event.data.object);
-          break;
-        }
-        
-        case "checkout.session.expired": {
-          await handleCheckoutExpired(event.data.object);
-          break;
+        if (!metadata?.type || !metadata.userId) {
+          return new NextResponse('Invalid metadata', { status: 400 });
         }
 
-        case "checkout.session.async_payment_succeeded": {
-          await handleCheckoutCompleted(event.data.object);
-          break;
+        // First create the payment record
+        const payment = await prisma.stripePayment.create({
+          data: {
+            stripeSessionId: session.id,
+            stripePaymentId: session.payment_intent?.toString() || '',
+            amount: session.amount_total ? session.amount_total / 100 : 0,
+            currency: session.currency || 'eur',
+            status: 'PAID',
+            paymentType: metadata.type === 'event_registration' 
+              ? PaymentType.EVENT_REGISTRATION 
+              : PaymentType.TEAM_APPLICATION,
+            userId: metadata.userId,
+            eventId: metadata.eventId || null,
+          },
+        });
+
+        switch (metadata.type) {
+          case 'event_registration': {
+            if (!metadata.eventId) {
+              return new NextResponse('Missing eventId for event registration', { status: 400 });
+            }
+
+            // Handle event registration payment
+            await prisma.registration.update({
+              where: {
+                eventId_userId: {
+                  eventId: metadata.eventId,
+                  userId: metadata.userId,
+                },
+              },
+              data: {
+                status: 'CONFIRMED',
+                paymentId: payment.id,
+                paymentStatus: 'PAID',
+              },
+            });
+            break;
+          }
+          case 'team_application': {
+            // Find the team application first
+            const teamApplication = await prisma.teamApplication.findFirst({
+              where: {
+                userId: metadata.userId,
+                status: 'PENDING',
+              },
+            });
+
+            if (!teamApplication) {
+              return new NextResponse('No pending team application found', { status: 400 });
+            }
+
+            // Handle team application payment
+            await prisma.teamApplication.update({
+              where: {
+                id: teamApplication.id,
+              },
+              data: {
+                status: 'APPROVED',
+                paymentId: payment.id,
+              },
+            });
+            break;
+          }
+          default:
+            return new NextResponse(`Unknown payment type: ${metadata.type}`, { status: 400 });
         }
 
-        case "checkout.session.async_payment_failed": {
-          await handleCheckoutFailed(event.data.object);
-          break;
-        }
-        
-        // Payment Intent Events
-        case "payment_intent.succeeded": {
-          await handlePaymentIntentSucceeded(event.data.object);
-          break;
-        }
-        
-        case "payment_intent.payment_failed": {
-          await handlePaymentFailed(event.data.object);
-          break;
-        }
-
-        case "payment_intent.canceled": {
-          await handlePaymentCanceled(event.data.object);
-          break;
-        }
-
-        default:
-          console.log(`Unhandled event type ${event.type}`);
+        return new NextResponse('Payment processed successfully', { status: 200 });
       }
-    } catch (error) {
-      console.error(`Error handling webhook event ${event.type}:`, error);
-      // Continue processing to acknowledge receipt to Stripe
+      default:
+        return new NextResponse(`Unhandled event type: ${event.type}`, { status: 400 });
     }
-
-    return NextResponse.json({ received: true });
-  } catch (error) {
-    console.error("Error handling webhook:", error);
-    return NextResponse.json(
-      { error: "Webhook handler failed" },
-      { status: 500 }
-    );
+  } catch (err) {
+    const error = err as Error;
+    console.error('Error processing webhook:', error);
+    return new NextResponse('Webhook error: ' + error.message, { status: 400 });
   }
 }
 

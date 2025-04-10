@@ -25,9 +25,10 @@ export default function Home() {
       <HeroSection />
       <VisionSection />
       <CoreInitiativesSection />
+      <PlaneAnimation />
       <LifeInMilanSection />
       
-      <PlaneAnimation />
+      
       <UniNetworks />
       
       <EventsSection />

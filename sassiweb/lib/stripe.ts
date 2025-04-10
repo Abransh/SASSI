@@ -1,16 +1,20 @@
 import Stripe from 'stripe';
 
-// Do not initialize Stripe directly here, use getStripeClient instead
-export const getStripeClient = () => {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not defined');
-  }
-  
-  // Initialize Stripe with the secret key from environment variables
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-03-31.basil',
-  });
-};
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY is not defined');
+}
+
+// Create a single instance of the Stripe client
+const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2025-03-31.basil',
+  typescript: true,
+});
+
+// Export a function to get the Stripe client instance
+export const getStripeClient = () => stripeClient;
+
+// Export the stripe instance directly for convenience
+export const stripe = stripeClient;
 
 /**
  * Create a Stripe checkout session for event registration
@@ -30,10 +34,8 @@ export const createEventCheckoutSession = async ({
   successUrl: string;
   cancelUrl: string;
 }) => {
-  const stripe = getStripeClient();
-  
-  // Create a checkout session
-  const session = await stripe.checkout.sessions.create({
+  // Use the singleton instance directly
+  const session = await stripeClient.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
       {
@@ -75,10 +77,8 @@ export const createTeamApplicationCheckoutSession = async ({
   successUrl: string;
   cancelUrl: string;
 }) => {
-  const stripe = getStripeClient();
-  
-  // Create a checkout session
-  const session = await stripe.checkout.sessions.create({
+  // Use the singleton instance directly
+  const session = await stripeClient.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
       {
@@ -110,9 +110,8 @@ export const createTeamApplicationCheckoutSession = async ({
  * Verify a Stripe checkout session
  */
 export const verifyCheckoutSession = async (sessionId: string) => {
-  const stripe = getStripeClient();
-  
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  // Use the singleton instance directly
+  const session = await stripeClient.checkout.sessions.retrieve(sessionId);
   
   return {
     success: session.payment_status === 'paid',

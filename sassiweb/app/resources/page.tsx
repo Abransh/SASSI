@@ -5,18 +5,61 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { FileText, BookOpen, GraduationCap } from "lucide-react";
+import { FileText, BookOpen, GraduationCap, Home, Bus, UserCheck } from "lucide-react";
 import FeaturedResourceCard from "@/components/FeaturedResourceCard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: "Resources Hub - Students' Association of Indians in Milan",
   description: "Access exclusive resources for Indian students in Milan",
 };
 
-export default async function ResourcesHub() {
+const categories = [
+  {
+    title: "Before Coming to Milan",
+    icon: Home,
+    resources: [
+      {
+        title: "Accommodation Guide",
+        description: "Comprehensive guide to finding accommodation in Milan, including tips on different neighborhoods, rental procedures, and important considerations.",
+        slug: "accommodation",
+        icon: Home,
+        pdfPath: "/assests/FAQs Accomodation.pdf"
+      }
+    ]
+  },
+  {
+    title: "Living in Milan",
+    icon: UserCheck,
+    resources: [
+      {
+        title: "Residenza and Carta d'Identità",
+        description: "Step-by-step guide to obtaining your residence permit (Residenza) and Italian ID card (Carta d'Identità).",
+        slug: "residenza-carta-identita",
+        icon: UserCheck,
+        pdfPath: "/assests/FAQ- Residenza and Carta d'identita.pdf"
+      },
+      {
+        title: "Reduced ATM Mobility Pass",
+        description: "Information about the reduced fare ATM public transport pass for students, including eligibility and application process.",
+        slug: "reduced-atm-mobility-pass",
+        icon: Bus,
+        pdfPath: "/assests/ATM subscription reduced rate.pdf"
+      },
+      {
+        title: "Dichiarazione Sostitutiva di Atto di Notorietà",
+        description: "Template and instructions for the Declaration of Domicile (Dichiarazione Sostitutiva di Atto di Notorietà) required for residency.",
+        slug: "dichiarazione-sostitutiva",
+        icon: FileText,
+        pdfPath: "/assests/Dichiarazione Sostitutiva di Atto di Notorietà – Elezione di Domicilio.pdf"
+      }
+    ]
+  }
+]
+
+export default async function ResourcesPage() {
   const session = await getServerSession(authOptions);
   
-  // This check is a redundancy (middleware should handle it), but keeping for safety
   if (!session) {
     return (
       <div className="text-center py-20">
@@ -44,7 +87,7 @@ export default async function ResourcesHub() {
   });
   
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-bold mb-4">Resources Hub</h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
@@ -52,47 +95,35 @@ export default async function ResourcesHub() {
         </p>
       </div>
       
-      {/* Resource Categories */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        <Link
-          href="/resources/before-arrival"
-          className="bg-white rounded-lg shadow-md p-8 text-center hover:shadow-lg transition-shadow"
-        >
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FileText size={32} className="text-blue-600" />
+      {categories.map((category) => (
+        <div key={category.title} className="mb-12">
+          <div className="flex items-center gap-2 mb-6">
+            <category.icon className="w-6 h-6 text-orange-500" />
+            <h2 className="text-2xl font-semibold">{category.title}</h2>
           </div>
-          <h2 className="text-xl font-bold mb-2">Before Arrival</h2>
-          <p className="text-gray-600">
-            Everything you need to know before coming to Milan - visas, accommodation, and preparation tips.
-          </p>
-        </Link>
-        
-        <Link
-          href="/resources/living-in-milan"
-          className="bg-white rounded-lg shadow-md p-8 text-center hover:shadow-lg transition-shadow"
-        >
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <BookOpen size={32} className="text-green-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {category.resources.map((resource) => (
+              <Link key={resource.slug} href={`/resources/${resource.slug}`}>
+                <Card className="h-full hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-center gap-2 mb-2">
+                      <resource.icon className="w-5 h-5 text-orange-500" />
+                      <CardTitle>{resource.title}</CardTitle>
+                    </div>
+                    <CardDescription>{resource.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-muted-foreground flex items-center gap-1">
+                      <FileText className="w-4 h-4" />
+                      Click to view or download PDF
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
           </div>
-          <h2 className="text-xl font-bold mb-2">Living in Milan</h2>
-          <p className="text-gray-600">
-            Resources to help you settle in and navigate daily life in Milan - from transportation to healthcare.
-          </p>
-        </Link>
-        
-        <Link
-          href="/resources/after-graduation"
-          className="bg-white rounded-lg shadow-md p-8 text-center hover:shadow-lg transition-shadow"
-        >
-          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <GraduationCap size={32} className="text-purple-600" />
-          </div>
-          <h2 className="text-xl font-bold mb-2">After Graduation</h2>
-          <p className="text-gray-600">
-            Resources for your next steps after completing your studies - career opportunities, staying in Italy, and more.
-          </p>
-        </Link>
-      </div>
+        </div>
+      ))}
       
       {/* Featured Resources */}
       {featuredResources.length > 0 && (

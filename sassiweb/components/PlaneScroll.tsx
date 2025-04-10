@@ -10,17 +10,38 @@ export default function PlaneAnimation() {
     const updatePlanePosition = () => {
       if (!planeRef.current) return
 
-      const scrollPercent =
-        (window.scrollY /
-          (document.documentElement.scrollHeight - window.innerHeight)) * 400    //change this value to adjust the speed of the plane
-      const translateX = (scrollPercent * window.innerWidth) / 100
+      // Calculate scroll percentage (0 to 1)
+      const scrollPercent = Math.min(
+        window.scrollY / (document.documentElement.scrollHeight - window.innerHeight),
+        1
+      )
 
+      // Calculate horizontal position (0 to 100% of viewport width)
+      const translateX = scrollPercent * (window.innerWidth - 38) // Subtract plane width to keep it in view
+
+      // Apply smooth transform
       planeRef.current.style.transform = `translateX(${translateX}px)`
     }
 
-    window.addEventListener("scroll", updatePlanePosition)  
-    return () =>
-      window.removeEventListener("scroll", updatePlanePosition)   
+    // Initial position
+    updatePlanePosition()
+
+    // Add scroll listener with throttling
+    let ticking = false
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updatePlanePosition()
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    
+    // Cleanup
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   return (
@@ -36,7 +57,7 @@ export default function PlaneAnimation() {
       {/* Plane container */}
       <div
         ref={planeRef}
-        className="absolute left-0 top-1/2 -translate-y-1/2 transition-transform duration-75" // Adjust duration to fine-tune animation speed
+        className="absolute left-0 top-1/2 -translate-y-1/2 transition-transform duration-300 ease-out will-change-transform"
       >
         <Image
           src="/assests/image.png"
@@ -44,6 +65,7 @@ export default function PlaneAnimation() {
           width={38}   //width of plane
           height={38}  //height of plane
           className="-translate-y-[17px]" // Adjust this value to fine-tune vertical position
+          priority
         />
       </div>
     </div>

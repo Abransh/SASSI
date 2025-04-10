@@ -117,7 +117,7 @@ export default async function BeforeArrivalResources() {
           Our team is here to support you. Reach out if you have specific questions or concerns.
         </p>
         <Link
-          href="/contact-us"
+          href="/contact"
           className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
         >
           Contact Us

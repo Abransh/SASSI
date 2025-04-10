@@ -194,52 +194,14 @@ export default function ContactPage() {
       
       {/* Map and Form */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Map */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 h-full">
-                <div className="p-6 border-b">
-                  <h3 className="text-xl font-bold mb-2">Find Us</h3>
-                  <p className="text-gray-600">
-                    We operate across multiple university campuses in Milan:
-                  </p>
-                </div>
-                
-                <div className="p-6 space-y-6">
-                  <div>
-                    <h4 className="font-semibold mb-2">Politecnico di Milano</h4>
-                    <address className="not-italic text-gray-600">
-                      Piazza Leonardo da Vinci, 32<br />
-                      20133 Milano MI, Italy
-                    </address>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold mb-2">Università degli Studi di Milano</h4>
-                    <address className="not-italic text-gray-600">
-                      Via Festa del Perdono, 7<br />
-                      20122 Milano MI, Italy
-                    </address>
-                  </div>
-                  
-                  <div className="aspect-video relative rounded-lg overflow-hidden border border-gray-200">
-                    {/* Embed Google Maps iframe here */}
-                    <div className="bg-gray-100 w-full h-full flex items-center justify-center">
-                      <MapPin className="h-10 w-10 text-gray-400" />
-                      <span className="sr-only">Map of Milan</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        
+            
             
             {/* Contact Form */}
             <div className="lg:col-span-2">
               <ContactForm />
             </div>
-          </div>
-        </div>
+          
       </section>
 
       <Footer />

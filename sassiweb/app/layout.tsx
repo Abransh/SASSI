@@ -43,9 +43,12 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>
-        <SpeedInsights/>
-        <Analytics/>
+          <SpeedInsights/>
+          <Analytics/>
           {children}
+          <div className="fixed bottom-0 left-0 p-2 text-xs text-black bg-white/80 backdrop-blur-sm z-50">
+            Developed and Maintained by Abransh
+          </div>
         </Providers>
         <Toaster position="top-center" />
       </body>

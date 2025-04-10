@@ -59,31 +59,33 @@ export default function TeamRegistrationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [hasExclusiveMembership, setHasExclusiveMembership] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   
   useEffect(() => {
-    // Check if user is authenticated once the session loads
     if (status === "unauthenticated") {
       toast.info("Please register or sign in to join the team");
-      router.push("/join/member");
+      router.push("/auth/signup");
     } else if (status === "authenticated" && session) {
-      // Check if user's payment is verified
-      checkPaymentStatus();
+      checkExclusiveMembership();
     }
   }, [status, router, session]);
   
-  const checkPaymentStatus = async () => {
+  const checkExclusiveMembership = async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/user/payment-status');
       if (response.ok) {
         const data = await response.json();
-        setPaymentVerified(data.paymentVerified);
+        setHasExclusiveMembership(data.paymentVerified);
+        if (!data.paymentVerified) {
+          toast.info("You need to be an exclusive member to join the team");
+          router.push("/join/exclusive-member");
+        }
       }
     } catch (error) {
-      console.error("Error checking payment status:", error);
+      console.error("Error checking membership status:", error);
     } finally {
       setIsLoading(false);
     }
@@ -178,7 +180,7 @@ export default function TeamRegistrationPage() {
       
       // If payment was already verified, refresh the page to show department selection
       if (!data.paymentRequired) {
-        setPaymentVerified(true);
+        setHasExclusiveMembership(true);
         toast.success("Your payment has been verified");
       }
     } catch (error) {
@@ -270,7 +272,7 @@ export default function TeamRegistrationPage() {
   }
   
   // Show payment required screen if not verified
-  if (!paymentVerified && session) {
+  if (!hasExclusiveMembership && session) {
     return (
       <main className="min-h-screen bg-gray-50">
         <Header />
