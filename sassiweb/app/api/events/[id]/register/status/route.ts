@@ -26,7 +26,13 @@ export async function GET(req: any , { params }: any ) {
         },
       },
       include: {
-        payment: true
+        payment: true,
+        event: {
+          select: {
+            title: true,
+            startDate: true,
+          }
+        }
       }
     });
     
@@ -55,6 +61,14 @@ export async function GET(req: any , { params }: any ) {
           }
         });
         
+        // Also update payment status if it exists
+        if (registration.payment) {
+          await prisma.stripePayment.update({
+            where: { id: registration.payment.id },
+            data: { status: "EXPIRED" }
+          });
+        }
+        
         console.log(`Registration ${registration.id} marked as cancelled due to expiration`);
         
         return Response.json({ 
@@ -75,7 +89,9 @@ export async function GET(req: any , { params }: any ) {
           status: "PENDING",
           paymentStatus: registration.paymentStatus,
           expiresIn: minutesRemaining,
-          paymentId: registration.paymentId
+          paymentId: registration.paymentId,
+          eventTitle: registration.event.title,
+          eventDate: registration.event.startDate
         });
       }
     }
@@ -85,7 +101,9 @@ export async function GET(req: any , { params }: any ) {
       return Response.json({ 
         isRegistered: true,
         status: "CONFIRMED",
-        paymentStatus: registration.paymentStatus
+        paymentStatus: registration.paymentStatus,
+        eventTitle: registration.event.title,
+        eventDate: registration.event.startDate
       });
     }
     

@@ -130,6 +130,9 @@ export default async function EventPage({
             eventId: resolvedParams.id,
             userId: session.user.id,
             status: "PENDING"
+          },
+          include: {
+            payment: true
           }
         });
 
@@ -143,6 +146,17 @@ export default async function EventPage({
               paymentStatus: "PAID"
             }
           });
+
+          // Also update the payment status if it exists
+          if (pendingRegistration.payment) {
+            await prisma.stripePayment.update({
+              where: { id: pendingRegistration.payment.id },
+              data: { 
+                status: "PAID",
+                stripePaymentId: pendingRegistration.payment.stripePaymentId || undefined
+              }
+            });
+          }
           
           console.log(`Registration ${pendingRegistration.id} confirmed after successful payment`);
         }

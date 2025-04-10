@@ -87,6 +87,20 @@ export async function POST(req: Request) {
               return new NextResponse('Missing eventId for event registration', { status: 400 });
             }
 
+            // Get event and user details for email
+            const [event, user] = await Promise.all([
+              prisma.event.findUnique({
+                where: { id: metadata.eventId },
+              }),
+              prisma.user.findUnique({
+                where: { id: metadata.userId },
+              }),
+            ]);
+
+            if (!event || !user) {
+              return new NextResponse('Event or user not found', { status: 404 });
+            }
+
             // Handle event registration payment
             await prisma.registration.update({
               where: {
@@ -99,8 +113,22 @@ export async function POST(req: Request) {
                 status: 'CONFIRMED',
                 paymentId: payment.id,
                 paymentStatus: 'PAID',
+                expiresAt: null,
               },
             });
+
+            // Send confirmation email
+            try {
+              await sendEventRegistrationEmail(
+                user.email,
+                user.name || "",
+                event.title,
+                event.startDate
+              );
+            } catch (emailError) {
+              console.error("Error sending registration email:", emailError);
+              // Continue even if email fails
+            }
             break;
           }
           case 'exclusive_membership': {
