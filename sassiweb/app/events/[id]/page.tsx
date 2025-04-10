@@ -7,56 +7,59 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-type PageParams = {
-  id: string;
-}
+type PageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<PageParams>;
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   try {
     const resolvedParams = await params;
     const event = await getEvent(resolvedParams.id);
-
+    
     if (!event) {
       return {
-        title: "Event Not Found - SASSI Milan",
+        title: "Event Not Found",
+        description: "The requested event could not be found.",
       };
     }
     
     return {
-      title: `${event.title} - SASSI Milan Events`,
+      title: event.title,
       description: event.description,
+      openGraph: {
+        title: event.title,
+        description: event.description,
+        images: event.imageUrl ? [event.imageUrl] : undefined,
+      },
     };
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Event - SASSI Milan",
+      title: "Event",
+      description: "Event details",
     };
   }
 }
 
-export default async function EventPage({
+export default async function EventPage({ 
   params,
-  searchParams,
-}: {
-  params: Promise<PageParams>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+  searchParams 
+}: PageProps) {
   try {
     const resolvedParams = await params;
     const resolvedSearchParams = await searchParams;
     const event = await getEvent(resolvedParams.id);
     const session = await getServerSession(authOptions);
+    const paymentStatus = resolvedSearchParams.payment_status as string;
 
     if (!event) {
-    notFound();
-  }
-  
-    // Handle payment_status=canceled from Stripe
-    const paymentStatus = resolvedSearchParams.payment_status;
+      notFound();
+    }
     
     // If there's a user session, check for expired registrations
     if (session?.user?.id) {
@@ -106,8 +109,8 @@ export default async function EventPage({
             where: { id: pendingRegistration.id },
             data: { 
               status: "CANCELLED",
-              expiresAt: null, // Clear the expiration date
-              paymentStatus: "FAILED" // Explicitly mark payment as failed
+              expiresAt: null,
+              paymentStatus: "FAILED"
             }
           });
           
@@ -116,59 +119,18 @@ export default async function EventPage({
       } catch (error) {
         console.error("Error updating registration after payment cancellation:", error);
       }
-      
-      // Redirect to remove the query parameter
-      redirect(`/events/${resolvedParams.id}`);
     }
 
-    // Also handle success URL by explicitly confirming the status
-    if (paymentStatus === 'success' && session?.user?.id) {
-      try {
-        // Find the pending registration (it might still be pending if webhook hasn't processed yet)
-        const pendingRegistration = await prisma.registration.findFirst({
-          where: {
-            eventId: resolvedParams.id,
-            userId: session.user.id,
-            status: "PENDING"
-          },
-          include: {
-            payment: true
-          }
-        });
-
-        if (pendingRegistration) {
-          // Update it to confirmed status
-          await prisma.registration.update({
-            where: { id: pendingRegistration.id },
-            data: { 
-              status: "CONFIRMED",
-              expiresAt: null,
-              paymentStatus: "PAID"
-            }
-          });
-
-          // Also update the payment status if it exists
-          if (pendingRegistration.payment) {
-            await prisma.stripePayment.update({
-              where: { id: pendingRegistration.payment.id },
-              data: { 
-                status: "PAID",
-                stripePaymentId: pendingRegistration.payment.stripePaymentId || undefined
-              }
-            });
-          }
-          
-          console.log(`Registration ${pendingRegistration.id} confirmed after successful payment`);
-        }
-      } catch (error) {
-        console.error("Error confirming registration after payment success:", error);
-      }
-      
-      // Redirect to remove the query parameter
-      redirect(`/events/${resolvedParams.id}`);
-    }
-
-    return <EventDetail event={event} />;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        {paymentStatus === 'canceled' && (
+          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+            <p>Your payment was cancelled. You can try again if you'd like to register for this event.</p>
+          </div>
+        )}
+        <EventDetail event={event} />
+      </div>
+    );
   } catch (error) {
     console.error("Error in EventPage:", error);
     notFound();

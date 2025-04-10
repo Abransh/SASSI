@@ -190,7 +190,7 @@ export async function POST(req : any, { params } : any ) {
       ],
       mode: "payment",
       success_url: successUrl,
-      cancel_url: cancelUrl,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/events/${event.id}?payment_status=cancelled`,
       metadata: {
         eventId: event.id,
         userId: session.user.id,
