@@ -83,10 +83,24 @@ export default function EventDetail({ event }: EventDetailProps) {
 
   // Format dates
   const formattedDate = format(new Date(event.startDate), "EEEE, MMMM d, yyyy");
-  const formattedStartTime = format(new Date(event.startDate), "h:mm a");
-  const formattedEndTime = format(new Date(event.endDate), "h:mm a");
-  const isMultiDay = !isSameDay(new Date(event.startDate), new Date(event.endDate));
-  const formattedEndDate = isMultiDay ? format(new Date(event.endDate), "EEEE, MMMM d, yyyy") : "";
+  const startDate = new Date(event.startDate);
+  const endDate = new Date(event.endDate);
+  
+  // Format time in 12-hour format with AM/PM
+  const formattedStartTime = startDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+  
+  const formattedEndTime = endDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+  
+  const isMultiDay = !isSameDay(startDate, endDate);
+  const formattedEndDate = isMultiDay ? format(endDate, "EEEE, MMMM d, yyyy") : "";
 
   return (
     <div className="min-h-screen flex flex-col">

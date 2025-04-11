@@ -115,11 +115,17 @@ export async function POST(request: NextRequest) {
       const validatedData = eventSchema.parse(json);
       console.log("Validated event data:", validatedData);
       
-      // Combine date and time fields
-      const startDateTime = new Date(`${validatedData.startDate}T${validatedData.startTime}`);
-      const endDateTime = validatedData.endDate && validatedData.endTime 
-        ? new Date(`${validatedData.endDate}T${validatedData.endTime}`)
-        : null;
+      // Combine date and time fields without timezone conversion
+      const [startHours, startMinutes] = validatedData.startTime.split(':').map(Number);
+      const startDateTime = new Date(validatedData.startDate);
+      startDateTime.setHours(startHours, startMinutes, 0, 0);
+      
+      let endDateTime = null;
+      if (validatedData.endDate && validatedData.endTime) {
+        const [endHours, endMinutes] = validatedData.endTime.split(':').map(Number);
+        endDateTime = new Date(validatedData.endDate);
+        endDateTime.setHours(endHours, endMinutes, 0, 0);
+      }
       
       console.log("Parsed dates:", { startDateTime, endDateTime });
       
@@ -150,10 +156,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(
-      { 
-        error: "Failed to create event",
-        details: error instanceof Error ? error.message : String(error)
-      },
+      { error: "Failed to create event" },
       { status: 500 }
     );
   }
