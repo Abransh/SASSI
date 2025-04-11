@@ -19,14 +19,14 @@ export default function FinallyYouHere() {
 
   const textToType = [
     "Glad you are here! 🎉",
-    "This is the coolest page of this website.",
+    "This is the coolest page of this website. I hope you find what you're looking for😉",
     "Hi, I am Abransh, and I hope you like the website.",
     "Even if you don't... I don't care. ",
-    "Here is the GitHub if you'd like to clone.",
+    "Here is the GitHub below if you'd like to clone.",
     "No but seriously...",
-    "If you have any suggestions, DM me anywhere or mail at tech@sassimilan.com.",
+    "If you have any suggestions, DM me anywhere or send an email at tech@sassimilan.com.",
     "Well, that's enough for today.",
-    "I hope this website is useful for you.",
+    "I hope this website is useful for you, or dor any of your projects.",
     "If you have a good idea about a new feature, do let me know!",
     "I'm not sure if you can do better, but I'm sure you can't do worse. 🤷‍♂️",
     
@@ -370,7 +370,7 @@ export default function FinallyYouHere() {
             <div className="bg-gradient-to-r from-orange-400 to-pink-500 text-white px-6 py-3 rounded-full shadow-lg">
               <div className="flex items-center gap-2">
                 <Crown className="text-yellow-300" />
-                <span>You found the Easter egg! You're awesome! 🎮</span>
+                <span>You found the Easter egg! You're awesome! 🎮</span> 
               </div>
             </div>
           </motion.div>
