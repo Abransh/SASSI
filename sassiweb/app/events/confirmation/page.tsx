@@ -89,10 +89,12 @@ function ConfirmationContent() {
             <div>
               <p className="font-medium">Date & Time</p>
               <p className="text-gray-600">
-                {format(new Date(event.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                {format(new Date(event.startDate), "EEEE, MMMM d, yyyy")} at{' '}
+                {`${new Date(event.startDate).getHours() % 12 || 12}:${new Date(event.startDate).getMinutes().toString().padStart(2, '0')} ${new Date(event.startDate).getHours() >= 12 ? 'PM' : 'AM'}`}
                 {event.endDate && (
                   <span className="block text-sm">
-                    to {format(new Date(event.endDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                    to {format(new Date(event.endDate), "EEEE, MMMM d, yyyy")} at{' '}
+                    {`${new Date(event.endDate).getHours() % 12 || 12}:${new Date(event.endDate).getMinutes().toString().padStart(2, '0')} ${new Date(event.endDate).getHours() >= 12 ? 'PM' : 'AM'}`}
                   </span>
                 )}
               </p>

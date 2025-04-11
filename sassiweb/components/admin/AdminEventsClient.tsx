@@ -233,8 +233,8 @@ export default function AdminEventsClient() {
                         {format(event.startDate, "MMM d, yyyy")}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {format(event.startDate, "h:mm a")} - 
-                        {format(event.endDate, "h:mm a")}
+                        {`${event.startDate.getHours() % 12 || 12}:${event.startDate.getMinutes().toString().padStart(2, '0')} ${event.startDate.getHours() >= 12 ? 'PM' : 'AM'}`} - 
+                        {`${event.endDate.getHours() % 12 || 12}:${event.endDate.getMinutes().toString().padStart(2, '0')} ${event.endDate.getHours() >= 12 ? 'PM' : 'AM'}`}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

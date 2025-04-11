@@ -19,7 +19,8 @@ export default function EventCard({ event, className, featured = false }: EventC
 
   // Format dates
   const formattedDate = format(new Date(event.startDate), 'MMM d, yyyy');
-  const formattedTime = format(new Date(event.startDate), 'h:mm a');
+  const startDate = new Date(event.startDate);
+  const formattedTime = `${startDate.getHours() % 12 || 12}:${startDate.getMinutes().toString().padStart(2, '0')} ${startDate.getHours() >= 12 ? 'PM' : 'AM'}`;
 
   return (
     <div

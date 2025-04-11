@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 type EventDetailProps = {
-  event: any; // We'll use any for now, but ideally this would match your Event type
+  event: any; // We'll use any for now, but ideally this would match Event type
 };
 
 export default function EventDetail({ event }: EventDetailProps) {
@@ -86,21 +86,13 @@ export default function EventDetail({ event }: EventDetailProps) {
   const startDate = new Date(event.startDate);
   const endDate = new Date(event.endDate);
   
-  // Format time in 12-hour format with AM/PM
-  const formattedStartTime = startDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
+  // Format time in 12-hour format with AM/PM, using the exact hours and minutes from the stored date
+  const formattedStartTime = `${startDate.getHours() % 12 || 12}:${startDate.getMinutes().toString().padStart(2, '0')} ${startDate.getHours() >= 12 ? 'PM' : 'AM'}`;
   
-  const formattedEndTime = endDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
+  const formattedEndTime = `${endDate.getHours() % 12 || 12}:${endDate.getMinutes().toString().padStart(2, '0')} ${endDate.getHours() >= 12 ? 'PM' : 'AM'}`;
   
   const isMultiDay = !isSameDay(startDate, endDate);
-  const formattedEndDate = isMultiDay ? format(endDate, "EEEE, MMMM d, yyyy") : "";
+  const formattedEndDate = isMultiDay ? format(new Date(event.endDate), "EEEE, MMMM d, yyyy") : "";
 
   return (
     <div className="min-h-screen flex flex-col">
