@@ -19,7 +19,7 @@ export default function FinallyYouHere() {
 
   const textToType = [
     "Glad you are here! 🎉",
-    "This is the coolest page of this website.Here you find what you're looking for😉",
+    "This is the coolest page of this website.Here you will find what you're looking for😉",
     "Hi, I am Abransh, and I hope you like the website.",
     "Even if you don't... I don't care. ",
     "Here is the GitHub repository below if you'd like to clone.",
