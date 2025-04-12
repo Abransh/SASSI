@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Calendar, Clock, MapPin, Image, Users, Save, Trash } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
@@ -143,30 +144,6 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     setError(null);
 
     try {
-      // Create a UTC date from the form inputs
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
-      // Set the timezone offset to 0 (UTC)
-      const utcStartDate = new Date(
-        startDateTime.getUTCFullYear(),
-        startDateTime.getUTCMonth(),
-        startDateTime.getUTCDate(), 
-        startDateTime.getUTCHours(),
-        startDateTime.getUTCMinutes()
-      ).toISOString();
-
-      // Handle end date similarly if present
-      let utcEndDate;
-      if (formData.endDate && formData.endTime) {
-        const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
-        utcEndDate = new Date(
-          endDateTime.getUTCFullYear(),
-          endDateTime.getUTCMonth(),
-          endDateTime.getUTCDate(),
-          endDateTime.getUTCHours(),
-          endDateTime.getUTCMinutes()
-        ).toISOString();
-      }
-
       const response = await fetch("/api/events", {
         method: "POST",
         headers: {
@@ -177,8 +154,10 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           description: formData.description,
           content: formData.content,
           location: formData.location,
-          startDate: utcStartDate, // Send ISO string with timezone info
-          endDate: utcEndDate, // Send ISO string with timezone info
+          startDate: formData.startDate,
+          startTime: formData.startTime,
+          endDate: formData.endDate,
+          endTime: formData.endTime,
           imageUrl: formData.imageUrl,
           maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees.toString()) : null,
           price: formData.price ? parseFloat(formData.price.toString()) : null,
@@ -224,6 +203,18 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const formatEventTime = (dateString: string) => {
+    // Parse the date string
+    const date = parseISO(dateString);
+    
+    // Format the time in 24-hour format, treating it as UTC to prevent timezone conversion
+    // This requires modifying how we format the date
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
   };
   
   return (
@@ -407,12 +398,12 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           {errors.imageUrl && (
             <p className="text-red-500 text-xs mt-1">{errors.imageUrl}</p>
           )}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500"></p>
             Upload an image for this event (max 5MB)
           </p>
         </div>
         
-        <div className="space-y-2">
+        <div className="space-y-2"></div>
           <label htmlFor="maxAttendees" className="text-sm font-medium flex items-center">
             <Users size={16} className="mr-2" />
             Maximum Attendees (Optional)
@@ -457,7 +448,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         </div>
 
         {formData.requiresPayment && (
-          <div>
+          <div></div>
             <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
               Price (€)
             </label>
@@ -509,7 +500,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
               disabled={isSubmitting || isDeleting}
             >
               {isDeleting ? (
-                <>
+                <></>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Deleting...
                 </>
@@ -539,12 +530,12 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <>
+              <></>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : (
-              <>
+              <></>
                 <Save className="mr-2 h-4 w-4" />
                 {isEdit ? "Update Event" : "Create Event"}
               </>
