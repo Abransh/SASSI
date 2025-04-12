@@ -10,9 +10,11 @@ import Stripe from "stripe";
 import { Prisma } from "@prisma/client";
 
 // POST handler for event registration
-export async function POST(req : any, { params } : any ) {
+export async function POST(req: any, { params }: any) {
   try {
-    const eventId = params.id;
+    // Await params before accessing its properties
+    const resolvedParams = await params;
+    const eventId: string = resolvedParams.id;
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
@@ -56,8 +58,10 @@ export async function POST(req : any, { params } : any ) {
       );
     }
 
+    // Convert request to NextRequest to use the json method correctly
+    const request = req as NextRequest;
     // Get request data (success and cancel URLs)
-    const { successUrl, cancelUrl } = await req.json();
+    const { successUrl, cancelUrl } = await request.json();
 
     // Check if user is already registered
     const existingRegistration = await prisma.registration.findUnique({
@@ -245,9 +249,11 @@ export async function POST(req : any, { params } : any ) {
 }
 
 // DELETE handler for cancelling registration
-export async function DELETE(req: any , { params }: any) {
+export async function DELETE(req: any, { params }: any) {
   try {
-    const eventId = params.id;
+    // Await params before accessing its properties
+    const resolvedParams = await params;
+    const eventId: string = resolvedParams.id;
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {

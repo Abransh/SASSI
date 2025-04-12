@@ -2,12 +2,14 @@
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
 // GET handler for checking registration status
-export async function GET(req: any , { params }: any ) {
+export async function GET(req: any, { params }: any) {
   try {
+    // Await params before accessing its properties
     const resolvedParams = await params;
-    const eventId = params.id;
+    const eventId: string = resolvedParams.id;
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {

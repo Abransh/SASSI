@@ -240,7 +240,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             <p className="text-red-500 text-xs mt-1">{errors.description}</p>
           )}
           <p className="text-xs text-gray-500">
-            A brief summary of the event (shown in event listings)
+            You can use <strong>HTML</strong> tags (e.g., <code>&lt;b&gt;</code> for bold text) in the description.
           </p>
         </div>
         
