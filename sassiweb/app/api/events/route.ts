@@ -115,30 +115,27 @@ export async function POST(request: NextRequest) {
       const validatedData = eventSchema.parse(json);
       console.log("Validated event data:", validatedData);
       
-      // Combine date and time fields without timezone conversion
-      const [startHours, startMinutes] = validatedData.startTime.split(':').map(Number);
-      const startDateTime = new Date(validatedData.startDate);
-      startDateTime.setHours(startHours, startMinutes, 0, 0);
+      // Create the event data object without spreading to avoid type issues
+      const eventData: any = {
+        title: validatedData.title,
+        description: validatedData.description,
+        location: validatedData.location,
+        startDate: validatedData.startDate,
+        endDate: validatedData.endDate,
+        published: validatedData.published,
+        requiresPayment: validatedData.requiresPayment,
+        createdBy: session.user.id,
+      };
       
-      let endDateTime = null;
-      if (validatedData.endDate && validatedData.endTime) {
-        const [endHours, endMinutes] = validatedData.endTime.split(':').map(Number);
-        endDateTime = new Date(validatedData.endDate);
-        endDateTime.setHours(endHours, endMinutes, 0, 0);
-      }
-      
-      console.log("Parsed dates:", { startDateTime, endDateTime });
-      
-      // Remove time fields from the final data
-      const { startTime, endTime, ...eventData } = validatedData;
+      // Add optional fields only if they exist
+      if (validatedData.content) eventData.content = validatedData.content;
+      if (validatedData.imageUrl) eventData.imageUrl = validatedData.imageUrl;
+      if (validatedData.maxAttendees) eventData.maxAttendees = validatedData.maxAttendees;
+      if (validatedData.price) eventData.price = validatedData.price;
+      if (validatedData.endDate) eventData.endDate = validatedData.endDate;
       
       const event = await prisma.event.create({
-        data: {
-          ...eventData,
-          startDate: startDateTime,
-          endDate: endDateTime || startDateTime,
-          createdBy: session.user.id,
-        }
+        data: eventData
       });
       
       console.log("Successfully created event:", event);
