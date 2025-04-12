@@ -1,137 +1,137 @@
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Calendar, Clock, MapPin, Image, Users, Save, Trash } from "lucide-react";
+import Image from "next/image";
 import { format, parseISO } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarUI } from "@/components/ui/calendar";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { MapPin, Calendar, Clock, Users, CreditCard } from "lucide-react";
 import { Event } from "@/types/event";
-import { createEvent, updateEvent, deleteEvent } from "@/lib/event-service";
-import ImageUpload from "./ImageUpload";
 
-// Form validation schema
-const eventSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  content: z.string().optional(),
-  location: z.string().min(1, "Location is required"),
-  startDate: z.string().min(1, "Start date is required"),
-  startTime: z.string().min(1, "Start time is required"),
-  endDate: z.string().optional(),
-  endTime: z.string().optional(),
-  maxAttendees: z.number().min(1, "Must be at least 1").optional(),
-  price: z.number().min(0, "Price cannot be negative").optional(),
-  imageUrl: z.string().optional(),
-  published: z.boolean().default(false),
-  requiresPayment: z.boolean().default(false),
-});
-
-type EventFormData = z.infer<typeof eventSchema>;
-
-type EventFormProps = {
-  event?: Event;
-  isEdit?: boolean;
+type EventDetailProps = {
+  event: Event;
+  isAdmin?: boolean;
+  registrationStatus?: {
+    isRegistered: boolean;
+    status: string | null;
+  } | null;
 };
 
-export default function EventForm({ event, isEdit = false }: EventFormProps) {
+export default function EventDetailComponent({ 
+  event, 
+  isAdmin = false,
+  registrationStatus
+}: EventDetailProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   
-  // Default form values
-  const defaultStartDate = event ? new Date(event.startDate) : new Date();
-  defaultStartDate.setMinutes(0);
-  defaultStartDate.setSeconds(0);
-  defaultStartDate.setMilliseconds(0);
-  
-  const defaultEndDate = event ? new Date(event.endDate) : new Date();
-  defaultEndDate.setHours(defaultStartDate.getHours() + 2);
-  defaultEndDate.setMinutes(0);
-  defaultEndDate.setSeconds(0);
-  defaultEndDate.setMilliseconds(0);
-  
-  const [formData, setFormData] = useState<EventFormData>({
-    title: event?.title || "",
-    description: event?.description || "",
-    content: event?.content || "",
-    location: event?.location || "",
-    startDate: format(defaultStartDate, "yyyy-MM-dd"),
-    startTime: format(defaultStartDate, "HH:mm"),
-    endDate: event?.endDate ? format(new Date(event.endDate), "yyyy-MM-dd") : undefined,
-    endTime: event?.endDate ? format(new Date(event.endDate), "HH:mm") : undefined,
-    maxAttendees: event?.maxAttendees || undefined,
-    price: event?.price || undefined,
-    imageUrl: event?.imageUrl || undefined,
-    published: event?.published || false,
-    requiresPayment: event?.price ? event.price > 0 : false,
-  });
-  
-  // Error handling
-  const [errors, setErrors] = useState<Partial<Record<keyof EventFormData, string>>>({});
-  
-  const validateForm = (): boolean => {
-    try {
-      eventSchema.parse(formData);
-      setErrors({});
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          if (err.path[0]) {
-            newErrors[err.path[0] as string] = err.message;
-          }
-        });
-        setErrors(newErrors);
-      }
-      return false;
-    }
+  // Format event time treating the date as UTC to prevent timezone conversion
+  const formatEventTime = (dateString: string) => {
+    // Parse the date string
+    const date = parseISO(dateString);
+    
+    // Format the time in 24-hour format, treating it as UTC
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
   };
   
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    let parsedValue: any = value;
-    
-    // Parse number fields
-    if (name === "maxAttendees") {
-      parsedValue = value ? parseInt(value, 10) : null;
-    }
-    
-    // Parse price field
-    if (name === "price") {
-      parsedValue = value ? parseFloat(value) : null;
-    }
-    
-    setFormData((prev) => ({ ...prev, [name]: parsedValue }));
-    
-    // Clear error when field is edited
-    if (errors[name as keyof EventFormData]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
+  // Format event date more nicely
+  const formatEventDate = (dateString: string) => {
+    const date = parseISO(dateString);
+    return format(date, "EEEE, MMMM d, yyyy");
   };
   
-  const handleDateChange = (field: "startDate" | "endDate", date: Date | undefined) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, [field]: format(date, "yyyy-MM-dd") }));
-    } else if (field === "endDate") {
-      setFormData((prev) => ({ ...prev, endDate: undefined, endTime: undefined }));
-    }
-  };
-  
-  const handleTimeChange = (field: "startTime" | "endTime", e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  return (
+    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+      {/* Event Image */}
+      {event.imageUrl && (
+        <div className="relative w-full h-64">
+          <Image 
+            src={event.imageUrl} 
+            alt={event.title}
+            fill
+            style={{ objectFit: "cover" }}
+            priority
+            className="w-full"
+          />
+        </div>
+      )}
+      
+      {/* Event Header */}
+      <div className="p-6">
+        <div className="flex justify-between items-start">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.title}</h1>
+          {isAdmin && (
+            <Button
+              onClick={() => router.push(`/admin/events/${event.id}/edit`)}
+              size="sm"
+            >
+              Edit Event
+            </Button>
+          )}
+        </div>
+        
+        {/* Event Metadata */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="flex items-center text-gray-700">
+            <Calendar className="mr-2 h-5 w-5 text-gray-600" />
+            <span>{formatEventDate(event.startDate)}</span>
+          </div>
+          
+          <div className="flex items-center text-gray-700">
+            <Clock className="mr-2 h-5 w-5 text-gray-600" />
+            <span>{formatEventTime(event.startDate)} hrs</span>
+            {event.endDate && (
+              <> - {formatEventTime(event.endDate)} hrs</>
+            )}
+          </div>
+          
+          <div className="flex items-center text-gray-700">
+            <MapPin className="mr-2 h-5 w-5 text-gray-600" />
+            <span>{event.location}</span>
+          </div>
+          
+          {event.maxAttendees && (
+            <div className="flex items-center text-gray-700">
+              <Users className="mr-2 h-5 w-5 text-gray-600" />
+              <span>Maximum {event.maxAttendees} attendees</span>
+            </div>
+          )}
+          
+          {event.price && event.price > 0 && (
+            <div className="flex items-center text-gray-700">
+              <CreditCard className="mr-2 h-5 w-5 text-gray-600" />
+              <span>€{event.price.toFixed(2)}</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Event Description */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">About this event</h2>
+          <div 
+            className="text-gray-700"
+            dangerouslySetInnerHTML={{ __html: event.description }}
+          />
+        </div>
+        
+        {/* Event Full Description (if available) */}
+        {event.content && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">Details</h2>
+            <div 
+              className="text-gray-700 prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: event.content }}
+            />
+          </div>
+        )}
+        
+        {/* Registration Status */}
+        {registrationStatus && (
+          <div className="mt-6 p-4 border rounded-md">
+            {registrationStatus.isRegistered ? (
+              <div className="text-green-600">
   };
   
   const handlePublishedChange = (checked: boolean) => {
@@ -424,6 +424,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             Leave empty for unlimited attendees
           </p>
         </div>
+        
       </div>
       
       {/* Payment Settings */}
