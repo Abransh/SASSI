@@ -20,9 +20,9 @@ const typingSpeed = 30; // milliseconds per character
 
 const textToType = [
 "Glad you are here! 🎉",
-"This is the coolest page of this website.",
+"This is the coolest page of this website. Here you will find what you're looking for😉", 
 "Hi, I am Abransh, and I hope you like the website.",
-"Even if you don't... I don't care. ",
+"Even if you don't... I don't care. 😜",
 "Here is the GitHub if you'd like to clone.",
 "No but seriously...",
 "If you have any suggestions, DM me anywhere or mail at tech@sassimilan.com.",
@@ -481,7 +481,7 @@ onClick={handleTerminalClick}
           animate={{ opacity: 1 }}
           className="text-xs text-orange-500 mt-1"
         >
-          {5 - terminalClickCount} more clicks for another surprise...
+          
         </motion.div>
       )}
     </motion.div>
