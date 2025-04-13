@@ -742,7 +742,7 @@ className="mt-auto flex flex-col items-center"
     }
   }}
 >
-  Made with ❤️ and lots of ☕
+ 
 </motion.p>
 </motion.div>
 </div>
