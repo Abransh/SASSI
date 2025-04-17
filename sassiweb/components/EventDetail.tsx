@@ -295,8 +295,8 @@ export default function EventDetail({ event }: EventDetailProps) {
                       loading="lazy"
                       allowFullScreen
                       referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyCAHwkPRTLxvP0I-ynbUiGT0GqX0pq9u4g&q=${encodeURIComponent(event.location)}`}
-                    ></iframe>
+                      src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(event.location)}`}
+                      ></iframe>
                   </div>
                   
                   <div className="mt-4">
