@@ -115,6 +115,7 @@ model Event {
 
 model Registration {
   id            String             @id @default(cuid())
+  name          String?
   eventId       String
   userId        String
   status        RegistrationStatus @default(PENDING)

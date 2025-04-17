@@ -163,7 +163,7 @@ export default function UserDashboard() {
                             Your membership payment is still pending. Please complete the payment to access all member benefits.
                           </p>
                           <Link 
-                            href="https://sassimilan.com/join/team"
+                            href="/join/exclusive-member"
                             className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-sm"
                           >
                             Pay Membership Fee (€5)

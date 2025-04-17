@@ -56,9 +56,13 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ sessionId: stripeSession.id });
+    // Return both the sessionId and the checkout URL
+    return NextResponse.json({ 
+      sessionId: stripeSession.id,
+      checkoutUrl: stripeSession.url 
+    });
   } catch (error) {
     console.error('Error creating exclusive membership:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}

@@ -27,7 +27,7 @@ async function main() {
     update: {},
     create: {
       title: 'Diwali Celebration 2025',
-      description: 'Join us for a grand celebration of Diwali, the festival of lights. Enjoy traditional Indian food, music, and performances.',
+      description: 'Join us for a <b>grand celebration</b> of Diwali, the festival of lights. Enjoy traditional Indian food, music, and performances.',
       content: 'Full event details will be announced closer to the date.',
       location: 'Politecnico di Milano, Aula Magna',
       startDate: new Date('2025-11-01T18:00:00Z'),

@@ -110,12 +110,13 @@ export default function EventDetail({ event }: EventDetailProps) {
             
             <div className="bg-white shadow-md rounded-lg overflow-hidden mb-6">
               {event.imageUrl && (
-                <div className="relative w-full h-64">
+                <div className="relative w-full" style={{ aspectRatio: '4/5' }}>
                   <Image
                     src={event.imageUrl}
                     alt={event.title}
                     fill
                     className="object-cover"
+                    priority
                   />
                 </div>
               )}
