@@ -67,11 +67,18 @@ export async function sendEventRegistrationEmail(
         <h1>You're registered for ${eventTitle}!</h1>
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
-        <p><strong>Event Date:</strong> ${formattedDate}</p>
-        <p>Please join our WhatsApp group for event updates and discussions:</p>
+        <p><strong>Event Date:</strong> ${formattedDate}</p> <br><br>
+        <p> Kindly fill the Excel sheet for team Registeration and revert it ASAP to +39 3338173402 (Harsh Nanesha) or +91 8667706914 ( Shree Charan) 
+          <a href = "https://docs.google.com/spreadsheets/d/1zjJ6lqbXD8cGJy94O6mfnq_sBBWlGFJv/edit?usp=share_link&ouid=106911402565149765122&rtpof=true&sd=true"
+                     style="background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                      Fill Team Registeration Excel
+                       </a>
+                       </p>                
+        <p>Please join our WhatsApp group for event updates and discussions:</p> 
+      
         <p style="margin: 20px 0;">
           <a href="https://chat.whatsapp.com/EliM19BFkTZBS278gA3sqi" 
-             style="background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+             style="background-color: #6fa8dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
             Join WhatsApp Group
           </a>
         </p>
