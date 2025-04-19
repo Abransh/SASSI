@@ -289,14 +289,14 @@ export default function EventDetail({ event }: EventDetailProps) {
                   </div>
                   
                   {/* Google Maps iframe */}
-                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <div className="relative w-full h-[400px] rounded-lg overflow-hidden border border-gray-200">
                     <iframe
-                      className="absolute top-0 left-0 w-full h-full rounded-lg border border-gray-200"
+                      className="absolute inset-0 w-full h-full"
                       loading="lazy"
                       allowFullScreen
                       referrerPolicy="no-referrer-when-downgrade"
                       src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(event.location)}`}
-                      ></iframe>
+                    ></iframe>
                   </div>
                   
                   <div className="mt-4">
