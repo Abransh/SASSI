@@ -92,7 +92,7 @@ export default async function AdminUsersRolesPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   Team
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -152,7 +152,7 @@ export default async function AdminUsersRolesPage() {
                       <span className="text-sm text-gray-500">No team</span>
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-6 py-4">
+                  <td className="whitespace-nowrap px-4 py-4">
                     {user.membershipRequests.length > 0 ? (
                       <div className="space-y-2">
                         {user.membershipRequests.map((request) => (
