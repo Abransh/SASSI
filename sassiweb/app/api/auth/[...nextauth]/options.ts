@@ -1,4 +1,4 @@
-// app/api/auth/[...nextauth]/options.ts - Updated for better redirection support
+// app/api/auth/[...nextauth]/options.ts 
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcrypt";

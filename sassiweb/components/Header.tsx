@@ -184,7 +184,7 @@ export default function Header() {
                 >
                   <span className="relative z-10">Login / Register</span>
                   <motion.div 
-                    className="absolute inset-0 bg-black"
+                    className="absolute inset-0 "
                     initial={{ x: "-100%" }}
                     whileHover={{ x: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
