@@ -5,16 +5,25 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Calendar, Clock, MapPin, Image, Users, Save, Trash } from "lucide-react";
 import { format } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Event } from "@/types/event";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/event-service";
 import ImageUpload from "./ImageUpload";
+import dynamic from 'next/dynamic';
+
+// Import TinyMCE Editor dynamically to avoid SSR issues
+const Editor = dynamic(() => import('@tinymce/tinymce-react').then(mod => mod.Editor), { 
+  ssr: false,
+  loading: () => <div className="border rounded-md p-4 h-64 flex items-center justify-center bg-gray-50">
+    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+  </div>
+});
+
+// Get TinyMCE API key from environment variable
+const TINYMCE_API_KEY = process.env.NEXT_PUBLIC_TINYMCE_API_KEY;
 
 // Form validation schema
 const eventSchema = z.object({
@@ -136,6 +145,16 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   const handlePublishedChange = (checked: boolean) => {
     setFormData((prev) => ({ ...prev, published: checked }));
   };
+
+  // Handle rich text editor content change
+  const handleEditorChange = (content: string, editor: any, field: 'description' | 'content') => {
+    setFormData(prev => ({ ...prev, [field]: content }));
+    
+    // Clear error when field is edited
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,19 +269,33 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           <label htmlFor="description" className="text-sm font-medium">
             Short Description
           </label>
-          <Textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows={3}
-            className={errors.description ? "border-red-500" : ""}
-          />
+          <div className={errors.description ? "border-red-500 rounded-md border" : ""}>
+            <Editor
+              id="description"
+              apiKey={TINYMCE_API_KEY}
+              initialValue={formData.description}
+              onEditorChange={(content, editor) => handleEditorChange(content, editor, 'description')}
+              init={{
+                height: 200,
+                menubar: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+              }}
+            />
+          </div>
           {errors.description && (
             <p className="text-red-500 text-xs mt-1">{errors.description}</p>
           )}
           <p className="text-xs text-gray-500">
-            You can use <strong>HTML</strong> tags (e.g., <code>&lt;b&gt;</code> for bold text) in the description.
+            Use the formatting toolbar to style your text, add links, etc.
           </p>
         </div>
         
@@ -270,22 +303,55 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           <label htmlFor="content" className="text-sm font-medium">
             Full Description (Optional)
           </label>
-          <Textarea
-            id="content"
-            name="content"
-            value={formData.content || ""}
-            onChange={handleChange}
-            rows={6}
-            className={errors.content ? "border-red-500" : ""}
-          />
+          <div className={errors.content ? "border-red-500 rounded-md border" : ""}>
+            <Editor
+              id="content"
+              apiKey={TINYMCE_API_KEY}
+              initialValue={formData.content || ""}
+              onEditorChange={(content, editor) => handleEditorChange(content, editor, 'content')}
+              init={{
+                height: 400,
+                menubar: true,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'link image | table media | removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                file_picker_types: 'image',
+                image_title: true,
+                automatic_uploads: true,
+                images_upload_handler: (
+                  blobInfo: {
+                    blob: () => Blob;
+                    base64: () => string;
+                    filename: () => string;
+                    blobUri: () => string;
+                  },
+                  progress: (percent: number) => void
+                ) => new Promise((resolve, reject) => {
+                  // This is a placeholder for image upload - you'll need to implement
+                  // image upload to your cloud storage like Cloudinary here
+                  // For now, we'll use data URL to demo functionality
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    resolve(reader.result as string);
+                  };
+                  reader.onerror = (e) => reject(e);
+                  reader.readAsDataURL(blobInfo.blob());
+                })
+              }}
+            />
+          </div>
           {errors.content && (
             <p className="text-red-500 text-xs mt-1">{errors.content}</p>
           )}
           <p className="text-xs text-gray-500">
             Detailed information about the event (shown on the event detail page)
-          </p>
-          <p className="text-xs text-gray-500">
-            You can use <strong>HTML</strong> tags (e.g., <code>&lt;b&gt;</code> for bold text) in the full description.
           </p>
         </div>
       </div>
