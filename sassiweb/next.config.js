@@ -54,6 +54,7 @@ const nextConfig = {
               form-action 'self';
               frame-ancestors 'none';
               upgrade-insecure-requests;
+              default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tiny.cloud; connect-src 'self' https://cdn.tiny.cloud; img-src 'self' data: blob: https://cdn.tiny.cloud; style-src 'self' 'unsafe-inline' https://cdn.tiny.cloud; font-src 'self' https://cdn.tiny.cloud;
             `.replace(/\s+/g, ' ').trim()
           },
           {
