@@ -272,12 +272,13 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           <div className={errors.description ? "border-red-500 rounded-md border" : ""}>
             <Editor
               id="description"
-              apiKey={TINYMCE_API_KEY}
+              tinymceScriptSrc="/tinymce/tinymce.min.js" // Point to self-hosted file
               initialValue={formData.description}
               onEditorChange={(content, editor) => handleEditorChange(content, editor, 'description')}
               init={{
                 height: 200,
                 menubar: false,
+                inline: true, // Use inline mode to avoid iframe
                 plugins: [
                   'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
                   'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
@@ -306,12 +307,13 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           <div className={errors.content ? "border-red-500 rounded-md border" : ""}>
             <Editor
               id="content"
-              apiKey={TINYMCE_API_KEY}
+              tinymceScriptSrc="/tinymce/tinymce.min.js" // Point to self-hosted file
               initialValue={formData.content || ""}
               onEditorChange={(content, editor) => handleEditorChange(content, editor, 'content')}
               init={{
                 height: 400,
                 menubar: true,
+                inline: true, // Use inline mode to avoid iframe
                 plugins: [
                   'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                   'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
@@ -325,15 +327,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
                 file_picker_types: 'image',
                 image_title: true,
                 automatic_uploads: true,
-                images_upload_handler: (
-                  blobInfo: {
-                    blob: () => Blob;
-                    base64: () => string;
-                    filename: () => string;
-                    blobUri: () => string;
-                  },
-                  progress: (percent: number) => void
-                ) => new Promise((resolve, reject) => {
+                images_upload_handler: (blobInfo: { blob: () => Blob; filename?: () => string }, progress: (percent: number) => void) => new Promise((resolve, reject) => {
                   // This is a placeholder for image upload - you'll need to implement
                   // image upload to your cloud storage like Cloudinary here
                   // For now, we'll use data URL to demo functionality
