@@ -49,6 +49,23 @@ export default function ImageUpload({
       isUploading,
       hasPublicKey: !!process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY
     });
+
+    // Load the script manually if it's not already loaded
+    if (typeof window !== 'undefined' && !window.uploadcare) {
+      console.log("Manually loading Uploadcare script...");
+      const script = document.createElement('script');
+      script.src = 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js';
+      script.async = true;
+      script.onload = () => {
+        console.log("Uploadcare script loaded manually");
+        setIsScriptLoaded(true);
+      };
+      script.onerror = (error) => {
+        console.error("Error loading Uploadcare script manually:", error);
+        toast.error("Failed to load image upload functionality");
+      };
+      document.head.appendChild(script);
+    }
   }, []);
 
   useEffect(() => {
@@ -154,18 +171,6 @@ export default function ImageUpload({
 
   return (
     <>
-      <Script
-        src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"
-        onLoad={() => {
-          console.log("Uploadcare script loaded successfully");
-          setIsScriptLoaded(true);
-        }}
-        onError={(e) => {
-          console.error("Error loading Uploadcare script:", e);
-          toast.error("Failed to load image upload functionality");
-        }}
-        strategy="beforeInteractive"
-      />
       <div className="space-y-2">
         <button
           type="button"
