@@ -72,6 +72,7 @@ export default function ImageUpload({
       if (file) {
         const imageUrl = file.cdnUrl;
         console.log("Uploadcare success - Raw Image URL:", imageUrl);
+        console.log("Uploadcare file object:", file);
         
         // Some Uploadcare configs return URLs without the protocol
         // Make sure we have a complete URL
