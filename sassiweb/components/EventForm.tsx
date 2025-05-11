@@ -485,7 +485,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             onChange={(url) => {
               console.log("EventForm: Image URL received from ImageUpload:", url);
               setFormData((prev) => {
-                const newState = { ...prev, imageUrl: url };
+                const newState = { ...prev, imageUrl: url || undefined };
                 console.log("EventForm: Updated form state with image URL:", newState.imageUrl);
                 return newState;
               });
