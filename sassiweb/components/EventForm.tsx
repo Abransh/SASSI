@@ -168,41 +168,21 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         return;
       }
   
-      // Try sending with different field names - some servers expect a specific format
-      const startDateStr = formData.startDate;
-      const startTimeStr = formData.startTime || '00:00';
-      const endDateStr = formData.endDate || formData.startDate;
-      const endTimeStr = formData.endTime || startTimeStr;
-      
-      // Create combined ISO string for real use (if server code can use it)
-      const startISO = `${startDateStr}T${startTimeStr}:00Z`;
-      const endISO = `${endDateStr}T${endTimeStr}:00Z`;
-  
+      // Get the form values
       const formValues = {
         title: formData.title,
         description: formData.description,
         content: formData.content || "",
         location: formData.location,
-        // Try multiple field options that the server might use
-        startDate: startDateStr,
-        startTime: startTimeStr,
-        endDate: endDateStr,
-        endTime: endTimeStr,
-        start_date: startDateStr,
-        start_time: startTimeStr,
-        end_date: endDateStr,
-        end_time: endTimeStr,
-        // Also include combined versions
-        startDateTime: startISO,
-        endDateTime: endISO,
-        // Other fields
+        startDate: `${formData.startDate}T${formData.startTime || '00:00'}:00.000Z`,
+        endDate: `${formData.endDate || formData.startDate}T${formData.endTime || formData.startTime || '00:00'}:00.000Z`,
         maxAttendees: formData.maxAttendees || null,
         price: formData.requiresPayment && formData.price ? formData.price : null,
         requiresPayment: formData.requiresPayment,
         published: formData.published
       };
   
-      console.log("Sending data with multiple formats:", formValues);
+      console.log("Sending data:", formValues);
   
       const response = await fetch("/api/events", {
         method: "POST",
