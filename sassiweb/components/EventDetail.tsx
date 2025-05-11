@@ -174,7 +174,7 @@ export default function EventDetail({ event }: EventDetailProps) {
               {/* Event Status Badge */}
               <div className="relative">
                 {event.imageUrl ? (
-                  <div className="relative w-full" style={{ aspectRatio: '4/5' }}>
+                  <div className="relative w-full" style={{ aspectRatio: '306 / 100' }}>
                     <Image
                       src={event.imageUrl}
                       alt={event.title}
