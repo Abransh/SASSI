@@ -10,14 +10,14 @@ import Footer from "@/components/Footer";
 // Use `any` type to bypass the type checking temporarily
 export default async function EditEventPage(props: any) {
   const { params } = props;
-  
+
   // Check if user is authenticated and is an admin
   const session = await getServerSession(authOptions);
-  
+
   if (!session || session.user.role !== "ADMIN") {
     redirect("/auth/signin?callbackUrl=/admin/events/" + params.id);
   }
-  
+
   // Fetch event data
   let event;
   try {
@@ -25,7 +25,7 @@ export default async function EditEventPage(props: any) {
   } catch {
     notFound();
   }
-  
+
   return (
     <main className="min-h-screen bg-gray-50">
       <Header />
@@ -37,11 +37,11 @@ export default async function EditEventPage(props: any) {
             <div className="mb-8">
               <h1 className="text-3xl font-bold mb-2">Edit Event</h1>
               <p className="text-gray-600">
-                {/* Content continues... */}
+                Update the event details
               </p>
             </div>
-            {/* Render EventForm with event data */}
-            <EventForm event={event || undefined} />
+            {/* Pass isEdit={true} to signal this is an edit operation */}
+            <EventForm event={event ?? undefined} isEdit={true} />
           </div>
         </div>
       </section>

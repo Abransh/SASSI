@@ -43,7 +43,15 @@ export default function ImageUpload({
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
+    
     if (isScriptLoaded && typeof window !== 'undefined') {
+      window.uploadcare.start({
+        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!
+      });
+    } else if (typeof window !== 'undefined' && window.uploadcare && !isScriptLoaded) {
+      // This is the new code to add - direct script tag check
+      console.log("Uploadcare already available in window");
+      setIsScriptLoaded(true);
       window.uploadcare.start({
         publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!
       });
@@ -51,11 +59,23 @@ export default function ImageUpload({
   }, [isScriptLoaded]);
 
   const handleUpload = () => {
+    // REPLACE THE EXISTING handleUpload WITH THIS ENHANCED VERSION
     if (!isScriptLoaded) {
-      toast.error("Uploadcare widget is not loaded yet. Please try again.");
+      console.error("Uploadcare widget not loaded yet. Trying to initialize...");
+      
+      // This is the new fallback code to add
+      if (typeof window !== 'undefined' && window.uploadcare) {
+        window.uploadcare.start({
+          publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!
+        });
+        setIsScriptLoaded(true);
+        toast.info("Uploadcare initialized. Please try again.");
+      } else {
+        toast.error("Uploadcare widget is not available. Please refresh the page.");
+      }
       return;
     }
-
+  
     setIsUploading(true);
     
     const dialog = window.uploadcare.openDialog(null, {
@@ -67,7 +87,7 @@ export default function ImageUpload({
       crop: "1:1",
       imagesOnly: true,
     });
-
+  
     dialog.done((file: UploadcareFile) => {
       if (file) {
         const imageUrl = file.cdnUrl;
@@ -87,7 +107,7 @@ export default function ImageUpload({
       <Script
         src="/uploadcare-widget.js"
         onLoad={() => setIsScriptLoaded(true)}
-        strategy="lazyOnload"
+        strategy="beforeInteractive"
       />
       <div className="space-y-2">
         <button
