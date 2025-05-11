@@ -11,12 +11,22 @@ const nextConfig = {
       "ucarecdn.com",
       "sassimilan.com",
       "uploadcare.com",
+      "*.uploadcare.com",
+      "*.ucarecdn.com"
     ],
     remotePatterns: [{
       protocol: 'https',
       hostname: 'drive.google.com',
       pathname: '/**',
-    }, ],
+    }, {
+      protocol: 'https',
+      hostname: '*.uploadcare.com',
+      pathname: '/**',
+    }, {
+      protocol: 'https',
+      hostname: '*.ucarecdn.com',
+      pathname: '/**',
+    }],
   },
   experimental: {
     serverActions: {
