@@ -10,8 +10,10 @@ const nextConfig = {
       "lh6.googleusercontent.com",
       "ucarecdn.com",
       "sassimilan.com",
+      "www.ucarecdn.com",
       "uploadcare.com",
       "*.uploadcare.com",
+      "cdn.uploadcare.com",
       "*.ucarecdn.com"
     ],
     remotePatterns: [{
@@ -27,6 +29,7 @@ const nextConfig = {
       hostname: '*.ucarecdn.com',
       pathname: '/**',
     }],
+    unoptimized: true,
   },
   experimental: {
     serverActions: {

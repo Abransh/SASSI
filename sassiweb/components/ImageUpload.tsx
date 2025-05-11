@@ -154,18 +154,19 @@ export default function ImageUpload({
       // Get the file URL using the file object's methods
       file.done((fileInfo: UploadcareFileInfo) => {
         console.log('File info:', fileInfo);
-        const imageUrl = fileInfo.cdnUrl || fileInfo.originalUrl;
+        let imageUrl = fileInfo.cdnUrl || fileInfo.originalUrl;
         console.log('Extracted image URL:', imageUrl);
         
-        if (!imageUrl) {
-          console.error('No URL found in file info');
-          return;
+        if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+          imageUrl = `https://${imageUrl.replace(/^\/\//, '')}`;
         }
 
         // Ensure the URL has a protocol
         const formattedUrl = imageUrl.startsWith('http') ? imageUrl : `https://${imageUrl}`;
         console.log('Formatted image URL:', formattedUrl);
         
+        console.log('Final image URL being set:', imageUrl);
+         onChange(imageUrl);
         onChange(formattedUrl);
       }).fail((error: Error) => {
         console.error('Error getting file info:', error);
