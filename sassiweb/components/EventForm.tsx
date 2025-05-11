@@ -168,28 +168,40 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         return;
       }
   
-      // Get the form values
-      const formValues = {
+      // Trick: Format the date strings to include time so they look like dates
+      // but are actually already in ISO format for Prisma
+      const startTimeFormatted = formData.startTime || "00:00";
+      const endTimeFormatted = formData.endTime || startTimeFormatted;
+      
+      // Create ISO-formatted strings that can pass as date strings
+      const startDateISOString = `${formData.startDate}T${startTimeFormatted}:00.000Z`;
+      const endDateISOString = `${formData.endDate || formData.startDate}T${endTimeFormatted}:00.000Z`;
+  
+      const requestData = {
         title: formData.title,
         description: formData.description,
         content: formData.content || "",
         location: formData.location,
-        startDate: `${formData.startDate}T${formData.startTime || '00:00'}:00.000Z`,
-        endDate: `${formData.endDate || formData.startDate}T${formData.endTime || formData.startTime || '00:00'}:00.000Z`,
+        // Pass ISO strings that look like dates
+        startDate: startDateISOString,
+        startTime: startTimeFormatted, // Keep this for validation
+        endDate: endDateISOString,
+        endTime: endTimeFormatted, // Keep this for validation
+        // Other fields
         maxAttendees: formData.maxAttendees || null,
         price: formData.requiresPayment && formData.price ? formData.price : null,
         requiresPayment: formData.requiresPayment,
         published: formData.published
       };
   
-      console.log("Sending data:", formValues);
+      console.log("Sending data with ISO dates:", requestData);
   
       const response = await fetch("/api/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formValues),
+        body: JSON.stringify(requestData),
       });
   
       // Handle response
