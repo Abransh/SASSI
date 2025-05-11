@@ -168,32 +168,25 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         return;
       }
   
-      // Format dates for the API
-      const startDate = formData.startDate;
-      const startTime = formData.startTime;
+      // Format dates as ISO strings for Prisma
+      // Create full ISO strings for start and end dates
+      const startDateTime = new Date(`${formData.startDate}T${formData.startTime || '00:00'}:00Z`);
       
-      // For end date/time, use either provided values or defaults
-      const endDate = formData.endDate || formData.startDate;
-      const endTime = formData.endTime || (
-        formData.startTime ? 
-          // Add 2 hours to start time
-          `${(parseInt(formData.startTime.split(':')[0]) + 2).toString().padStart(2, '0')}:${formData.startTime.split(':')[1]}` : 
-          "23:59"
-      );
+      // For end date, use either the specified end date or start date + 2 hours
+      let endDateTime;
+      if (formData.endDate && formData.endTime) {
+        endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00Z`);
+      } else {
+        endDateTime = new Date(startDateTime);
+        endDateTime.setHours(endDateTime.getHours() + 2);
+      }
+      
+      const startDateISO = startDateTime.toISOString();
+      const endDateISO = endDateTime.toISOString();
   
-      console.log("Sending data:", {
-        title: formData.title,
-        description: formData.description,
-        content: formData.content || "",
-        location: formData.location,
-        startDate: startDate,
-        startTime: startTime,
-        endDate: endDate,
-        endTime: endTime,
-        requiresPayment: formData.requiresPayment,
-        price: formData.requiresPayment && formData.price ? formData.price : null,
-        maxAttendees: formData.maxAttendees || null,
-        published: formData.published
+      console.log("Sending ISO dates:", {
+        startDate: startDateISO,
+        endDate: endDateISO
       });
   
       const response = await fetch("/api/events", {
@@ -206,10 +199,8 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           description: formData.description,
           content: formData.content || "",
           location: formData.location,
-          startDate: startDate,
-          startTime: startTime,
-          endDate: endDate,
-          endTime: endTime,
+          startDate: startDateISO,  // Full ISO string
+          endDate: endDateISO,      // Full ISO string
           requiresPayment: formData.requiresPayment,
           price: formData.requiresPayment && formData.price ? formData.price : null,
           maxAttendees: formData.maxAttendees || null,
