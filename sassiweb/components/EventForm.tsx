@@ -13,6 +13,7 @@ import { Event } from "@/types/event";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/event-service";
 import ImageUpload from "./ImageUpload";
 import dynamic from 'next/dynamic';
+import TestEnv from './TestEnv';
 
 // Import TinyMCE Editor dynamically to avoid SSR issues
 const Editor = dynamic(() => import('@tinymce/tinymce-react').then(mod => mod.Editor), {
@@ -267,6 +268,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      <TestEnv />
       {/* Title and Description */}
       <div className="grid gap-6">
         <div className="space-y-2">

@@ -43,6 +43,15 @@ export default function ImageUpload({
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
+    console.log("ImageUpload component mounted");
+    console.log("Initial state:", {
+      isScriptLoaded,
+      isUploading,
+      hasPublicKey: !!process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY
+    });
+  }, []);
+
+  useEffect(() => {
     if (isScriptLoaded && typeof window !== 'undefined') {
       const publicKey = process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY;
       console.log("Checking Uploadcare configuration:");
@@ -53,8 +62,6 @@ export default function ImageUpload({
 
       if (!publicKey) {
         console.error("Uploadcare public key is not configured");
-
-        
         toast.error("Image upload is not configured properly");
         return;
       }
@@ -167,6 +174,8 @@ export default function ImageUpload({
           className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isUploading ? "Uploading..." : label}
+          {!isScriptLoaded && " (Loading...)"}
+          {!process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY && " (No API Key)"}
         </button>
 
         {value && (
