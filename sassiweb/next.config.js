@@ -40,7 +40,7 @@ const nextConfig = {
             default-src 'self';
             script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://*.uploadcare.com;
             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-            img-src 'self' data: https://*.uploadcare.com https://*.cloudinary.com;
+            img-src 'self' data: blob: https://*.uploadcare.com https://*.cloudinary.com https://ucarecdn.com;
             font-src 'self' https://fonts.gstatic.com;
             connect-src 'self' https://*.uploadcare.com wss://*.uploadcare.com wss://ws.pusherapp.com;
             frame-src 'self' https://*.uploadcare.com;
