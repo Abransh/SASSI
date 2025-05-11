@@ -126,6 +126,18 @@ export default function ImageUpload({
         strategy="beforeInteractive"
       />
       <div className="space-y-2">
+      {!isScriptLoaded && (
+        <div className="text-xs text-gray-500 mb-2">
+          Upload widget is loading... 
+          <button 
+            type="button"
+            onClick={initializeWidget}
+            className="text-blue-500 underline ml-1"
+          >
+            Click here if button remains disabled
+          </button>
+        </div>
+      )}
         <button
           type="button"
           onClick={handleUpload}
