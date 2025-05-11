@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import Script from "next/script";
 import Image from "next/image";
@@ -14,9 +14,17 @@ interface ImageUploadProps {
 
 interface UploadcareFile {
   cdnUrl: string;
+  done: (callback: (fileInfo: UploadcareFileInfo) => void) => {
+    fail: (callback: (error: Error) => void) => void;
+  };
+  fail: (callback: (error: Error) => void) => void;
+}
+
+interface UploadcareFileInfo {
+  cdnUrl: string;
+  originalUrl: string;
   name: string;
   size: number;
-  isImage: boolean;
   mimeType: string;
 }
 
@@ -110,79 +118,62 @@ export default function ImageUpload({
     }
   }, [isScriptLoaded]);
 
-  const handleUpload = () => {
-    console.log("Upload button clicked");
-    console.log("Script loaded status:", isScriptLoaded);
-    console.log("Uploadcare available:", typeof window !== 'undefined' && !!window.uploadcare);
-    console.log("Public key available:", !!process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY);
-    
-    if (!isScriptLoaded) {
-      console.error("Uploadcare script not loaded");
-      toast.error("Uploadcare widget is not loaded yet. Please try again.");
-      return;
-    }
-
-    if (!process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY) {
-      console.error("Uploadcare public key not configured");
-      toast.error("Image upload is not configured properly");
-      return;
-    }
+  const handleUpload = useCallback(() => {
+    console.log('Upload button clicked');
+    console.log('Script loaded status:', isScriptLoaded);
+    console.log('Uploadcare available:', typeof window !== 'undefined' && window.uploadcare);
+    console.log('Public key available:', !!process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY);
 
     if (typeof window === 'undefined' || !window.uploadcare) {
-      console.error("Uploadcare not available in window object");
-      toast.error("Image upload is not available. Please refresh the page.");
+      console.error('Uploadcare not available');
       return;
     }
 
-    setIsUploading(true);
-    
-    try {
-      const dialog = window.uploadcare.openDialog(null, {
-        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY,
-        multiple: false,
-        accept: "image/*",
-        maxSize,
-        previewStep: true,
-        crop: "1:1",
-        imagesOnly: true,
-      });
+    const dialog = window.uploadcare.openDialog(null, {
+      publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY,
+      imagesOnly: true,
+      multiple: false,
+      imagePreviewMaxSize: 25 * 1024 * 1024, // 25MB
+      imageShrink: {
+        quality: 'better',
+        size: true
+      }
+    });
 
-      console.log("Uploadcare dialog opened");
+    console.log('Uploadcare dialog opened');
 
-      dialog.done((file: UploadcareFile) => {
-        console.log("Uploadcare upload completed");
-        if (file) {
-          const imageUrl = file.cdnUrl;
-          console.log("Uploadcare success - Raw Image URL:", imageUrl);
-          console.log("Uploadcare file object:", file);
-          
-          // Some Uploadcare configs return URLs without the protocol
-          // Make sure we have a complete URL
-          const formattedUrl = imageUrl.startsWith('//') 
-            ? `https:${imageUrl}` 
-            : imageUrl;
-          
-          console.log("Formatted URL being passed to parent:", formattedUrl);
-          console.log("Calling onChange with URL:", formattedUrl);
-          onChange(formattedUrl);
-          toast.success("Image uploaded successfully");
-        } else {
-          console.error("Uploadcare returned no file");
-          toast.error("Failed to upload image: No file returned");
+    dialog.done((file) => {
+      console.log('Uploadcare upload completed');
+      console.log('Uploadcare file object:', file);
+      
+      if (!file) {
+        console.error('No file returned from Uploadcare');
+        return;
+      }
+
+      // Get the file URL using the file object's methods
+      file.done((fileInfo: UploadcareFileInfo) => {
+        console.log('File info:', fileInfo);
+        const imageUrl = fileInfo.cdnUrl || fileInfo.originalUrl;
+        console.log('Extracted image URL:', imageUrl);
+        
+        if (!imageUrl) {
+          console.error('No URL found in file info');
+          return;
         }
+
+        // Ensure the URL has a protocol
+        const formattedUrl = imageUrl.startsWith('http') ? imageUrl : `https://${imageUrl}`;
+        console.log('Formatted image URL:', formattedUrl);
+        
+        onChange(formattedUrl);
       }).fail((error: Error) => {
-        console.error("Uploadcare upload failed:", error);
-        toast.error("Failed to upload image: " + error.message);
-      }).always(() => {
-        console.log("Uploadcare upload process completed");
-        setIsUploading(false);
+        console.error('Error getting file info:', error);
       });
-    } catch (error) {
-      console.error("Error opening Uploadcare dialog:", error);
-      toast.error("Failed to open image upload dialog");
-      setIsUploading(false);
-    }
-  }
+    }).fail((error: Error) => {
+      console.error('Uploadcare error:', error);
+    });
+  }, [isScriptLoaded, onChange]);
 
   return (
     <>

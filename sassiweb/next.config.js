@@ -38,13 +38,12 @@ const nextConfig = {
           key: 'Content-Security-Policy',
           value: `
             default-src 'self';
-            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud https://*.uploadcare.com;
+            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://*.uploadcare.com;
             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-            img-src 'self' data: blob: https://*.uploadcare.com https://maps.gstatic.com https://maps.googleapis.com;
+            img-src 'self' data: https://*.uploadcare.com https://*.cloudinary.com;
             font-src 'self' https://fonts.gstatic.com;
-            connect-src 'self' https://api.uploadcare.com https://maps.googleapis.com;
-            frame-src 'self' https://www.google.com;
-            media-src 'self';
+            connect-src 'self' https://*.uploadcare.com wss://*.uploadcare.com wss://ws.pusherapp.com;
+            frame-src 'self' https://*.uploadcare.com;
           `.replace(/\s+/g, ' ').trim()
         },
         {
