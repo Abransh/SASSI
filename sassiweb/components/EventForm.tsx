@@ -162,30 +162,39 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     setError(null);
   
     try {
-      // Create start date from form inputs
-      const startDateString = `${formData.startDate}T${formData.startTime}:00`;
-      
-      // Always ensure we have an end date
-      // If user provided end date and time, use those
-      // Otherwise, default to 2 hours after start date
-      let endDateString;
-      if (formData.endDate && formData.endTime) {
-        endDateString = `${formData.endDate}T${formData.endTime}:00`;
-      } else {
-        // Create a date object from start date
-        const startDate = new Date(startDateString);
-        // Add 2 hours
-        const endDate = new Date(startDate);
-        endDate.setHours(endDate.getHours() + 2);
-        // Format back to string in ISO format
-        const year = endDate.getFullYear();
-        const month = String(endDate.getMonth() + 1).padStart(2, '0');
-        const day = String(endDate.getDate()).padStart(2, '0');
-        const hours = String(endDate.getHours()).padStart(2, '0');
-        const minutes = String(endDate.getMinutes()).padStart(2, '0');
-        
-        endDateString = `${year}-${month}-${day}T${hours}:${minutes}:00`;
+      // Validate form fields
+      if (!validateForm()) {
+        setIsSubmitting(false);
+        return;
       }
+  
+      // Format dates for the API
+      const startDate = formData.startDate;
+      const startTime = formData.startTime;
+      
+      // For end date/time, use either provided values or defaults
+      const endDate = formData.endDate || formData.startDate;
+      const endTime = formData.endTime || (
+        formData.startTime ? 
+          // Add 2 hours to start time
+          `${(parseInt(formData.startTime.split(':')[0]) + 2).toString().padStart(2, '0')}:${formData.startTime.split(':')[1]}` : 
+          "23:59"
+      );
+  
+      console.log("Sending data:", {
+        title: formData.title,
+        description: formData.description,
+        content: formData.content || "",
+        location: formData.location,
+        startDate: startDate,
+        startTime: startTime,
+        endDate: endDate,
+        endTime: endTime,
+        requiresPayment: formData.requiresPayment,
+        price: formData.requiresPayment && formData.price ? formData.price : null,
+        maxAttendees: formData.maxAttendees || null,
+        published: formData.published
+      });
   
       const response = await fetch("/api/events", {
         method: "POST",
@@ -197,24 +206,33 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           description: formData.description,
           content: formData.content || "",
           location: formData.location,
-          startDate: startDateString,
-          endDate: endDateString,
-          imageUrl: formData.imageUrl,
-          maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees.toString()) : null,
-          price: formData.price ? parseFloat(formData.price.toString()) : null,
+          startDate: startDate,
+          startTime: startTime,
+          endDate: endDate,
+          endTime: endTime,
           requiresPayment: formData.requiresPayment,
-          published: formData.published,
+          price: formData.requiresPayment && formData.price ? formData.price : null,
+          maxAttendees: formData.maxAttendees || null,
+          published: formData.published
         }),
       });
   
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save event");
+      // Handle response
+      let responseData;
+      try {
+        responseData = await response.json();
+        console.log("Server response:", responseData);
+      } catch (parseError) {
+        console.error("Error parsing response:", parseError);
+        throw new Error("Failed to parse server response");
       }
   
-      const event = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.error || responseData.message || `Server error: ${response.status}`);
+      }
+  
       toast.success("Event created successfully!");
-      router.push(`/admin/events/${event.id}`);
+      router.push(`/admin/events/${responseData.id}`);
       router.refresh();
     } catch (err) {
       console.error("Error saving event:", err);
