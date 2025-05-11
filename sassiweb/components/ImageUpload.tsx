@@ -53,6 +53,8 @@ export default function ImageUpload({
 
       if (!publicKey) {
         console.error("Uploadcare public key is not configured");
+
+        
         toast.error("Image upload is not configured properly");
         return;
       }
