@@ -8,17 +8,15 @@ const nextConfig = {
       "lh4.googleusercontent.com",
       "lh5.googleusercontent.com",
       "lh6.googleusercontent.com",
-      "ucarecdn.com", 
+      "ucarecdn.com",
       "sassimilan.com",
       "uploadcare.com",
     ],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'drive.google.com',
-        pathname: '/**',
-      },
-    ],
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: 'drive.google.com',
+      pathname: '/**',
+    }, ],
   },
   experimental: {
     serverActions: {
@@ -34,57 +32,51 @@ const nextConfig = {
     return config;
   },
   async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: `
-              default-src 'self' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://api.stripe.com https://checkout.stripe.com;
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://maps.googleapis.com;
-              style-src 'self' 'unsafe-inline' https://ucarecdn.com https://uploadcare.com https://checkout.stripe.com;
-              img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com https://*.stripe.com https://maps.gstatic.com https://maps.googleapis.com;
-              media-src 'self' blob: https://ucarecdn.com https://uploadcare.com;
-              connect-src 'self' https://ucarecdn.com https://uploadcare.com https://api.uploadcare.com https://api.stripe.com https://maps.googleapis.com;
-              frame-src 'self' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://www.google.com;
-              font-src 'self' data:;
-              object-src 'none';
-              base-uri 'self';
-              form-action 'self';
-              frame-ancestors 'none';
-              upgrade-insecure-requests;
-              default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tiny.cloud; connect-src 'self' https://cdn.tiny.cloud; img-src 'self' data: blob: https://cdn.tiny.cloud; style-src 'self' 'unsafe-inline' https://cdn.tiny.cloud; font-src 'self' https://cdn.tiny.cloud;
-            `.replace(/\s+/g, ' ').trim()
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY'
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
-          }
-        ]
-      }
-    ]
+    return [{
+      source: '/:path*',
+      headers: [{
+          key: 'Content-Security-Policy',
+          value: `
+  default-src 'self' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://api.stripe.com https://checkout.stripe.com https://cdn.tiny.cloud;
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud;
+  style-src 'self' 'unsafe-inline' https://ucarecdn.com https://uploadcare.com https://checkout.stripe.com https://cdn.tiny.cloud;
+  img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com https://*.stripe.com https://maps.gstatic.com https://maps.googleapis.com https://cdn.tiny.cloud;
+  media-src 'self' blob: https://ucarecdn.com https://uploadcare.com;
+  connect-src 'self' https://ucarecdn.com https://uploadcare.com https://api.uploadcare.com https://api.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud;
+  frame-src 'self' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://www.google.com;
+  font-src 'self' data: https://cdn.tiny.cloud;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none';
+  upgrade-insecure-requests;
+`.replace(/\s+/g, ' ').trim()
+        },
+        {
+          key: 'X-Content-Type-Options',
+          value: 'nosniff'
+        },
+        {
+          key: 'X-Frame-Options',
+          value: 'DENY'
+        },
+        {
+          key: 'X-XSS-Protection',
+          value: '1; mode=block'
+        },
+        {
+          key: 'Referrer-Policy',
+          value: 'strict-origin-when-cross-origin'
+        }
+      ]
+    }]
   },
   // Add Uploadcare script to the page
   async rewrites() {
-    return [
-      {
-        source: '/uploadcare-widget.js',
-        destination: 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js',
-      },
-    ];
+    return [{
+      source: '/uploadcare-widget.js',
+      destination: 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js',
+    }, ];
   },
 };
 
