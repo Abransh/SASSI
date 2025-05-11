@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import Script from "next/script";
 import Image from "next/image";
@@ -36,27 +36,43 @@ declare global {
 export default function ImageUpload({
   value,
   onChange,
-  maxSize = 5 * 1024 * 1024, // 5MB default
+  maxSize = 5 * 1024 * 1024,
   label = "Upload Image",
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const initAttemptedRef = useRef(false);
+
+  // Add this function to explicitly initialize uploadcare
+  const initializeWidget = () => {
+    if (typeof window !== 'undefined' && window.uploadcare) {
+      window.uploadcare.start({
+        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || ''
+      });
+      setIsScriptLoaded(true);
+    }
+  };
 
   useEffect(() => {
-
-    if (isScriptLoaded && typeof window !== 'undefined') {
-      window.uploadcare.start({
-        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!
-      });
-    } else if (typeof window !== 'undefined' && window.uploadcare && !isScriptLoaded) {
-      // This is the new code to add - direct script tag check
-      console.log("Uploadcare already available in window");
-      setIsScriptLoaded(true);
-      window.uploadcare.start({
-        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!
-      });
+    // Try to initialize immediately if script is already in the page
+    if (!isScriptLoaded && !initAttemptedRef.current) {
+      initAttemptedRef.current = true;
+      initializeWidget();
+      
+      // Set a backup timeout to check again after a short delay
+      const timer = setTimeout(() => {
+        initializeWidget();
+        
+        // If still not loaded, force enable the button
+        if (!isScriptLoaded && typeof window !== 'undefined' && window.uploadcare) {
+          setIsScriptLoaded(true);
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
   }, [isScriptLoaded]);
+
 
   const handleUpload = () => {
     // REPLACE THE EXISTING handleUpload WITH THIS ENHANCED VERSION
