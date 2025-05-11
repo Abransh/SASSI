@@ -160,22 +160,22 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-
+  
     try {
       // Validate form first
       if (!validateForm()) {
         setIsSubmitting(false);
         return;
       }
-
+  
       // Format time fields
       const startTimeFormatted = formData.startTime || "00:00";
       const endTimeFormatted = formData.endTime || startTimeFormatted;
-
+  
       // Create ISO-formatted strings that can pass as date strings
       const startDateISOString = `${formData.startDate}T${startTimeFormatted}:00.000Z`;
       const endDateISOString = `${formData.endDate || formData.startDate}T${endTimeFormatted}:00.000Z`;
-
+  
       const requestData = {
         title: formData.title,
         description: formData.description,
@@ -193,13 +193,13 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         published: formData.published,
         imageUrl: formData.imageUrl
       };
-
+  
       console.log(`${isEdit ? "Updating" : "Creating"} event:`, requestData);
-
+  
       // Different API endpoint and method based on whether we're editing or creating
       const url = isEdit && event ? `/api/events/${event.id}` : "/api/events";
       const method = isEdit && event ? "PATCH" : "POST";
-
+  
       const response = await fetch(url, {
         method: method,
         headers: {
@@ -207,7 +207,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         },
         body: JSON.stringify(requestData),
       });
-
+  
       // Handle response
       let responseData;
       try {
@@ -217,17 +217,17 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         console.error("Error parsing response:", parseError);
         throw new Error("Failed to parse server response");
       }
-
+  
       if (!response.ok) {
         throw new Error(responseData.error || responseData.message || `Server error: ${response.status}`);
       }
-
+  
       // Success message based on action
       toast.success(isEdit ? "Event updated successfully!" : "Event created successfully!");
-
+  
       // Get the event ID from the response or use the existing one
       const eventId = responseData.id || (event ? event.id : null);
-
+  
       router.push(`/admin/events/${eventId}`);
       router.refresh();
     } catch (err) {

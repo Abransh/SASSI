@@ -43,7 +43,7 @@ export default function ImageUpload({
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
-    
+
     if (isScriptLoaded && typeof window !== 'undefined') {
       window.uploadcare.start({
         publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!
@@ -62,7 +62,7 @@ export default function ImageUpload({
     // REPLACE THE EXISTING handleUpload WITH THIS ENHANCED VERSION
     if (!isScriptLoaded) {
       console.error("Uploadcare widget not loaded yet. Trying to initialize...");
-      
+
       // This is the new fallback code to add
       if (typeof window !== 'undefined' && window.uploadcare) {
         window.uploadcare.start({
@@ -75,9 +75,9 @@ export default function ImageUpload({
       }
       return;
     }
-  
+
     setIsUploading(true);
-    
+
     const dialog = window.uploadcare.openDialog(null, {
       publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!,
       multiple: false,
@@ -87,7 +87,7 @@ export default function ImageUpload({
       crop: "1:1",
       imagesOnly: true,
     });
-  
+
     dialog.done((file: UploadcareFile) => {
       if (file) {
         const imageUrl = file.cdnUrl;
@@ -105,7 +105,7 @@ export default function ImageUpload({
   return (
     <>
       <Script
-        src="/uploadcare-widget.js"
+        src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"
         onLoad={() => setIsScriptLoaded(true)}
         strategy="beforeInteractive"
       />
