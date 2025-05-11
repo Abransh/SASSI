@@ -12,11 +12,19 @@ interface FileUploadProps {
 }
 
 interface UploadcareFile {
-  cdnUrl: string
-  name: string
-  size: number
-  isImage: boolean
-  mimeType: string
+  cdnUrl: string;
+  done: (callback: (fileInfo: UploadcareFileInfo) => void) => {
+    fail: (callback: (error: Error) => void) => void;
+  };
+  fail: (callback: (error: Error) => void) => void;
+}
+
+interface UploadcareFileInfo {
+  cdnUrl: string;
+  originalUrl: string;
+  name: string;
+  size: number;
+  mimeType: string;
 }
 
 interface UploadcareDialog {
@@ -32,7 +40,14 @@ interface UploadcareWidget {
 
 declare global {
   interface Window {
-    uploadcare: UploadcareWidget
+    uploadcare: {
+      start: (options: { publicKey: string }) => void;
+      openDialog: (files: null, options: any) => {
+        done: (callback: (file: UploadcareFile) => void) => any;
+        fail: (callback: (error: Error) => void) => any;
+        always: (callback: () => void) => any;
+      };
+    };
   }
 }
 
@@ -78,17 +93,28 @@ export default function FileUpload({ onChange, value, accept, label = 'Upload Fi
 
     dialog.done((file: UploadcareFile) => {
       console.log('File uploaded successfully:', file);
-      if (file && file.cdnUrl) {
-        onChange(file.cdnUrl)
-        toast.success('File uploaded successfully')
+      if (file) {
+        file.done((fileInfo: UploadcareFileInfo) => {
+          const url = fileInfo.cdnUrl || fileInfo.originalUrl;
+          if (url) {
+            onChange(url);
+            toast.success('File uploaded successfully');
+          } else {
+            console.error('File upload failed: No URL returned');
+            toast.error('Failed to upload file: No URL returned');
+          }
+        }).fail((error: Error) => {
+          console.error('Error getting file info:', error);
+          toast.error(`Failed to upload file: ${error.message || 'Unknown error'}`);
+        });
       } else {
-        console.error('File upload failed: No CDN URL returned');
-        toast.error('Failed to upload file: No CDN URL returned')
+        console.error('File upload failed: No file returned');
+        toast.error('Failed to upload file: No file returned');
       }
     }).fail((error: Error) => {
       console.error('File upload failed:', error);
-      toast.error(`Failed to upload file: ${error.message || 'Unknown error'}`)
-    })
+      toast.error(`Failed to upload file: ${error.message || 'Unknown error'}`);
+    });
   }
 
   return (
