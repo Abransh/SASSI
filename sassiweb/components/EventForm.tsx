@@ -157,82 +157,48 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-  
-    try {
-      // Validate form fields
-      if (!validateForm()) {
-        setIsSubmitting(false);
-        return;
-      }
-  
-      // Format dates as ISO strings for Prisma
-      // Create full ISO strings for start and end dates
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime || '00:00'}:00Z`);
-      
-      // For end date, use either the specified end date or start date + 2 hours
-      let endDateTime;
-      if (formData.endDate && formData.endTime) {
-        endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00Z`);
-      } else {
-        endDateTime = new Date(startDateTime);
-        endDateTime.setHours(endDateTime.getHours() + 2);
-      }
-      
-      const startDateISO = startDateTime.toISOString();
-      const endDateISO = endDateTime.toISOString();
-  
-      console.log("Sending ISO dates:", {
-        startDate: startDateISO,
-        endDate: endDateISO
-      });
-  
-      const response = await fetch("/api/events", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          content: formData.content || "",
-          location: formData.location,
-          startDate: startDateISO,  // Full ISO string
-          endDate: endDateISO,      // Full ISO string
-          requiresPayment: formData.requiresPayment,
-          price: formData.requiresPayment && formData.price ? formData.price : null,
-          maxAttendees: formData.maxAttendees || null,
-          published: formData.published
-        }),
-      });
-  
-      // Handle response
-      let responseData;
-      try {
-        responseData = await response.json();
-        console.log("Server response:", responseData);
-      } catch (parseError) {
-        console.error("Error parsing response:", parseError);
-        throw new Error("Failed to parse server response");
-      }
-  
-      if (!response.ok) {
-        throw new Error(responseData.error || responseData.message || `Server error: ${response.status}`);
-      }
-  
-      toast.success("Event created successfully!");
-      router.push(`/admin/events/${responseData.id}`);
-      router.refresh();
-    } catch (err) {
-      console.error("Error saving event:", err);
-      setError(err instanceof Error ? err.message : "Failed to save event. Please try again.");
-      toast.error("Failed to create event. Please check the form for errors.");
-    } finally {
-      setIsSubmitting(false);
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError(null);
+
+  try {
+    // Instead of creating UTC date objects, just send the form values directly
+    const response = await fetch("/api/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: formData.title,
+        description: formData.description,
+        content: formData.content,
+        location: formData.location,
+        startDate: formData.startDate,
+        startTime: formData.startTime,
+        endDate: formData.endDate,
+        endTime: formData.endTime, 
+        imageUrl: formData.imageUrl,
+        maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees.toString()) : null,
+        price: formData.price ? parseFloat(formData.price.toString()) : null,
+        requiresPayment: formData.requiresPayment,
+        published: formData.published,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to save event");
     }
-  };
+
+    const event = await response.json();
+    router.push(`/admin/events/${event.id}`);
+  } catch (err) {
+    console.error("Error saving event:", err);
+    setError(err instanceof Error ? err.message : "Failed to save event. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   
   const handleDelete = async () => {
     if (!event || !confirm("Are you sure you want to delete this event?")) {
