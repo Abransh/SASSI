@@ -44,10 +44,22 @@ export default function ImageUpload({
 
   useEffect(() => {
     if (isScriptLoaded && typeof window !== 'undefined') {
-      console.log("Initializing Uploadcare with key:", process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY);
+      const publicKey = process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY;
+      console.log("Checking Uploadcare configuration:");
+      console.log("- Script loaded:", isScriptLoaded);
+      console.log("- Public key available:", !!publicKey);
+      console.log("- Window object available:", typeof window !== 'undefined');
+      console.log("- Uploadcare object available:", typeof window !== 'undefined' && !!window.uploadcare);
+
+      if (!publicKey) {
+        console.error("Uploadcare public key is not configured");
+        toast.error("Image upload is not configured properly");
+        return;
+      }
+
       try {
         window.uploadcare.start({
-          publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!
+          publicKey: publicKey
         });
         console.log("Uploadcare initialized successfully");
       } catch (error) {
@@ -61,10 +73,17 @@ export default function ImageUpload({
     console.log("Upload button clicked");
     console.log("Script loaded status:", isScriptLoaded);
     console.log("Uploadcare available:", typeof window !== 'undefined' && !!window.uploadcare);
+    console.log("Public key available:", !!process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY);
     
     if (!isScriptLoaded) {
       console.error("Uploadcare script not loaded");
       toast.error("Uploadcare widget is not loaded yet. Please try again.");
+      return;
+    }
+
+    if (!process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY) {
+      console.error("Uploadcare public key not configured");
+      toast.error("Image upload is not configured properly");
       return;
     }
 
@@ -78,7 +97,7 @@ export default function ImageUpload({
     
     try {
       const dialog = window.uploadcare.openDialog(null, {
-        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!,
+        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY,
         multiple: false,
         accept: "image/*",
         maxSize,
@@ -129,7 +148,7 @@ export default function ImageUpload({
       <Script
         src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"
         onLoad={() => {
-          console.log("Uploadcare script loaded");
+          console.log("Uploadcare script loaded successfully");
           setIsScriptLoaded(true);
         }}
         onError={(e) => {
@@ -142,7 +161,7 @@ export default function ImageUpload({
         <button
           type="button"
           onClick={handleUpload}
-          disabled={isUploading || !isScriptLoaded}
+          disabled={isUploading || !isScriptLoaded || !process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY}
           className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isUploading ? "Uploading..." : label}
