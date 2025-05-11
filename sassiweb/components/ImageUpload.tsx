@@ -56,15 +56,26 @@ export default function ImageUpload({
       const script = document.createElement('script');
       script.src = 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js';
       script.async = true;
+      script.crossOrigin = "anonymous";
       script.onload = () => {
         console.log("Uploadcare script loaded manually");
-        setIsScriptLoaded(true);
+        // Wait a bit to ensure the script is fully initialized
+        setTimeout(() => {
+          setIsScriptLoaded(true);
+        }, 100);
       };
       script.onerror = (error) => {
         console.error("Error loading Uploadcare script manually:", error);
         toast.error("Failed to load image upload functionality");
       };
       document.head.appendChild(script);
+
+      // Cleanup function
+      return () => {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      };
     }
   }, []);
 
@@ -84,10 +95,15 @@ export default function ImageUpload({
       }
 
       try {
-        window.uploadcare.start({
-          publicKey: publicKey
-        });
-        console.log("Uploadcare initialized successfully");
+        if (window.uploadcare) {
+          window.uploadcare.start({
+            publicKey: publicKey
+          });
+          console.log("Uploadcare initialized successfully");
+        } else {
+          console.error("Uploadcare object not found in window");
+          toast.error("Image upload is not available");
+        }
       } catch (error) {
         console.error("Error initializing Uploadcare:", error);
         toast.error("Failed to initialize image upload");

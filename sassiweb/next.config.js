@@ -38,11 +38,11 @@ const nextConfig = {
           key: 'Content-Security-Policy',
           value: `
             default-src 'self' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://api.stripe.com https://checkout.stripe.com https://cdn.tiny.cloud;
-            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud;
+            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud https://*.uploadcare.com;
             style-src 'self' 'unsafe-inline' https://ucarecdn.com https://uploadcare.com https://checkout.stripe.com https://cdn.tiny.cloud;
-            img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com https://*.stripe.com https://maps.gstatic.com https://maps.googleapis.com https://cdn.tiny.cloud;
+            img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com https://*.stripe.com https://maps.gstatic.com https://maps.googleapis.com https://cdn.tiny.cloud https://*.uploadcare.com;
             media-src 'self' blob: https://ucarecdn.com https://uploadcare.com;
-            connect-src 'self' https://ucarecdn.com https://uploadcare.com https://api.uploadcare.com https://api.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud;
+            connect-src 'self' https://ucarecdn.com https://uploadcare.com https://api.uploadcare.com https://api.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud https://*.uploadcare.com;
             frame-src 'self' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://www.google.com;
             font-src 'self' data: https://cdn.tiny.cloud;
             object-src 'none';
