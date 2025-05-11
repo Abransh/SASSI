@@ -163,7 +163,9 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
 
     try {
       // Create a UTC date from the form inputs
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}:00`);
+ // Create a proper ISO string
+ const startDateISO = startDateTime.toISOString();
       // Set the timezone offset to 0 (UTC)
       const utcStartDate = new Date(
         startDateTime.getUTCFullYear(),
@@ -174,17 +176,20 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       ).toISOString();
 
       // Handle end date similarly if present
-      let utcEndDate;
-      if (formData.endDate && formData.endTime) {
-        const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
-        utcEndDate = new Date(
-          endDateTime.getUTCFullYear(),
-          endDateTime.getUTCMonth(),
-          endDateTime.getUTCDate(),
-          endDateTime.getUTCHours(),
-          endDateTime.getUTCMinutes()
-        ).toISOString();
-      }
+      let endDateISO = null;
+    if (formData.endDate && formData.endTime) {
+      const endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00`);
+      endDateISO = endDateTime.toISOString();
+    } else if (formData.endDate) {
+      // If only end date is provided, use end of day
+      const endDateTime = new Date(`${formData.endDate}T23:59:59`);
+      endDateISO = endDateTime.toISOString();
+    } else {
+      // If no end date, use start date + 2 hours
+      const endDateTime = new Date(startDateTime);
+      endDateTime.setHours(endDateTime.getHours() + 2);
+      endDateISO = endDateTime.toISOString();
+    }
 
       const response = await fetch("/api/events", {
         method: "POST",
