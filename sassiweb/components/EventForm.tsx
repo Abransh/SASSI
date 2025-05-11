@@ -484,11 +484,10 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             value={formData.imageUrl}
             onChange={(url) => {
               console.log("Image URL received from Uploadcare:", url);
-              setFormData((prev) => {
-                const newState = { ...prev, imageUrl: url };
-                console.log("Updated form state with image URL:", newState.imageUrl);
-                return newState;
-              });
+              setFormData((prev) => ({
+                ...prev, 
+                imageUrl: url || undefined
+              }));
             }}
             label={isEdit ? "Change Event Image" : "Upload Event Image"}
           />

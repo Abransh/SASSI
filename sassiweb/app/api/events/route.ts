@@ -125,11 +125,11 @@ export async function POST(request: NextRequest) {
         published: validatedData.published,
         requiresPayment: validatedData.requiresPayment,
         createdBy: session.user.id,
+        imageUrl: validatedData.imageUrl || null, // Always include imageUrl, even if null
       };
       
       // Add optional fields only if they exist
       if (validatedData.content) eventData.content = validatedData.content;
-      if (validatedData.imageUrl) eventData.imageUrl = validatedData.imageUrl;
       if (validatedData.maxAttendees) eventData.maxAttendees = validatedData.maxAttendees;
       if (validatedData.price) eventData.price = validatedData.price;
       if (validatedData.endDate) eventData.endDate = validatedData.endDate;

@@ -82,8 +82,17 @@ export default function ImageUpload({
         console.log("Formatted URL being passed to parent:", formattedUrl);
         onChange(formattedUrl);
         toast.success("Image uploaded successfully");
+      } else {
+        console.error("Uploadcare returned no file");
+        toast.error("Failed to upload image: No file returned");
       }
+    }).fail((error: Error) => {
+      console.error("Uploadcare upload failed:", error);
+      toast.error("Failed to upload image: " + error.message);
+    }).always(() => {
+      setIsUploading(false);
     });
+  }
 
   return (
     <>
@@ -117,5 +126,4 @@ export default function ImageUpload({
       </div>
     </>
   );
-} 
 }
