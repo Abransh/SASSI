@@ -48,9 +48,10 @@ export default function EventsList({ upcomingEvents, pastEvents }: EventsListPro
                 <div className="p-6">
                   <h3 className="text-xl font-bold mb-2">{event.title}</h3>
                   
-                  <p className="text-gray-600 mb-4 line-clamp-2">
-                    {event.description}
-                  </p>
+                  <div 
+                    className="text-gray-600 mb-4 line-clamp-2 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: event.description }}
+                  />
                   
                   <div className="flex items-center text-sm text-gray-500 mb-2">
                     <span className="mr-2">
@@ -138,9 +139,10 @@ export default function EventsList({ upcomingEvents, pastEvents }: EventsListPro
                       {event.location}
                     </div>
                     
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {event.description}
-                    </p>
+                    <div 
+                      className="text-gray-600 text-sm mb-3 line-clamp-2 prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: event.description }}
+                    />
                     
                     <Link 
                       href={`/events/${event.id}`}

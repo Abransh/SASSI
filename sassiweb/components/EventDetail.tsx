@@ -270,16 +270,12 @@ export default function EventDetail({ event }: EventDetailProps) {
                 <div className={activeTab === 'details' ? 'block' : 'hidden'}>
                   <div className="prose max-w-none">
                     <h2 className="text-2xl font-bold mb-4">About This Event</h2>
-                    <div className="text-gray-700 mb-6">
-                      {event.description.replace(/<[^>]*>/g, '')}
-                    </div>
+                    <div className="text-gray-700 mb-6" dangerouslySetInnerHTML={{ __html: event.description }} />
                     
                     {event.content && (
                       <>
                         <h3 className="text-xl font-semibold mb-2">Details</h3>
-                        <div className="text-gray-700">
-                          {event.content.replace(/<[^>]*>/g, '')}
-                        </div>
+                        <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: event.content }} />
                       </>
                     )}
                   </div>
