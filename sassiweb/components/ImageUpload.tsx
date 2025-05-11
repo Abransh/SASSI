@@ -54,9 +54,8 @@ export default function ImageUpload({
     if (typeof window !== 'undefined' && !window.uploadcare) {
       console.log("Manually loading Uploadcare script...");
       const script = document.createElement('script');
-      script.src = 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js';
+      script.src = '/uploadcare-widget.js';
       script.async = true;
-      script.crossOrigin = "anonymous";
       script.onload = () => {
         console.log("Uploadcare script loaded manually");
         // Wait a bit to ensure the script is fully initialized

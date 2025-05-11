@@ -37,19 +37,14 @@ const nextConfig = {
       headers: [{
           key: 'Content-Security-Policy',
           value: `
-            default-src 'self' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://api.stripe.com https://checkout.stripe.com https://cdn.tiny.cloud;
+            default-src 'self';
             script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud https://*.uploadcare.com;
-            style-src 'self' 'unsafe-inline' https://ucarecdn.com https://uploadcare.com https://checkout.stripe.com https://cdn.tiny.cloud;
-            img-src 'self' blob: data: https://ucarecdn.com https://sassimilan.com https://uploadcare.com https://*.stripe.com https://maps.gstatic.com https://maps.googleapis.com https://cdn.tiny.cloud https://*.uploadcare.com;
-            media-src 'self' blob: https://ucarecdn.com https://uploadcare.com;
-            connect-src 'self' https://ucarecdn.com https://uploadcare.com https://api.uploadcare.com https://api.stripe.com https://maps.googleapis.com https://cdn.tiny.cloud https://*.uploadcare.com;
-            frame-src 'self' https://ucarecdn.com https://uploadcare.com https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://www.google.com;
-            font-src 'self' data: https://cdn.tiny.cloud;
-            object-src 'none';
-            base-uri 'self';
-            form-action 'self';
-            frame-ancestors 'none';
-            upgrade-insecure-requests;
+            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+            img-src 'self' data: blob: https://*.uploadcare.com https://maps.gstatic.com https://maps.googleapis.com;
+            font-src 'self' https://fonts.gstatic.com;
+            connect-src 'self' https://api.uploadcare.com https://maps.googleapis.com;
+            frame-src 'self' https://www.google.com;
+            media-src 'self';
           `.replace(/\s+/g, ' ').trim()
         },
         {
@@ -73,10 +68,12 @@ const nextConfig = {
   },
   // Add Uploadcare script to the page
   async rewrites() {
-    return [{
-      source: '/uploadcare-widget.js',
-      destination: 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js',
-    }, ];
+    return [
+      {
+        source: '/uploadcare-widget.js',
+        destination: 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js',
+      },
+    ];
   },
 };
 
