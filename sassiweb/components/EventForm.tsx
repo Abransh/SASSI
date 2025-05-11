@@ -15,7 +15,7 @@ import ImageUpload from "./ImageUpload";
 import dynamic from 'next/dynamic';
 
 // Import TinyMCE Editor dynamically to avoid SSR issues
-const Editor = dynamic(() => import('@tinymce/tinymce-react').then(mod => mod.Editor), { 
+const Editor = dynamic(() => import('@tinymce/tinymce-react').then(mod => mod.Editor), {
   ssr: false,
   loading: () => <div className="border rounded-md p-4 h-64 flex items-center justify-center bg-gray-50">
     <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -54,19 +54,19 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Default form values
   const defaultStartDate = event ? new Date(event.startDate) : new Date();
   defaultStartDate.setMinutes(0);
   defaultStartDate.setSeconds(0);
   defaultStartDate.setMilliseconds(0);
-  
+
   const defaultEndDate = event ? new Date(event.endDate) : new Date();
   defaultEndDate.setHours(defaultStartDate.getHours() + 2);
   defaultEndDate.setMinutes(0);
   defaultEndDate.setSeconds(0);
   defaultEndDate.setMilliseconds(0);
-  
+
   const [formData, setFormData] = useState<EventFormData>({
     title: event?.title || "",
     description: event?.description || "",
@@ -82,10 +82,10 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     published: event?.published || false,
     requiresPayment: event?.price ? event.price > 0 : false,
   });
-  
+
   // Error handling
   const [errors, setErrors] = useState<Partial<Record<keyof EventFormData, string>>>({});
-  
+
   const validateForm = (): boolean => {
     try {
       eventSchema.parse(formData);
@@ -104,31 +104,31 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       return false;
     }
   };
-  
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     let parsedValue: any = value;
-    
+
     // Parse number fields
     if (name === "maxAttendees") {
       parsedValue = value ? parseInt(value, 10) : null;
     }
-    
+
     // Parse price field
     if (name === "price") {
       parsedValue = value ? parseFloat(value) : null;
     }
-    
+
     setFormData((prev) => ({ ...prev, [name]: parsedValue }));
-    
+
     // Clear error when field is edited
     if (errors[name as keyof EventFormData]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
-  
+
   const handleDateChange = (field: "startDate" | "endDate", date: Date | undefined) => {
     if (date) {
       setFormData((prev) => ({ ...prev, [field]: format(date, "yyyy-MM-dd") }));
@@ -136,12 +136,12 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       setFormData((prev) => ({ ...prev, endDate: undefined, endTime: undefined }));
     }
   };
-  
+
   const handleTimeChange = (field: "startTime" | "endTime", e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-  
+
   const handlePublishedChange = (checked: boolean) => {
     setFormData((prev) => ({ ...prev, published: checked }));
   };
@@ -149,34 +149,33 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   // Handle rich text editor content change
   const handleEditorChange = (content: string, editor: any, field: 'description' | 'content') => {
     setFormData(prev => ({ ...prev, [field]: content }));
-    
+
     // Clear error when field is edited
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-  
+
     try {
       // Validate form first
       if (!validateForm()) {
         setIsSubmitting(false);
         return;
       }
-  
-      // Trick: Format the date strings to include time so they look like dates
-      // but are actually already in ISO format for Prisma
+
+      // Format time fields
       const startTimeFormatted = formData.startTime || "00:00";
       const endTimeFormatted = formData.endTime || startTimeFormatted;
-      
+
       // Create ISO-formatted strings that can pass as date strings
       const startDateISOString = `${formData.startDate}T${startTimeFormatted}:00.000Z`;
       const endDateISOString = `${formData.endDate || formData.startDate}T${endTimeFormatted}:00.000Z`;
-  
+
       const requestData = {
         title: formData.title,
         description: formData.description,
@@ -191,19 +190,24 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         maxAttendees: formData.maxAttendees || null,
         price: formData.requiresPayment && formData.price ? formData.price : null,
         requiresPayment: formData.requiresPayment,
-        published: formData.published
+        published: formData.published,
+        imageUrl: formData.imageUrl
       };
-  
-      console.log("Sending data with ISO dates:", requestData);
-  
-      const response = await fetch("/api/events", {
-        method: "POST",
+
+      console.log(`${isEdit ? "Updating" : "Creating"} event:`, requestData);
+
+      // Different API endpoint and method based on whether we're editing or creating
+      const url = isEdit && event ? `/api/events/${event.id}` : "/api/events";
+      const method = isEdit && event ? "PATCH" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(requestData),
       });
-  
+
       // Handle response
       let responseData;
       try {
@@ -213,30 +217,35 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         console.error("Error parsing response:", parseError);
         throw new Error("Failed to parse server response");
       }
-  
+
       if (!response.ok) {
         throw new Error(responseData.error || responseData.message || `Server error: ${response.status}`);
       }
-  
-      toast.success("Event created successfully!");
-      router.push(`/admin/events/${responseData.id}`);
+
+      // Success message based on action
+      toast.success(isEdit ? "Event updated successfully!" : "Event created successfully!");
+
+      // Get the event ID from the response or use the existing one
+      const eventId = responseData.id || (event ? event.id : null);
+
+      router.push(`/admin/events/${eventId}`);
       router.refresh();
     } catch (err) {
-      console.error("Error saving event:", err);
-      setError(err instanceof Error ? err.message : "Failed to save event. Please try again.");
-      toast.error("Failed to create event. Please check the form for errors.");
+      console.error(`Error ${isEdit ? "updating" : "saving"} event:`, err);
+      setError(err instanceof Error ? err.message : `Failed to ${isEdit ? "update" : "create"} event. Please try again.`);
+      toast.error(`Failed to ${isEdit ? "update" : "create"} event. Please check the form for errors.`);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleDelete = async () => {
     if (!event || !confirm("Are you sure you want to delete this event?")) {
       return;
     }
-    
+
     setIsDeleting(true);
-    
+
     try {
       await deleteEvent(event.id);
       toast.success("Event deleted successfully");
@@ -245,15 +254,15 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     } catch (error) {
       console.error("Error deleting event:", error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : "Failed to delete event. Please try again."
       );
     } finally {
       setIsDeleting(false);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Title and Description */}
@@ -273,7 +282,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             <p className="text-red-500 text-xs mt-1">{errors.title}</p>
           )}
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="description" className="text-sm font-medium">
             Short Description
@@ -308,7 +317,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             Use the formatting toolbar to style your text, add links, etc.
           </p>
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="content" className="text-sm font-medium">
             Full Description (Optional)
@@ -358,7 +367,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           </p>
         </div>
       </div>
-      
+
       {/* Date, Time and Location */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -426,7 +435,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           )}
         </div>
       </div>
-      
+
       <div className="space-y-2">
         <label htmlFor="location" className="text-sm font-medium flex items-center">
           <MapPin size={16} className="mr-2" />
@@ -461,7 +470,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           Enter the event location. Click "View on Maps" to open in Google Maps.
         </p>
       </div>
-      
+
       {/* Additional Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
@@ -472,6 +481,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           <ImageUpload
             value={formData.imageUrl}
             onChange={(url) => setFormData((prev) => ({ ...prev, imageUrl: url || undefined }))}
+            label={isEdit ? "Change Event Image" : "Upload Event Image"}
           />
           {errors.imageUrl && (
             <p className="text-red-500 text-xs mt-1">{errors.imageUrl}</p>
@@ -480,7 +490,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             Upload an image for this event (max 5MB)
           </p>
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="maxAttendees" className="text-sm font-medium flex items-center">
             <Users size={16} className="mr-2" />
@@ -503,7 +513,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           </p>
         </div>
       </div>
-      
+
       {/* Payment Settings */}
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
@@ -548,7 +558,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           </div>
         )}
       </div>
-      
+
       {/* Publishing Controls */}
       <div className="flex items-center space-x-2">
         <Switch
@@ -565,7 +575,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             : "Event is only visible to admins until published"}
         </p>
       </div>
-      
+
       {/* Action Buttons */}
       <div className="flex justify-between">
         <div>
@@ -591,7 +601,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             </Button>
           )}
         </div>
-        
+
         <div className="flex gap-4">
           <Button
             type="button"
@@ -601,7 +611,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           >
             Cancel
           </Button>
-          
+
           <Button
             type="submit"
             className="bg-orange-600 hover:bg-orange-700"
@@ -610,7 +620,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                {isEdit ? "Updating..." : "Saving..."}
               </>
             ) : (
               <>
