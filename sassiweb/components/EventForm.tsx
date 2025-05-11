@@ -193,16 +193,18 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         },
         body: JSON.stringify({
           title: formData.title,
-          description: formData.description,
-          content: formData.content,
-          location: formData.location,
-          startDate: utcStartDate, // Send ISO string with timezone info
-          endDate: utcEndDate, // Send ISO string with timezone info
-          imageUrl: formData.imageUrl,
-          maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees.toString()) : null,
-          price: formData.price ? parseFloat(formData.price.toString()) : null,
-          requiresPayment: formData.requiresPayment,
-          published: formData.published,
+        description: formData.description,
+        content: formData.content,
+        location: formData.location,
+        startDate: formData.startDate,
+        startTime: formData.startTime,
+        endDate: formData.endDate,
+        endTime: formData.endTime, 
+        imageUrl: formData.imageUrl,
+        maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees.toString()) : null,
+        price: formData.price ? parseFloat(formData.price.toString()) : null,
+        requiresPayment: formData.requiresPayment,
+        published: formData.published,
         }),
       });
 
@@ -210,7 +212,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to save event");
       }
-
+  
       const event = await response.json();
       router.push(`/admin/events/${event.id}`);
     } catch (err) {
