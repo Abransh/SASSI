@@ -71,16 +71,19 @@ export default function ImageUpload({
     dialog.done((file: UploadcareFile) => {
       if (file) {
         const imageUrl = file.cdnUrl;
-        onChange(imageUrl);
+        console.log("Uploadcare success - Image URL:", imageUrl);
+        
+        // Some Uploadcare configs return URLs without the protocol
+        // Make sure we have a complete URL
+        const formattedUrl = imageUrl.startsWith('//') 
+          ? `https:${imageUrl}` 
+          : imageUrl;
+        
+        console.log("Formatted URL being passed to parent:", formattedUrl);
+        onChange(formattedUrl);
         toast.success("Image uploaded successfully");
       }
-    }).fail((error: Error) => {
-      console.error("Upload error:", error);
-      toast.error("Failed to upload image. Please try again.");
-    }).always(() => {
-      setIsUploading(false);
     });
-  };
 
   return (
     <>
@@ -115,3 +118,4 @@ export default function ImageUpload({
     </>
   );
 } 
+}
