@@ -110,10 +110,12 @@ export async function POST(request: NextRequest) {
     
     const json = await request.json();
     console.log("Received event data:", json);
+    console.log("Image URL in received data:", json.imageUrl);
     
     try {
       const validatedData = eventSchema.parse(json);
       console.log("Validated event data:", validatedData);
+      console.log("Image URL after validation:", validatedData.imageUrl);
       
       // Create the event data object without spreading to avoid type issues
       const eventData: any = {
@@ -128,6 +130,9 @@ export async function POST(request: NextRequest) {
         imageUrl: validatedData.imageUrl || null, // Always include imageUrl, even if null
       };
       
+      console.log("Final event data being sent to database:", eventData);
+      console.log("Image URL in final data:", eventData.imageUrl);
+      
       // Add optional fields only if they exist
       if (validatedData.content) eventData.content = validatedData.content;
       if (validatedData.maxAttendees) eventData.maxAttendees = validatedData.maxAttendees;
@@ -139,6 +144,7 @@ export async function POST(request: NextRequest) {
       });
       
       console.log("Successfully created event:", event);
+      console.log("Image URL in created event:", event.imageUrl);
       return NextResponse.json(event, { status: 201 });
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {

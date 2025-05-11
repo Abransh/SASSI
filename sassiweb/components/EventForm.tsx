@@ -168,6 +168,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         return;
       }
       console.log("Complete form data before submission:", formData);
+      console.log("Image URL in form data:", formData.imageUrl);
 
       // Format time fields
       const startTimeFormatted = formData.startTime || "00:00";
@@ -182,19 +183,18 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         description: formData.description,
         content: formData.content || "",
         location: formData.location,
-        // Pass ISO strings that look like dates
         startDate: startDateISOString,
-        startTime: startTimeFormatted, // Keep this for validation
+        startTime: startTimeFormatted,
         endDate: endDateISOString,
-        endTime: endTimeFormatted, // Keep this for validation
-        // Other fields
+        endTime: endTimeFormatted,
         maxAttendees: formData.maxAttendees || null,
         price: formData.requiresPayment && formData.price ? formData.price : null,
         requiresPayment: formData.requiresPayment,
         published: formData.published,
-        imageUrl: formData.imageUrl || null, // Allow null for imageUrl
+        imageUrl: formData.imageUrl || null,
       };
       console.log("Request data being sent to API:", requestData);
+      console.log("Image URL in request data:", requestData.imageUrl);
 
       console.log(`${isEdit ? "Updating" : "Creating"} event:`, requestData);
 
@@ -483,11 +483,12 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
           <ImageUpload
             value={formData.imageUrl}
             onChange={(url) => {
-              console.log("Image URL received from Uploadcare:", url);
-              setFormData((prev) => ({
-                ...prev, 
-                imageUrl: url || undefined
-              }));
+              console.log("EventForm: Image URL received from ImageUpload:", url);
+              setFormData((prev) => {
+                const newState = { ...prev, imageUrl: url };
+                console.log("EventForm: Updated form state with image URL:", newState.imageUrl);
+                return newState;
+              });
             }}
             label={isEdit ? "Change Event Image" : "Upload Event Image"}
           />

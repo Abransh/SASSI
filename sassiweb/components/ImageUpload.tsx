@@ -71,7 +71,7 @@ export default function ImageUpload({
     dialog.done((file: UploadcareFile) => {
       if (file) {
         const imageUrl = file.cdnUrl;
-        console.log("Uploadcare success - Image URL:", imageUrl);
+        console.log("Uploadcare success - Raw Image URL:", imageUrl);
         
         // Some Uploadcare configs return URLs without the protocol
         // Make sure we have a complete URL
@@ -80,6 +80,7 @@ export default function ImageUpload({
           : imageUrl;
         
         console.log("Formatted URL being passed to parent:", formattedUrl);
+        console.log("Calling onChange with URL:", formattedUrl);
         onChange(formattedUrl);
         toast.success("Image uploaded successfully");
       } else {
@@ -90,6 +91,7 @@ export default function ImageUpload({
       console.error("Uploadcare upload failed:", error);
       toast.error("Failed to upload image: " + error.message);
     }).always(() => {
+      console.log("Uploadcare upload process completed");
       setIsUploading(false);
     });
   }
