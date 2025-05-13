@@ -2,14 +2,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { 
-  Download, Search, Filter, ArrowUpDown, Mail, 
+  Download, Search, ArrowUpDown, Mail, 
   CheckCircle, XCircle, Clock, Loader2, AlertTriangle,
   UserX, RefreshCw
 } from "lucide-react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 type Registration = {
@@ -40,6 +40,28 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [eventTitle, setEventTitle] = useState("");
 
+  // Safely format date with fallback for invalid dates
+  const safeFormatDate = (dateString: string, formatString: string, fallback: string = "Invalid date") => {
+    try {
+      // First check if it's a valid ISO string
+      const date = parseISO(dateString);
+      if (isValid(date)) {
+        return format(date, formatString);
+      }
+      
+      // Try parsing as a regular date as backup
+      const regularDate = new Date(dateString);
+      if (isValid(regularDate)) {
+        return format(regularDate, formatString);
+      }
+      
+      return fallback;
+    } catch (e) {
+      console.error("Error formatting date:", e);
+      return fallback;
+    }
+  };
+
   // Fetch registrations data
   const fetchRegistrations = async () => {
     setIsLoading(true);
@@ -55,8 +77,13 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
       const data = await response.json();
       setEventTitle(data.title);
       
-      // Extract registrations and sort by date (most recent first)
-      const fetchedRegistrations = data.registrations || [];
+      // Extract registrations and ensure all fields are properly formatted
+      const fetchedRegistrations = (data.registrations || []).map((reg: any) => ({
+        ...reg,
+        // Ensure createdAt is properly formatted or use a default
+        createdAt: reg.createdAt || new Date().toISOString()
+      }));
+      
       setRegistrations(fetchedRegistrations);
       
       // Apply initial sorting and filtering
@@ -84,8 +111,8 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
     if (search) {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(reg => 
-        reg.user.name?.toLowerCase().includes(searchLower) ||
-        reg.user.email.toLowerCase().includes(searchLower)
+        (reg.user?.name || "").toLowerCase().includes(searchLower) ||
+        (reg.user?.email || "").toLowerCase().includes(searchLower)
       );
     }
     
@@ -98,17 +125,23 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
     const sorted = [...filtered].sort((a, b) => {
       if (sort === "name") {
         return direction === "asc"
-          ? (a.user.name || "").localeCompare(b.user.name || "")
-          : (b.user.name || "").localeCompare(a.user.name || "");
+          ? ((a.user?.name || "") || "").localeCompare((b.user?.name || "") || "")
+          : ((b.user?.name || "") || "").localeCompare((a.user?.name || "") || "");
       } else if (sort === "date") {
-        return direction === "asc" 
-          ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        // Safely handle date sorting with validation
+        const aDate = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const bDate = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        
+        // Check for invalid dates and use timestamp 0 as a fallback
+        const aTime = isValid(aDate) ? aDate.getTime() : 0;
+        const bTime = isValid(bDate) ? bDate.getTime() : 0;
+        
+        return direction === "asc" ? aTime - bTime : bTime - aTime;
       } else if (sort === "status") {
         // Custom sort order: CONFIRMED, PENDING, CANCELLED
         const statusOrder = { "CONFIRMED": 0, "PENDING": 1, "CANCELLED": 2 };
-        const aValue = statusOrder[a.status as keyof typeof statusOrder];
-        const bValue = statusOrder[b.status as keyof typeof statusOrder];
+        const aValue = statusOrder[a.status as keyof typeof statusOrder] || 3; // Fallback for unknown status
+        const bValue = statusOrder[b.status as keyof typeof statusOrder] || 3;
         return direction === "asc" ? aValue - bValue : bValue - aValue;
       }
       return 0;
@@ -143,10 +176,10 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
     const headers = ["Name", "Email", "Registration Date", "Status", "Payment Status"];
     
     const rows = filteredRegistrations.map(reg => [
-      reg.user.name || "N/A",
-      reg.user.email,
-      format(new Date(reg.createdAt), "yyyy-MM-dd HH:mm:ss"),
-      reg.status,
+      reg.user?.name || "N/A",
+      reg.user?.email || "N/A",
+      reg.createdAt ? safeFormatDate(reg.createdAt, "yyyy-MM-dd HH:mm:ss", "N/A") : "N/A",
+      reg.status || "N/A",
       reg.paymentStatus || "N/A"
     ]);
     
@@ -199,7 +232,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
       default:
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-            {status}
+            {status || "Unknown"}
           </span>
         );
     }
@@ -352,27 +385,31 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-col">
                       <div className="text-sm font-medium text-gray-900">
-                        {registration.user.name || "No name provided"}
+                        {registration.user?.name || "No name provided"}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {registration.user.email}
+                        {registration.user?.email || "No email"}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {format(new Date(registration.createdAt), "MMM d, yyyy • h:mm a")}
+                    {registration.createdAt ? safeFormatDate(
+                      registration.createdAt, 
+                      "MMM d, yyyy • h:mm a",
+                      "Date unavailable"
+                    ) : "Date unavailable"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {renderStatusBadge(registration.status, registration.paymentStatus)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => sendReminder(registration.user.email)}
+                      onClick={() => sendReminder(registration.user?.email || "")}
                       className="text-orange-600 hover:text-orange-900 mr-4"
+                      disabled={!registration.user?.email}
                     >
                       <Mail size={16} />
                     </button>
-                    {/* You could add more actions here like deleting registrations */}
                   </td>
                 </tr>
               ))}
