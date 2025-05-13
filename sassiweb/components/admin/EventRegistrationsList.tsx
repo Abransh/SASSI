@@ -250,7 +250,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
   };
 
   // Handle sending reminder email to registrant
-  const sendReminder = async (email: string) => {
+  const sendEventReminderEmail = async (email: string) => {
     // This would connect to your email sending API endpoint
     toast.success(`Reminder email sent to ${email}`);
   };
