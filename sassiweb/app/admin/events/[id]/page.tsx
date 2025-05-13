@@ -43,11 +43,37 @@ export default async function EditEventPage(props: any) {
             {/* Pass isEdit={true} to signal this is an edit operation */}
             <EventForm event={event ?? undefined} isEdit={true} />
           </div>
-          
         </div>
-        
+        {/* Registrations Link Button */}
+        {event && (
+          <a
+            href={`/admin/events/${event.id}/registrations`}
+            className="inline-block mt-6"
+          >
+            <button
+              type="button"
+              className="bg-orange-600 hover:bg-orange-700 text-white flex items-center px-4 py-2 rounded"
+            >
+              {/* Users icon SVG */}
+              <svg
+                className="mr-2 h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m10-5.13a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM6 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0Z"
+                />
+              </svg>
+              View Registrations ({event._count?.registrations || 0})
+            </button>
+          </a>
+        )}
       </section>
-      
 
       <Footer />
     </main>
