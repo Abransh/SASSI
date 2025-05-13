@@ -43,8 +43,11 @@ export default async function EditEventPage(props: any) {
             {/* Pass isEdit={true} to signal this is an edit operation */}
             <EventForm event={event ?? undefined} isEdit={true} />
           </div>
+          
         </div>
+        
       </section>
+      
 
       <Footer />
     </main>
