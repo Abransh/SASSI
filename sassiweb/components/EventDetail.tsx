@@ -18,6 +18,15 @@ type EventDetailProps = {
   event: any; // We'll use any for now, but ideally this would match Event type
 };
 
+// Update the date formatting functions
+const formatEventDate = (date: string) => {
+  return format(new Date(date), "EEEE, MMMM d, yyyy");
+};
+
+const formatEventTime = (date: string) => {
+  return format(new Date(date), "h:mm a");
+};
+
 export default function EventDetail({ event }: EventDetailProps) {
   const { data: session } = useSession();
   const [isRegistered, setIsRegistered] = useState(false);
@@ -89,17 +98,16 @@ export default function EventDetail({ event }: EventDetailProps) {
   }, [event, session]);
 
   // Format dates
-  const formattedDate = format(new Date(event.startDate), "EEEE, MMMM d, yyyy");
+  const formattedDate = formatEventDate(event.startDate);
   const startDate = new Date(event.startDate);
   const endDate = new Date(event.endDate);
   
-  // Format time in 12-hour format with AM/PM, using UTC hours and minutes
-  const formattedStartTime = `${startDate.getUTCHours() % 12 || 12}:${startDate.getUTCMinutes().toString().padStart(2, '0')} ${startDate.getUTCHours() >= 12 ? 'PM' : 'AM'}`;
-  
-  const formattedEndTime = `${endDate.getUTCHours() % 12 || 12}:${endDate.getUTCMinutes().toString().padStart(2, '0')} ${endDate.getUTCHours() >= 12 ? 'PM' : 'AM'}`;
+  // Format time in 12-hour format with AM/PM
+  const formattedStartTime = formatEventTime(event.startDate);
+  const formattedEndTime = formatEventTime(event.endDate);
   
   const isMultiDay = !isSameDay(startDate, endDate);
-  const formattedEndDate = isMultiDay ? format(new Date(event.endDate), "EEEE, MMMM d, yyyy") : "";
+  const formattedEndDate = isMultiDay ? formatEventDate(event.endDate) : "";
 
   // Check if event is in the future
   const isUpcoming = isAfter(startDate, new Date());
@@ -174,7 +182,7 @@ export default function EventDetail({ event }: EventDetailProps) {
               {/* Event Status Badge */}
               <div className="relative">
                 {event.imageUrl ? (
-                  <div className="relative w-full md:aspect-[7/3] aspect-[4/5]">
+                  <div className="relative w-full md:aspect-[4/5] aspect-[4/5]">
                     <Image
                       src={event.imageUrl}
                       alt={event.title}

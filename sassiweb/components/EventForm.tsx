@@ -56,17 +56,14 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Default form values
+  // Update the default date handling
   const defaultStartDate = event ? new Date(event.startDate) : new Date();
   defaultStartDate.setMinutes(0);
   defaultStartDate.setSeconds(0);
   defaultStartDate.setMilliseconds(0);
 
-  const defaultEndDate = event ? new Date(event.endDate) : new Date();
-  defaultEndDate.setHours(defaultStartDate.getHours() + 2);
-  defaultEndDate.setMinutes(0);
-  defaultEndDate.setSeconds(0);
-  defaultEndDate.setMilliseconds(0);
+  // Only set default end date if it exists in the event
+  const defaultEndDate = event?.endDate ? new Date(event.endDate) : undefined;
 
   const [formData, setFormData] = useState<EventFormData>({
     title: event?.title || "",
@@ -75,8 +72,8 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     location: event?.location || "",
     startDate: format(defaultStartDate, "yyyy-MM-dd"),
     startTime: format(defaultStartDate, "HH:mm"),
-    endDate: event?.endDate ? format(new Date(event.endDate), "yyyy-MM-dd") : undefined,
-    endTime: event?.endDate ? format(new Date(event.endDate), "HH:mm") : undefined,
+    endDate: defaultEndDate ? format(defaultEndDate, "yyyy-MM-dd") : undefined,
+    endTime: defaultEndDate ? format(defaultEndDate, "HH:mm") : undefined,
     maxAttendees: event?.maxAttendees || undefined,
     price: event?.price || undefined,
     imageUrl: event?.imageUrl || undefined,
@@ -163,37 +160,34 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     setError(null);
 
     try {
-      // Validate form first
       if (!validateForm()) {
         setIsSubmitting(false);
         return;
       }
-      console.log("Complete form data before submission:", formData);
-      console.log("Image URL in form data:", formData.imageUrl);
 
-      // Format time fields
-      const startTimeFormatted = formData.startTime || "00:00";
-      const endTimeFormatted = formData.endTime || startTimeFormatted;
+      // Create local date objects
+      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+      let endDateTime = undefined;
 
-      // Create ISO-formatted strings that can pass as date strings
-      const startDateISOString = `${formData.startDate}T${startTimeFormatted}:00.000Z`;
-      const endDateISOString = `${formData.endDate || formData.startDate}T${endTimeFormatted}:00.000Z`;
+      // Only set end date/time if both are provided
+      if (formData.endDate && formData.endTime) {
+        endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+      }
 
       const requestData = {
         title: formData.title,
         description: formData.description,
         content: formData.content || "",
         location: formData.location,
-        startDate: startDateISOString,
-        startTime: startTimeFormatted,
-        endDate: endDateISOString,
-        endTime: endTimeFormatted,
+        startDate: startDateTime.toISOString(),
+        endDate: endDateTime ? endDateTime.toISOString() : startDateTime.toISOString(), // Use start date if no end date
         maxAttendees: formData.maxAttendees || null,
         price: formData.requiresPayment && formData.price ? formData.price : null,
         requiresPayment: formData.requiresPayment,
         published: formData.published,
         imageUrl: formData.imageUrl || null,
       };
+
       console.log("Request data being sent to API:", requestData);
       console.log("Image URL in request data:", requestData.imageUrl);
 
