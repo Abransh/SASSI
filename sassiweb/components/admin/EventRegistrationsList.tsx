@@ -6,7 +6,7 @@ import { format, isValid, parseISO } from "date-fns";
 import { 
   Download, Search, ArrowUpDown, Mail, 
   CheckCircle, XCircle, Clock, Loader2, AlertTriangle,
-  UserX, RefreshCw
+  UserX, RefreshCw, GraduationCap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,8 @@ type Registration = {
     id: string;
     name: string;
     email: string;
+    university?: string;
+    course?: string;
   };
 };
 
@@ -36,7 +38,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"name" | "date" | "status">("date");
+  const [sortBy, setSortBy] = useState<"name" | "date" | "status" | "university">("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [eventTitle, setEventTitle] = useState("");
 
@@ -84,6 +86,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
         createdAt: reg.createdAt || new Date().toISOString()
       }));
       
+      console.log("Fetched registrations:", fetchedRegistrations);
       setRegistrations(fetchedRegistrations);
       
       // Apply initial sorting and filtering
@@ -101,7 +104,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
     regs: Registration[],
     search: string,
     status: string,
-    sort: "name" | "date" | "status",
+    sort: "name" | "date" | "status" | "university",
     direction: "asc" | "desc"
   ) => {
     // First apply filters
@@ -112,7 +115,9 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(reg => 
         (reg.user?.name || "").toLowerCase().includes(searchLower) ||
-        (reg.user?.email || "").toLowerCase().includes(searchLower)
+        (reg.user?.email || "").toLowerCase().includes(searchLower) ||
+        (reg.user?.university || "").toLowerCase().includes(searchLower) ||
+        (reg.user?.course || "").toLowerCase().includes(searchLower)
       );
     }
     
@@ -127,6 +132,10 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
         return direction === "asc"
           ? ((a.user?.name || "") || "").localeCompare((b.user?.name || "") || "")
           : ((b.user?.name || "") || "").localeCompare((a.user?.name || "") || "");
+      } else if (sort === "university") {
+        return direction === "asc"
+          ? ((a.user?.university || "") || "").localeCompare((b.user?.university || "") || "")
+          : ((b.user?.university || "") || "").localeCompare((a.user?.university || "") || "");
       } else if (sort === "date") {
         // Safely handle date sorting with validation
         const aDate = a.createdAt ? new Date(a.createdAt) : new Date(0);
@@ -151,7 +160,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
   };
 
   // Handle sort toggle
-  const toggleSort = (field: "name" | "date" | "status") => {
+  const toggleSort = (field: "name" | "date" | "status" | "university") => {
     if (sortBy === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -173,11 +182,13 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
   // Handle exporting registrations to CSV
   const exportToCSV = () => {
     // Generate CSV content
-    const headers = ["Name", "Email", "Registration Date", "Status", "Payment Status"];
+    const headers = ["Name", "Email", "University", "Course/Program", "Registration Date", "Status", "Payment Status"];
     
     const rows = filteredRegistrations.map(reg => [
       reg.user?.name || "N/A",
       reg.user?.email || "N/A",
+      reg.user?.university || "Not specified",
+      reg.user?.course || "Not specified",
       reg.createdAt ? safeFormatDate(reg.createdAt, "yyyy-MM-dd HH:mm:ss", "N/A") : "N/A",
       reg.status || "N/A",
       reg.paymentStatus || "N/A"
@@ -290,7 +301,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <Input
               type="text"
-              placeholder="Search by name or email"
+              placeholder="Search name, email, or university"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 w-64 h-9"
@@ -347,6 +358,21 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => toggleSort("university")}
+                >
+                  <div className="flex items-center">
+                    University
+                    {sortBy === "university" && (
+                      <ArrowUpDown 
+                        size={14} 
+                        className={`ml-1 ${sortDirection === "asc" ? "transform rotate-180" : ""}`}
+                      />
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => toggleSort("date")}
                 >
                   <div className="flex items-center">
@@ -390,6 +416,19 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
                       <div className="text-sm text-gray-500">
                         {registration.user?.email || "No email"}
                       </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex flex-col">
+                      <div className="text-sm font-medium flex items-center">
+                        <GraduationCap size={14} className="text-orange-500 mr-1.5" />
+                        {registration.user?.university || "Not specified"}
+                      </div>
+                      {registration.user?.course && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {registration.user.course}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
