@@ -6,7 +6,7 @@ import { format, isValid, parseISO } from "date-fns";
 import { 
   Download, Search, ArrowUpDown, Mail, 
   CheckCircle, XCircle, Clock, Loader2, AlertTriangle,
-  UserX, RefreshCw, GraduationCap
+  UserX, RefreshCw, GraduationCap, SendHorizonal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,8 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
   const [sortBy, setSortBy] = useState<"name" | "date" | "status" | "university">("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [eventTitle, setEventTitle] = useState("");
+  const [event, setEvent] = useState<any>(null);
+  const [isSendingBulkEmail, setIsSendingBulkEmail] = useState(false);
 
   // Safely format date with fallback for invalid dates
   const safeFormatDate = (dateString: string, formatString: string, fallback: string = "Invalid date") => {
@@ -70,7 +72,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
     setError(null);
     
     try {
-      const response = await fetch(`/api/events/${eventId}?includeRegistrations=true`);
+      const response = await fetch(`/api/events/${eventId}`);
       
       if (!response.ok) {
         throw new Error("Failed to fetch event registrations");
@@ -78,6 +80,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
       
       const data = await response.json();
       setEventTitle(data.title);
+      setEvent(data);
       
       // Extract registrations and ensure all fields are properly formatted
       const fetchedRegistrations = (data.registrations || []).map((reg: any) => ({
@@ -250,9 +253,91 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
   };
 
   // Handle sending reminder email to registrant
-  const sendEventReminderEmail = async (email: string) => {
-    // This would connect to your email sending API endpoint
-    toast.success(`Reminder email sent to ${email}`);
+  const sendReminder = async (userEmail: string, userName: string) => {
+    if (!event) {
+      toast.error("Event details not available. Please refresh the page.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/events/${eventId}/send-reminder`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userEmail,
+          userName,
+          eventTitle: event.title,
+          eventDate: event.startDate,
+          eventLocation: event.location
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to send reminder");
+      }
+
+      toast.success(`Reminder email sent to ${userName || userEmail}`);
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+      toast.error(`Failed to send reminder: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  };
+  
+  // Handle sending bulk email to all registrants
+  const sendBulkReminders = async () => {
+    if (!event) {
+      toast.error("Event details not available. Please refresh the page.");
+      return;
+    }
+    
+    // Only send to confirmed registrations
+    const confirmedRegistrations = filteredRegistrations.filter(reg => 
+      reg.status === "CONFIRMED" && reg.user?.email
+    );
+    
+    if (confirmedRegistrations.length === 0) {
+      toast.error("No confirmed registrations to send reminders to.");
+      return;
+    }
+    
+    if (!confirm(`Are you sure you want to send reminders to all ${confirmedRegistrations.length} confirmed registrants?`)) {
+      return;
+    }
+    
+    setIsSendingBulkEmail(true);
+    
+    try {
+      const response = await fetch(`/api/events/${eventId}/send-bulk-reminders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          registrations: confirmedRegistrations.map(reg => ({
+            email: reg.user.email,
+            name: reg.user.name
+          })),
+          eventTitle: event.title,
+          eventDate: event.startDate,
+          eventLocation: event.location
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to send bulk reminders");
+      }
+      
+      toast.success(`Reminder emails sent to ${confirmedRegistrations.length} registrants!`);
+    } catch (error) {
+      console.error("Error sending bulk reminders:", error);
+      toast.error(`Failed to send bulk reminders: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsSendingBulkEmail(false);
+    }
   };
   
   // Render loading state
@@ -321,17 +406,35 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
           </select>
         </div>
         
-        {/* Export Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={exportToCSV}
-          disabled={filteredRegistrations.length === 0}
-          className="flex items-center"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Export CSV
-        </Button>
+        <div className="flex gap-3">
+          {/* Bulk Email Button */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={sendBulkReminders}
+            disabled={filteredRegistrations.filter(r => r.status === "CONFIRMED").length === 0 || isSendingBulkEmail}
+            className="flex items-center bg-orange-600 hover:bg-orange-700"
+          >
+            {isSendingBulkEmail ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <SendHorizonal className="mr-2 h-4 w-4" />
+            )}
+            Send Reminders to All
+          </Button>
+          
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportToCSV}
+            disabled={filteredRegistrations.length === 0}
+            className="flex items-center"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
       </div>
       
       {/* Registration Table */}
@@ -443,11 +546,15 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => sendReminder(registration.user?.email || "")}
+                      onClick={() => sendReminder(
+                        registration.user?.email || "", 
+                        registration.user?.name || ""
+                      )}
                       className="text-orange-600 hover:text-orange-900 mr-4"
-                      disabled={!registration.user?.email}
+                      disabled={!registration.user?.email || registration.status !== "CONFIRMED"}
+                      title={registration.status !== "CONFIRMED" ? "Only confirmed registrations can receive reminders" : "Send reminder email"}
                     >
-                      <Mail size={16} />
+                      <Mail size={16} className={registration.status !== "CONFIRMED" ? "opacity-40" : ""} />
                     </button>
                   </td>
                 </tr>
