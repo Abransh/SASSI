@@ -175,9 +175,13 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       const startTimeFormatted = formData.startTime || "00:00";
       const endTimeFormatted = formData.endTime || startTimeFormatted;
 
-      // Create ISO-formatted strings that can pass as date strings
-      const startDateISOString = `${formData.startDate}T${startTimeFormatted}:00.000Z`;
-      const endDateISOString = `${formData.endDate || formData.startDate}T${endTimeFormatted}:00.000Z`;
+      // Create date objects in local timezone
+      const startDateTime = new Date(`${formData.startDate}T${startTimeFormatted}`);
+      const endDateTime = new Date(`${formData.endDate || formData.startDate}T${endTimeFormatted}`);
+
+      // Convert to ISO strings while preserving the local time
+      const startDateISOString = startDateTime.toISOString();
+      const endDateISOString = endDateTime.toISOString();
 
       const requestData = {
         title: formData.title,
@@ -185,9 +189,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         content: formData.content || "",
         location: formData.location,
         startDate: startDateISOString,
-        startTime: startTimeFormatted,
         endDate: endDateISOString,
-        endTime: endTimeFormatted,
         maxAttendees: formData.maxAttendees || null,
         price: formData.requiresPayment && formData.price ? formData.price : null,
         requiresPayment: formData.requiresPayment,
