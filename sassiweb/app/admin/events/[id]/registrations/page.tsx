@@ -8,15 +8,24 @@ import EventRegistrationsList from "@/components/admin/EventRegistrationsList";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-export default async function EventRegistrationsPage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function EventRegistrationsPage({ 
+  params,
+  searchParams 
+}: PageProps) {
   // Check authentication
+  const resolvedParams = await params;
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "ADMIN") {
-    redirect("/auth/signin?callbackUrl=/admin/events/" + params.id + "/registrations");
+    redirect("/auth/signin?callbackUrl=/admin/events/" + resolvedParams.id + "/registrations");
   }
 
   // Fetch event details
-  const event = await getEvent(params.id);
+  const event = await getEvent(resolvedParams.id);
   if (!event) {
     notFound();
   }
@@ -25,7 +34,7 @@ export default async function EventRegistrationsPage({ params }: { params: { id:
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Event Registrations</h1>
-        <Link href={`/admin/events/${params.id}`}>
+        <Link href={`/admin/events/${resolvedParams.id}`}>
           <Button variant="outline" className="flex items-center">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Event
@@ -54,7 +63,7 @@ export default async function EventRegistrationsPage({ params }: { params: { id:
       </div>
 
       {/* Registrations List */}
-      <EventRegistrationsList eventId={params.id} />
+      <EventRegistrationsList eventId={resolvedParams.id} />
     </div>
   );
 }
