@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Calendar, Clock, MapPin, Image, Users, Save, Trash } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Event } from "@/types/event";
@@ -50,6 +50,16 @@ type EventFormProps = {
   isEdit?: boolean;
 };
 
+// Add this helper function at the top
+const createLocalDate = (dateStr: string, timeStr: string) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  
+  // Create date in local timezone
+  const date = new Date(year, month - 1, day, hours, minutes);
+  return date;
+};
+
 export default function EventForm({ event, isEdit = false }: EventFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,13 +67,13 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
   const [error, setError] = useState<string | null>(null);
 
   // Update the default date handling
-  const defaultStartDate = event ? new Date(event.startDate) : new Date();
+  const defaultStartDate = event ? parseISO(event.startDate) : new Date();
   defaultStartDate.setMinutes(0);
   defaultStartDate.setSeconds(0);
   defaultStartDate.setMilliseconds(0);
 
   // Only set default end date if it exists in the event
-  const defaultEndDate = event?.endDate ? new Date(event.endDate) : undefined;
+  const defaultEndDate = event?.endDate ? parseISO(event.endDate) : undefined;
 
   const [formData, setFormData] = useState<EventFormData>({
     title: event?.title || "",
@@ -165,13 +175,13 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         return;
       }
 
-      // Create local date objects
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+      // Create dates in local timezone
+      const startDateTime = createLocalDate(formData.startDate, formData.startTime);
       let endDateTime = undefined;
 
       // Only set end date/time if both are provided
       if (formData.endDate && formData.endTime) {
-        endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+        endDateTime = createLocalDate(formData.endDate, formData.endTime);
       }
 
       const requestData = {
@@ -180,7 +190,7 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         content: formData.content || "",
         location: formData.location,
         startDate: startDateTime.toISOString(),
-        endDate: endDateTime ? endDateTime.toISOString() : startDateTime.toISOString(), // Use start date if no end date
+        endDate: endDateTime ? endDateTime.toISOString() : startDateTime.toISOString(),
         maxAttendees: formData.maxAttendees || null,
         price: formData.requiresPayment && formData.price ? formData.price : null,
         requiresPayment: formData.requiresPayment,

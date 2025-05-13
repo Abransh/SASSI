@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { format, isSameDay, formatDistanceToNow, isAfter } from "date-fns";
+import { format, isSameDay, formatDistanceToNow, isAfter, parseISO } from "date-fns";
 import { Calendar, Clock, MapPin, Users, Share2, ArrowLeft, Plus, ExternalLink, CreditCard, Tag, Calendar as CalendarIcon } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -20,11 +20,16 @@ type EventDetailProps = {
 
 // Update the date formatting functions
 const formatEventDate = (date: string) => {
-  return format(new Date(date), "EEEE, MMMM d, yyyy");
+  return format(parseISO(date), "EEEE, MMMM d, yyyy");
 };
 
 const formatEventTime = (date: string) => {
-  return format(new Date(date), "h:mm a");
+  return format(parseISO(date), "h:mm a");
+};
+
+// Add this helper function at the top of the file
+const getLocalImagePath = (eventId: string) => {
+  return `/event-images/${eventId}.jpg`;
 };
 
 export default function EventDetail({ event }: EventDetailProps) {
@@ -99,8 +104,8 @@ export default function EventDetail({ event }: EventDetailProps) {
 
   // Format dates
   const formattedDate = formatEventDate(event.startDate);
-  const startDate = new Date(event.startDate);
-  const endDate = new Date(event.endDate);
+  const startDate = parseISO(event.startDate);
+  const endDate = parseISO(event.endDate);
   
   // Format time in 12-hour format with AM/PM
   const formattedStartTime = formatEventTime(event.startDate);
@@ -183,13 +188,23 @@ export default function EventDetail({ event }: EventDetailProps) {
               <div className="relative">
                 {event.imageUrl ? (
                   <div className="relative w-full md:aspect-[4/5] aspect-[4/5]">
+                    {/* Desktop Image */}
                     <Image
                       src={event.imageUrl}
                       alt={event.title}
                       fill
-                      className="object-cover"
+                      className="object-cover hidden md:block"
                       priority
-                      sizes="(max-width: 768px) 100vw, 66vw"
+                      sizes="(min-width: 768px) 66vw, 0vw"
+                    />
+                    {/* Mobile Image */}
+                    <Image
+                      src={getLocalImagePath(event.id)}
+                      alt={event.title}
+                      fill
+                      className="object-cover md:hidden"
+                      priority
+                      sizes="(max-width: 767px) 100vw, 0vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                   </div>
