@@ -164,10 +164,10 @@ export default async function AdminEventsList() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                         <Link 
-                          href={`/events/${event.id}`} 
+                          href={`/admin/events/${event.id}/registrations`}
                           className="text-blue-600 hover:text-blue-900"
                         >
-                          View
+                          View Registrations
                         </Link>
                         <Link 
                           href={`/admin/events/${event.id}`} 
