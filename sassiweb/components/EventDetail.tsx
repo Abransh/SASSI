@@ -18,13 +18,25 @@ type EventDetailProps = {
   event: any; // We'll use any for now, but ideally this would match Event type
 };
 
-// Update the date formatting functions
-const formatEventDate = (date: string) => {
-  return format(parseISO(date), "EEEE, MMMM d, yyyy");
+// Update the date formatting functions with proper error handling
+const formatEventDate = (date: string | undefined) => {
+  if (!date) return '';
+  try {
+    return format(parseISO(date), "EEEE, MMMM d, yyyy");
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
 };
 
-const formatEventTime = (date: string) => {
-  return format(parseISO(date), "h:mm a");
+const formatEventTime = (date: string | undefined) => {
+  if (!date) return '';
+  try {
+    return format(parseISO(date), "h:mm a");
+  } catch (error) {
+    console.error('Error formatting time:', error);
+    return 'Invalid time';
+  }
 };
 
 // Add this helper function at the top of the file
@@ -102,18 +114,28 @@ export default function EventDetail({ event }: EventDetailProps) {
     }
   }, [event, session]);
 
-  // Format dates
+  // Format dates with error handling
   const formattedDate = formatEventDate(event.startDate);
-  const startDate = parseISO(event.startDate);
-  const endDate = parseISO(event.endDate);
+  let startDate: Date;
+  let endDate: Date;
+  let isMultiDay = false;
+  let formattedEndDate = '';
+
+  try {
+    startDate = parseISO(event.startDate);
+    endDate = parseISO(event.endDate);
+    isMultiDay = !isSameDay(startDate, endDate);
+    formattedEndDate = isMultiDay ? formatEventDate(event.endDate) : '';
+  } catch (error) {
+    console.error('Error parsing dates:', error);
+    startDate = new Date();
+    endDate = new Date();
+  }
   
   // Format time in 12-hour format with AM/PM
   const formattedStartTime = formatEventTime(event.startDate);
   const formattedEndTime = formatEventTime(event.endDate);
   
-  const isMultiDay = !isSameDay(startDate, endDate);
-  const formattedEndDate = isMultiDay ? formatEventDate(event.endDate) : "";
-
   // Check if event is in the future
   const isUpcoming = isAfter(startDate, new Date());
   

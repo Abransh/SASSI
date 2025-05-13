@@ -50,14 +50,34 @@ type EventFormProps = {
   isEdit?: boolean;
 };
 
-// Add this helper function at the top
-const createLocalDate = (dateStr: string, timeStr: string) => {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  
-  // Create date in local timezone
-  const date = new Date(year, month - 1, day, hours, minutes);
-  return date;
+// Update the helper function with proper type checking
+const createLocalDate = (dateStr: string | undefined, timeStr: string | undefined) => {
+  if (!dateStr || !timeStr) {
+    throw new Error('Date and time are required');
+  }
+
+  try {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    
+    // Validate the parsed numbers
+    if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) {
+      throw new Error('Invalid date or time format');
+    }
+    
+    // Create date in local timezone
+    const date = new Date(year, month - 1, day, hours, minutes);
+    
+    // Validate the created date
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+    
+    return date;
+  } catch (error) {
+    console.error('Error creating date:', error);
+    throw new Error('Invalid date format');
+  }
 };
 
 export default function EventForm({ event, isEdit = false }: EventFormProps) {
@@ -175,13 +195,19 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
         return;
       }
 
-      // Create dates in local timezone
-      const startDateTime = createLocalDate(formData.startDate, formData.startTime);
-      let endDateTime = undefined;
+      // Create dates in local timezone with error handling
+      let startDateTime: Date;
+      let endDateTime: Date | undefined;
 
-      // Only set end date/time if both are provided
-      if (formData.endDate && formData.endTime) {
-        endDateTime = createLocalDate(formData.endDate, formData.endTime);
+      try {
+        startDateTime = createLocalDate(formData.startDate, formData.startTime);
+        
+        // Only set end date/time if both are provided
+        if (formData.endDate && formData.endTime) {
+          endDateTime = createLocalDate(formData.endDate, formData.endTime);
+        }
+      } catch (error) {
+        throw new Error('Invalid date or time format');
       }
 
       const requestData = {
@@ -238,9 +264,9 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       router.push(`/admin/events/${eventId}`);
       router.refresh();
     } catch (err) {
-      console.error(`Error ${isEdit ? "updating" : "saving"} event:`, err);
-      setError(err instanceof Error ? err.message : `Failed to ${isEdit ? "update" : "create"} event. Please try again.`);
-      toast.error(`Failed to ${isEdit ? "update" : "create"} event. Please check the form for errors.`);
+      console.error('Form submission error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to submit form');
+      toast.error(err instanceof Error ? err.message : 'Failed to submit form');
     } finally {
       setIsSubmitting(false);
     }
