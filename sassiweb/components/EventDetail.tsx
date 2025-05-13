@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { format, isSameDay, formatDistanceToNow, isAfter, parseISO } from "date-fns";
+import { format, isSameDay, formatDistanceToNow, isAfter } from "date-fns";
 import { Calendar, Clock, MapPin, Users, Share2, ArrowLeft, Plus, ExternalLink, CreditCard, Tag, Calendar as CalendarIcon } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -16,32 +16,6 @@ import { cn } from "@/lib/utils";
 
 type EventDetailProps = {
   event: any; // We'll use any for now, but ideally this would match Event type
-};
-
-// Update the date formatting functions with proper error handling
-const formatEventDate = (date: string | undefined) => {
-  if (!date) return '';
-  try {
-    return format(parseISO(date), "EEEE, MMMM d, yyyy");
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return 'Invalid date';
-  }
-};
-
-const formatEventTime = (date: string | undefined) => {
-  if (!date) return '';
-  try {
-    return format(parseISO(date), "h:mm a");
-  } catch (error) {
-    console.error('Error formatting time:', error);
-    return 'Invalid time';
-  }
-};
-
-// Add this helper function at the top of the file
-const getLocalImagePath = (eventId: string) => {
-  return `/event-images/${eventId}.jpg`;
 };
 
 export default function EventDetail({ event }: EventDetailProps) {
@@ -114,28 +88,19 @@ export default function EventDetail({ event }: EventDetailProps) {
     }
   }, [event, session]);
 
-  // Format dates with error handling
-  const formattedDate = formatEventDate(event.startDate);
-  let startDate: Date;
-  let endDate: Date;
-  let isMultiDay = false;
-  let formattedEndDate = '';
+  // Format dates
+  const formattedDate = format(new Date(event.startDate), "EEEE, MMMM d, yyyy");
+  const startDate = new Date(event.startDate);
+  const endDate = new Date(event.endDate);
+  
+  // Format time in 12-hour format with AM/PM, using UTC hours and minutes
+  const formattedStartTime = `${startDate.getUTCHours() % 12 || 12}:${startDate.getUTCMinutes().toString().padStart(2, '0')} ${startDate.getUTCHours() >= 12 ? 'PM' : 'AM'}`;
+  
+  const formattedEndTime = `${endDate.getUTCHours() % 12 || 12}:${endDate.getUTCMinutes().toString().padStart(2, '0')} ${endDate.getUTCHours() >= 12 ? 'PM' : 'AM'}`;
+  
+  const isMultiDay = !isSameDay(startDate, endDate);
+  const formattedEndDate = isMultiDay ? format(new Date(event.endDate), "EEEE, MMMM d, yyyy") : "";
 
-  try {
-    startDate = parseISO(event.startDate);
-    endDate = parseISO(event.endDate);
-    isMultiDay = !isSameDay(startDate, endDate);
-    formattedEndDate = isMultiDay ? formatEventDate(event.endDate) : '';
-  } catch (error) {
-    console.error('Error parsing dates:', error);
-    startDate = new Date();
-    endDate = new Date();
-  }
-  
-  // Format time in 12-hour format with AM/PM
-  const formattedStartTime = formatEventTime(event.startDate);
-  const formattedEndTime = formatEventTime(event.endDate);
-  
   // Check if event is in the future
   const isUpcoming = isAfter(startDate, new Date());
   
@@ -209,24 +174,14 @@ export default function EventDetail({ event }: EventDetailProps) {
               {/* Event Status Badge */}
               <div className="relative">
                 {event.imageUrl ? (
-                  <div className="relative w-full md:aspect-[4/5] aspect-[4/5]">
-                    {/* Desktop Image */}
+                  <div className="relative w-full md:aspect-[7/3] aspect-[4/5]">
                     <Image
                       src={event.imageUrl}
                       alt={event.title}
                       fill
-                      className="object-cover hidden md:block"
+                      className="object-cover"
                       priority
-                      sizes="(min-width: 768px) 66vw, 0vw"
-                    />
-                    {/* Mobile Image */}
-                    <Image
-                      src={getLocalImagePath(event.id)}
-                      alt={event.title}
-                      fill
-                      className="object-cover md:hidden"
-                      priority
-                      sizes="(max-width: 767px) 100vw, 0vw"
+                      sizes="(max-width: 768px) 100vw, 66vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                   </div>

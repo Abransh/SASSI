@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Calendar, Clock, MapPin, Image, Users, Save, Trash } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Event } from "@/types/event";
@@ -50,50 +50,23 @@ type EventFormProps = {
   isEdit?: boolean;
 };
 
-// Update the helper function with proper type checking
-const createLocalDate = (dateStr: string | undefined, timeStr: string | undefined) => {
-  if (!dateStr || !timeStr) {
-    throw new Error('Date and time are required');
-  }
-
-  try {
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    
-    // Validate the parsed numbers
-    if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) {
-      throw new Error('Invalid date or time format');
-    }
-    
-    // Create date in local timezone
-    const date = new Date(year, month - 1, day, hours, minutes);
-    
-    // Validate the created date
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid date');
-    }
-    
-    return date;
-  } catch (error) {
-    console.error('Error creating date:', error);
-    throw new Error('Invalid date format');
-  }
-};
-
 export default function EventForm({ event, isEdit = false }: EventFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Update the default date handling
-  const defaultStartDate = event ? parseISO(event.startDate) : new Date();
+  // Default form values
+  const defaultStartDate = event ? new Date(event.startDate) : new Date();
   defaultStartDate.setMinutes(0);
   defaultStartDate.setSeconds(0);
   defaultStartDate.setMilliseconds(0);
 
-  // Only set default end date if it exists in the event
-  const defaultEndDate = event?.endDate ? parseISO(event.endDate) : undefined;
+  const defaultEndDate = event ? new Date(event.endDate) : new Date();
+  defaultEndDate.setHours(defaultStartDate.getHours() + 2);
+  defaultEndDate.setMinutes(0);
+  defaultEndDate.setSeconds(0);
+  defaultEndDate.setMilliseconds(0);
 
   const [formData, setFormData] = useState<EventFormData>({
     title: event?.title || "",
@@ -102,8 +75,8 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     location: event?.location || "",
     startDate: format(defaultStartDate, "yyyy-MM-dd"),
     startTime: format(defaultStartDate, "HH:mm"),
-    endDate: defaultEndDate ? format(defaultEndDate, "yyyy-MM-dd") : undefined,
-    endTime: defaultEndDate ? format(defaultEndDate, "HH:mm") : undefined,
+    endDate: event?.endDate ? format(new Date(event.endDate), "yyyy-MM-dd") : undefined,
+    endTime: event?.endDate ? format(new Date(event.endDate), "HH:mm") : undefined,
     maxAttendees: event?.maxAttendees || undefined,
     price: event?.price || undefined,
     imageUrl: event?.imageUrl || undefined,
@@ -190,40 +163,37 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
     setError(null);
 
     try {
+      // Validate form first
       if (!validateForm()) {
         setIsSubmitting(false);
         return;
       }
+      console.log("Complete form data before submission:", formData);
+      console.log("Image URL in form data:", formData.imageUrl);
 
-      // Create dates in local timezone with error handling
-      let startDateTime: Date;
-      let endDateTime: Date | undefined;
+      // Format time fields
+      const startTimeFormatted = formData.startTime || "00:00";
+      const endTimeFormatted = formData.endTime || startTimeFormatted;
 
-      try {
-        startDateTime = createLocalDate(formData.startDate, formData.startTime);
-        
-        // Only set end date/time if both are provided
-        if (formData.endDate && formData.endTime) {
-          endDateTime = createLocalDate(formData.endDate, formData.endTime);
-        }
-      } catch (error) {
-        throw new Error('Invalid date or time format');
-      }
+      // Create ISO-formatted strings that can pass as date strings
+      const startDateISOString = `${formData.startDate}T${startTimeFormatted}:00.000Z`;
+      const endDateISOString = `${formData.endDate || formData.startDate}T${endTimeFormatted}:00.000Z`;
 
       const requestData = {
         title: formData.title,
         description: formData.description,
         content: formData.content || "",
         location: formData.location,
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime ? endDateTime.toISOString() : startDateTime.toISOString(),
+        startDate: startDateISOString,
+        startTime: startTimeFormatted,
+        endDate: endDateISOString,
+        endTime: endTimeFormatted,
         maxAttendees: formData.maxAttendees || null,
         price: formData.requiresPayment && formData.price ? formData.price : null,
         requiresPayment: formData.requiresPayment,
         published: formData.published,
         imageUrl: formData.imageUrl || null,
       };
-
       console.log("Request data being sent to API:", requestData);
       console.log("Image URL in request data:", requestData.imageUrl);
 
@@ -264,9 +234,9 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       router.push(`/admin/events/${eventId}`);
       router.refresh();
     } catch (err) {
-      console.error('Form submission error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to submit form');
-      toast.error(err instanceof Error ? err.message : 'Failed to submit form');
+      console.error(`Error ${isEdit ? "updating" : "saving"} event:`, err);
+      setError(err instanceof Error ? err.message : `Failed to ${isEdit ? "update" : "create"} event. Please try again.`);
+      toast.error(`Failed to ${isEdit ? "update" : "create"} event. Please check the form for errors.`);
     } finally {
       setIsSubmitting(false);
     }
