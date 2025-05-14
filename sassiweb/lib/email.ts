@@ -56,7 +56,8 @@ export async function sendEventRegistrationEmail(
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true, 
+      timeZone: 'Europe/Rome'
     }).format(eventDate);
 
     const { data, error } = await resend.emails.send({
@@ -68,7 +69,7 @@ export async function sendEventRegistrationEmail(
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p> <br><br>
-        <p> For any help contact the organisers +39 349 2385 255 (Siddhu) or +39 380 1052 451(Abransh Baliyan)  
+        <p> For any help contact the organisers +91 8667705914  
                  </p>                
         <p>Please join our WhatsApp group for event updates and discussions:</p> 
       
