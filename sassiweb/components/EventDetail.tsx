@@ -240,7 +240,7 @@ export default function EventDetail({ event }: EventDetailProps) {
                 
                 {/* Event Title */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <h1 className="text-3xl md:text-4xl font-bold mb-2">{event.title}</h1>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">{event.title}</h1>
                   <div className="flex flex-wrap items-center text-sm opacity-90 gap-x-4 gap-y-2">
                     <div className="flex items-center">
                       <Calendar className="mr-1 h-4 w-4" />
