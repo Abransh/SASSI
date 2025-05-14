@@ -54,8 +54,10 @@ export async function sendEventRegistrationEmail(
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      
-    
+      // hour: 'numeric',
+      // minute: '2-digit',
+      // hour12: true, 
+      // timeZone: 'Europe/Rome'
     }).format(eventDate);
 
     const { data, error } = await resend.emails.send({
@@ -67,16 +69,10 @@ export async function sendEventRegistrationEmail(
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p> <br><br>
+        <p><strong>Event Time:</strong> 10:30PM onwards</p> <br><br>
         <p> For any help contact the organisers +91 8667705914  
                  </p>                
-        <p>Please join our WhatsApp group for event updates and discussions:</p> 
-      
-        <p style="margin: 20px 0;">
-          <a href="https://chat.whatsapp.com/HGPj3vWtwIj7ecdMz2akEU" 
-             style="background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-            Join WhatsApp Group
-          </a>
-        </p>
+        
         <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
         <p>Best regards,<br>The SASSI Team</p>
       `,
