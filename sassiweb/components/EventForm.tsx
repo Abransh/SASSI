@@ -176,8 +176,8 @@ export default function EventForm({ event, isEdit = false }: EventFormProps) {
       const endTimeFormatted = formData.endTime || startTimeFormatted;
 
       // Create ISO-formatted strings that can pass as date strings
-      const startDateISOString = `${formData.startDate}T${startTimeFormatted}:00.000Z`;
-      const endDateISOString = `${formData.endDate || formData.startDate}T${endTimeFormatted}:00.000Z`;
+      const startDateISOString = `${formData.startDate}T${startTimeFormatted}:00.000`;
+      const endDateISOString = `${formData.endDate || formData.startDate}T${endTimeFormatted}:00.000`;
 
       const requestData = {
         title: formData.title,
