@@ -45,38 +45,46 @@ const nextConfig = {
     return config;
   },
   async headers() {
-    return [{
-      source: '/:path*',
-      headers: [{
-          key: 'Content-Security-Policy',
-          value: `
-            default-src 'self';
-            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ucarecdn.com https://*.uploadcare.com;
-            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-            img-src 'self' data: blob: https://*.uploadcare.com https://*.cloudinary.com https://ucarecdn.com;
-            font-src 'self' https://fonts.gstatic.com;
-            connect-src 'self' https://*.uploadcare.com wss://*.uploadcare.com wss://ws.pusherapp.com;
-            frame-src 'self' https://*.uploadcare.com;
-          `.replace(/\s+/g, ' ').trim()
-        },
-        {
-          key: 'X-Content-Type-Options',
-          value: 'nosniff'
-        },
-        {
-          key: 'X-Frame-Options',
-          value: 'DENY'
-        },
-        {
-          key: 'X-XSS-Protection',
-          value: '1; mode=block'
-        },
-        {
-          key: 'Referrer-Policy',
-          value: 'strict-origin-when-cross-origin'
-        }
-      ]
-    }]
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: `
+              default-src 'self';
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.uploadcare.com https://maps.googleapis.com;
+              style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+              img-src 'self' data: blob: https://*.uploadcare.com https://maps.googleapis.com https://maps.gstatic.com;
+              font-src 'self' https://fonts.gstatic.com;
+              connect-src 'self' https://*.uploadcare.com https://maps.googleapis.com;
+              frame-src 'self' https://*.uploadcare.com https://www.google.com https://maps.google.com;
+              object-src 'none';
+              base-uri 'self';
+              form-action 'self';
+              frame-ancestors 'none';
+              upgrade-insecure-requests;
+            `.replace(/\s+/g, ' ').trim()
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          }
+        ]
+      }
+    ];
   },
   // Add Uploadcare script to the page
   async rewrites() {

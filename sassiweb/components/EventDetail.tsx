@@ -89,19 +89,17 @@ export default function EventDetail({ event }: EventDetailProps) {
   }, [event, session]);
 
   // Format dates
+  const formattedDate = format(new Date(event.startDate), "EEEE, MMMM d, yyyy");
   const startDate = new Date(event.startDate);
   const endDate = new Date(event.endDate);
   
-  // Format date in local timezone
-  const formattedDate = format(startDate, "EEEE, MMMM d, yyyy");
+  // Format time in 12-hour format with AM/PM, using UTC hours and minutes
+  const formattedStartTime = `${startDate.getUTCHours() % 12 || 12}:${startDate.getUTCMinutes().toString().padStart(2, '0')} ${startDate.getUTCHours() >= 12 ? 'PM' : 'AM'}`;
   
-  // Format time in 12-hour format with AM/PM, using local time
-  const formattedStartTime = format(startDate, "h:mm a");
-  const formattedEndTime = format(endDate, "h:mm a");
+  const formattedEndTime = `${endDate.getUTCHours() % 12 || 12}:${endDate.getUTCMinutes().toString().padStart(2, '0')} ${endDate.getUTCHours() >= 12 ? 'PM' : 'AM'}`;
   
-  // Check if event spans multiple days
   const isMultiDay = !isSameDay(startDate, endDate);
-  const formattedEndDate = isMultiDay ? format(endDate, "EEEE, MMMM d, yyyy") : "";
+  const formattedEndDate = isMultiDay ? format(new Date(event.endDate), "EEEE, MMMM d, yyyy") : "";
 
   // Check if event is in the future
   const isUpcoming = isAfter(startDate, new Date());
