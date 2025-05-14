@@ -171,7 +171,7 @@ export default async function AdminEventsList() {
                         </Link>
                         <Link 
                           href={`/admin/events/${event.id}/registrations`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-green-600 hover:text-green-900"
                         >
                           View Registrations
                         </Link>
