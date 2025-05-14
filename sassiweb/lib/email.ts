@@ -54,10 +54,8 @@ export async function sendEventRegistrationEmail(
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true, 
-      timeZone: 'Europe/Rome'
+      
+    
     }).format(eventDate);
 
     const { data, error } = await resend.emails.send({
