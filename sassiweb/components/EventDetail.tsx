@@ -25,6 +25,23 @@ export default function EventDetail({ event }: EventDetailProps) {
   const [attendeeCount, setAttendeeCount] = useState(0);
   const [activeTab, setActiveTab] = useState<'details' | 'location' | 'gallery'>('details');
   const [copied, setCopied] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Add screen size detection
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is typical mobile breakpoint
+    };
+
+    // Check initially
+    checkScreenSize();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Check registration status and event capacity
   useEffect(() => {
@@ -175,14 +192,25 @@ export default function EventDetail({ event }: EventDetailProps) {
               <div className="relative">
                 {event.imageUrl ? (
                   <div className="relative w-full md:aspect-[7/3] aspect-[4/5]">
-                    <Image
-                      src={event.imageUrl}
-                      alt={event.title}
-                      fill
-                      className="object-cover"
-                      priority
-                      sizes="(max-width: 768px) 100vw, 66vw"
-                    />
+                    {isMobile ? (
+                      <Image
+                        src={`/event-images/${event.id}.jpeg`}
+                        alt={`${event.title} - Mobile View`}
+                        fill
+                        className="object-cover"
+                        priority
+                        sizes="100vw"
+                      />
+                    ) : (
+                      <Image
+                        src={event.imageUrl}
+                        alt={event.title}
+                        fill
+                        className="object-cover"
+                        priority
+                        sizes="66vw"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                   </div>
                 ) : (
