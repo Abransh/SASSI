@@ -68,9 +68,9 @@ export async function sendEventRegistrationEmail(
         <h1>You're registered for ${eventTitle}!</h1>
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
-        <p><strong>Event Date:</strong> ${formattedDate}</p> <br><br>
-        <p><strong>Event Time:</strong> 10:30PM onwards</p> <br><br>
-        <p> For any help contact the organisers +91 8667705914  
+        <p><strong>Event Date:</strong> ${formattedDate}</p> 
+        <p><strong>Event Time:</strong> 10:30PM onwards</p> 
+        <p> For any help contact the organiser +91 8667705914  (Shree Charan)
                  </p>                
         
         <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
@@ -106,8 +106,8 @@ export async function sendEventReminderEmail(
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      // hour: '2-digit',
+      // minute: '2-digit',
     }).format(eventDate);
 
     const { data, error } = await resend.emails.send({
