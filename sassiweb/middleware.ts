@@ -92,5 +92,5 @@ export default async function middleware(request: NextRequestWithAuth) {
 
 // Run middleware on admin, resources, and join/team paths
 export const config = {
-  matcher: ['/admin/:path*', '/resources/:path*', '/join/team']
+  matcher: ['/admin/:path*', '/resources/:path*', '/join/team', '/((?!api/webhooks).*)']
 };
