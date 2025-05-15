@@ -23,3 +23,18 @@ contact us anchor as mail icon
 
 
 work on app/admin/contact/[id]/mark-responded/route.ts 
+
+
+
+
+
+
+
+<p>Please join our WhatsApp group for event updates and discussions:</p> 
+      
+        <p style="margin: 20px 0;">
+          <a href="https://chat.whatsapp.com/HGPj3vWtwIj7ecdMz2akEU" 
+             style="background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+            Join WhatsApp Group
+          </a>
+        </p>
