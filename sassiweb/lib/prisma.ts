@@ -8,15 +8,21 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   try {
-    console.log("Initializing Prisma client...");
+    console.log("Initializing Prisma client for Neon...");
     
+    // Create client with supported configuration options
     const client = new PrismaClient({
       log: ['query', 'error', 'warn'],
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL
+        }
+      }
     });
     
     // Test the connection
     client.$connect()
-      .then(() => console.log("Prisma client connected successfully"))
+      .then(() => console.log("Prisma client connected successfully to Neon"))
       .catch(e => console.error("Prisma connection error:", e));
     
     return client;
