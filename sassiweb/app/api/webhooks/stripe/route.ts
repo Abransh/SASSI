@@ -4,8 +4,16 @@ import prisma from "@/lib/prisma";
 import { sendEventRegistrationEmail } from "@/lib/email";
 import { Prisma } from "@prisma/client";
 import { headers } from 'next/headers';
-import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
+
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-04-30.basil",
+});
+
+export const config = {
+  runtime: 'edge', // Use Edge Runtime for better performance with webhooks
+};
 
 // Helper function to generate membership code
 function generateMembershipCode(): string {

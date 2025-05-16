@@ -96,6 +96,5 @@ export const config = {
     '/admin/:path*', 
     '/resources/:path*', 
     '/join/team', 
-    '/((?!api/webhooks/stripe).*)' // More specific exclusion
-  ]
+    ]
 };
