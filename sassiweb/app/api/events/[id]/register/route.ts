@@ -158,7 +158,7 @@ export async function POST(req: any, { params }: any) {
 
     // For paid events, create a Stripe checkout session
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-      apiVersion: "2025-03-31.basil",
+      apiVersion: "2025-04-30.basil",
     });
 
     // Set expiresAt to 5 minutes from now for pending registrations
