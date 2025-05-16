@@ -31,11 +31,13 @@ if (!process.env.STRIPE_WEBHOOK_SECRET) {
 
 export async function POST(req: Request) {
   try {
+    console.log("Webhook received");
     const body = await req.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature');
 
     if (!signature) {
+      console.error("No signature found");
       return new NextResponse('No signature found', { status: 400 });
     }
 
@@ -47,6 +49,7 @@ export async function POST(req: Request) {
         signature,
         process.env.STRIPE_WEBHOOK_SECRET!
       );
+      console.log("Event verified:", event.type);
     } catch (err) {
       const error = err as Error;
       console.error('Webhook signature verification failed:', error);

@@ -90,7 +90,12 @@ export default async function middleware(request: NextRequestWithAuth) {
   return response;
 }
 
-// Run middleware on admin, resources, and join/team paths
+// Run middleware on admin, resources, and join/team paths and stripe webhook (pay attention, if webhooks dont work check here once, might be middle ware is causing issues)
 export const config = {
-  matcher: ['/admin/:path*', '/resources/:path*', '/join/team', '/((?!api/webhooks).*)']
+  matcher: [
+    '/admin/:path*', 
+    '/resources/:path*', 
+    '/join/team', 
+    '/((?!api/webhooks/stripe).*)' // More specific exclusion
+  ]
 };
