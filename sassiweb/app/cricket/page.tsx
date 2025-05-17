@@ -34,7 +34,7 @@ export default async function CricketPage() {
               
               {liveMatches.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {liveMatches.map((match) => (
+                  {liveMatches.map((match : any) => (
                     <MatchCard key={match.id} match={match} isLive={true} />
                   ))}
                 </div>
@@ -51,7 +51,7 @@ export default async function CricketPage() {
               
               {upcomingMatches.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {upcomingMatches.map((match) => (
+                  {upcomingMatches.map((match: any) => (
                     <MatchCard key={match.id} match={match} />
                   ))}
                 </div>
@@ -68,7 +68,7 @@ export default async function CricketPage() {
               
               {recentMatches.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {recentMatches.map((match) => (
+                  {recentMatches.map((match: any ) => (
                     <MatchCard key={match.id} match={match} isCompleted={true} />
                   ))}
                 </div>

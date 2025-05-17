@@ -2,7 +2,7 @@
 "use client";
 
 import { Match, Innings } from "@/lib/cricket/types";
-import { calculateRunRate, calculateRequiredRunRate } from "@/lib/cricket/calculations";
+import {  calculateRunRate, calculateRequiredRunRate } from "@/lib/cricket/calculations";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -49,7 +49,7 @@ export default function Scoreboard({ match }: ScoreboardProps) {
     : null;
   
   const oversRemaining = currentInnings
-    ? 20 - currentInnings.overs // Assuming T20 format
+    ? 5 - currentInnings.overs // Assuming T20 format
     : null;
   
   // Format time display
@@ -202,11 +202,4 @@ export default function Scoreboard({ match }: ScoreboardProps) {
       </div>
     </div>
   );
-}
-
-// Helper function to format overs (e.g., 4.3 means 4 overs and 3 balls)
-function formatOvers(overs: number): string {
-  const wholeOvers = Math.floor(overs);
-  const balls = Math.round((overs - wholeOvers) * 10);
-  return `${wholeOvers}.${balls}`;
 }

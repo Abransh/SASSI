@@ -36,7 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PlayerProfilePage({ params }: Props) {
   try {
-    const player = await getPlayer(params.id);
+    const resolvedParams = await params;
+    const player = await getPlayer(resolvedParams.id);
     const { stats } = player;
     
     // Role color
@@ -247,7 +248,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {player.batting.map((innings) => {
+                              {player.batting.map((innings: any) => {
                                 const match = innings.innings.match;
                                 const opponent = innings.innings.bowlingTeam;
                                 const strikeRate = innings.ballsFaced > 0 
@@ -371,7 +372,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {player.bowling.map((innings) => {
+                              {player.bowling.map((innings: any) => {
                                 const match = innings.innings.match;
                                 const opponent = innings.innings.battingTeam;
                                 const economy = innings.overs > 0 

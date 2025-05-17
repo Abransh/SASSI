@@ -132,6 +132,6 @@ function formatRole(role: PlayerRole): string {
     case PlayerRole.WICKET_KEEPER:
       return "Wicket-Keeper";
     default:
-      return role.replace("_", " ");
+      return String(role).replace("_", " ");
   }
 }

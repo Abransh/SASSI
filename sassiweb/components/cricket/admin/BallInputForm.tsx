@@ -35,13 +35,9 @@ const ballFormSchema = z.object({
   runs: z.number().min(0).max(6),
   isExtra: z.boolean(),
   extras: z.number().min(0).max(5).optional(),
-  extrasType: z.enum(["WIDE", "NO_BALL", "BYE", "LEG_BYE"]).optional(),
+  extrasType: z.nativeEnum(ExtrasType).optional(),
   isWicket: z.boolean(),
-  wicketType: z.enum([
-    "BOWLED", "CAUGHT", "LBW", "RUN_OUT", "STUMPED", 
-    "HIT_WICKET", "RETIRED_HURT", "OBSTRUCTING_FIELD", 
-    "TIMED_OUT", "HANDLED_BALL"
-  ]).optional(),
+  wicketType: z.nativeEnum(DismissalType).optional(),
   comment: z.string().max(150).optional(),
 });
 
@@ -110,7 +106,7 @@ export default function BallInputForm({
         bowlerId: values.bowlerId,
         runs: values.runs,
         extras: values.isExtra ? (values.extras || 0) : 0,
-        extrasType: values.isExtra ? values.extrasType : undefined,
+        extrasType: values.isExtra ? (values.extrasType as ExtrasType) : undefined,
         isWicket: values.isWicket,
         wicketType: values.isWicket ? values.wicketType : undefined,
         comment: values.comment,

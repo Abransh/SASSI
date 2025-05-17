@@ -12,11 +12,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+// Properly type the page props according to Next.js App Router
+type Props = {
+  params: Promise<{ [key: string]: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
 export default async function CricketAdminPage({ 
-  searchParams 
-}: { 
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
+  searchParams }: 
+  Props) {
   // Check authentication
   const session = await getServerSession(authOptions);
   
@@ -25,8 +29,9 @@ export default async function CricketAdminPage({
   }
   
   // Get query parameters
-  
-  const matchId = searchParams.matchId as string | undefined;
+  const resolvedSearchParams = await searchParams;
+
+  const matchId = resolvedSearchParams.matchId as string | undefined;
   
   // Fetch match data if ID is provided
   let activeMatch: any = null;
@@ -39,7 +44,7 @@ export default async function CricketAdminPage({
   const allMatches = [
     ...matchesData.liveMatches,
     ...matchesData.upcomingMatches,
-    ...matchesData.recentMatches.filter(m => m.status !== "COMPLETED"),
+    ...matchesData.recentMatches.filter((m: { status: string }) => m.status !== "COMPLETED"),
   ];
   
   return (

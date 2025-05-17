@@ -7,7 +7,7 @@ export async function GET(req: NextRequest,
  }) {
   try {
     const params = await context.params;
-    const matchId = params.id;
+    const playerId = params.id;
     
     const player = await prisma.cricketPlayer.findUnique({
       where: { id: playerId },
