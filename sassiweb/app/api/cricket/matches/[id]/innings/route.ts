@@ -17,7 +17,8 @@ export async function POST(req: NextRequest,
       );
     }
     
-    const matchId = context.params.id;
+    const params = await context.params;
+    const matchId = params.id;
     const data = await req.json();
     
     // Validate required fields
@@ -86,13 +87,14 @@ export async function POST(req: NextRequest,
     );
   }
 }
-
 export async function GET(
     req: NextRequest, 
     context: { params: Promise<{ id: string }> }) {
   try {
-    const matchId = context.params.id;
+    const params = await context.params;
+    const matchId = params.id;
     
+   
     const innings = await prisma.cricketInnings.findMany({
       where: { matchId },
       include: {

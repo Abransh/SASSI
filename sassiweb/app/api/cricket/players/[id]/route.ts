@@ -6,7 +6,8 @@ export async function GET(req: NextRequest,
     context: { params: Promise<{ id: string }>
  }) {
   try {
-    const playerId = context.params.id;
+    const params = await context.params;
+    const matchId = params.id;
     
     const player = await prisma.cricketPlayer.findUnique({
       where: { id: playerId },

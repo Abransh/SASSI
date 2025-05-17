@@ -19,7 +19,8 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const player = await getPlayer(params.id);
+    const resolvedParams = await params;
+    const player = await getPlayer(resolvedParams.id);
     
     return {
       title: `${player.name} | SASSI Cricket`,

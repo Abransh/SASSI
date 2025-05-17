@@ -1,13 +1,16 @@
 // app/api/cricket/matches/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth/next"; // Add this import
+import { authOptions } from "@/lib/auth";
 
 export async function GET(req: NextRequest, 
     context: { params: Promise<{ id: string }>
  })
   {
   try {
-    const matchId = context.params.id;
+     const params = await context.params;
+    const matchId = params.id;
     
     const match = await prisma.cricketMatch.findUnique({
       where: { id: matchId },
@@ -72,7 +75,8 @@ export async function PATCH(req: NextRequest,
       );
     }
     
-    const matchId = context.params.id;
+    const params = await context.params;
+    const matchId = params.id;
     const data = await req.json();
     
     // Update the match
@@ -113,7 +117,8 @@ export async function DELETE(req: NextRequest,
       );
     }
     
-    const matchId = context.params.id;
+    const params = await context.params;
+    const matchId = params.id;
     
     // First delete related records (innings and ball events)
     await prisma.$transaction([

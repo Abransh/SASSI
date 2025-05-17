@@ -36,7 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function MatchDetailsPage({ params }: Props) {
   try {
-    const match = await getMatch(params.id);
+    const resolvedParams = await params;
+    const match = await getMatch(resolvedParams.id);
     
     // Check if admin and show admin mode if true
     const session = await getServerSession(authOptions);

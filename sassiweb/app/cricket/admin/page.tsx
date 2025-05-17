@@ -25,6 +25,7 @@ export default async function CricketAdminPage({
   }
   
   // Get query parameters
+  
   const matchId = searchParams.matchId as string | undefined;
   
   // Fetch match data if ID is provided
