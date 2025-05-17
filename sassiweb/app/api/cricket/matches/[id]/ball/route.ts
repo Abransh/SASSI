@@ -6,7 +6,9 @@ import prisma from "@/lib/prisma";
 import { calculateOvers, updateScorecardAfterBall } from "@/lib/cricket/calculations";
 import { ExtrasType } from "@/lib/cricket/types";
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
+export async function POST(req: NextRequest,
+     context: { params: Promise<{ id: string }> })
+      {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);

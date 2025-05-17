@@ -63,17 +63,7 @@ export default function BallInputForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Get current innings data
-  const currentInnings = match.innings.find(inn => inn.id === currentInningsId);
-  if (!currentInnings) {
-    return <div>Invalid innings ID</div>;
-  }
-  
-  // Get teams
-  const battingTeam = currentInnings.battingTeam;
-  const bowlingTeam = currentInnings.bowlingTeam;
-  
-  // Initialize form
+  // Initialize form before any conditional returns
   const form = useForm<z.infer<typeof ballFormSchema>>({
     resolver: zodResolver(ballFormSchema),
     defaultValues: {
@@ -87,6 +77,16 @@ export default function BallInputForm({
       isWicket: false,
     },
   });
+  
+  // Get current innings data
+  const currentInnings = match.innings.find(inn => inn.id === currentInningsId);
+  if (!currentInnings) {
+    return <div>Invalid innings ID</div>;
+  }
+  
+  // Get teams
+  const battingTeam = currentInnings.battingTeam;
+  const bowlingTeam = currentInnings.bowlingTeam;
   
   // Form watch values
   const isExtra = form.watch("isExtra");
