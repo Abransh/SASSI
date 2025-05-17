@@ -14,12 +14,13 @@ import ScorecardTable from "@/components/cricket/ScorecardTable";
 import BallByBallFeed from "@/components/cricket/BallByBallFeed";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const match = await getMatch(params.id);
+    const resolvedParams = await params;
+    const match = await getMatch(resolvedParams.id);
     
     return {
       title: `${match.teamA.name} vs ${match.teamB.name} | SASSI Cricket`,

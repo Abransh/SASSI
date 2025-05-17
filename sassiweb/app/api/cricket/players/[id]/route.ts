@@ -2,7 +2,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
+export async function GET(req: NextRequest, 
+    context: { params: Promise<{ id: string }>
+ }) {
   try {
     const playerId = context.params.id;
     

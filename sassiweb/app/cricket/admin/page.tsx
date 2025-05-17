@@ -15,7 +15,7 @@ import Link from "next/link";
 export default async function CricketAdminPage({ 
   searchParams 
 }: { 
-  searchParams: { [key: string]: string | string[] | undefined } 
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   // Check authentication
   const session = await getServerSession(authOptions);

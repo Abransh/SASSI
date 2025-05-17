@@ -2,7 +2,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
+export async function GET(req: NextRequest, 
+    context: { params: Promise<{ id: string }>
+ })
+  {
   try {
     const matchId = context.params.id;
     
@@ -56,7 +59,9 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
   }
 }
 
-export async function PATCH(req: NextRequest, context: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, 
+    context: { params: Promise<{ id: string }>
+ }) {
   try {
     // Check authentication (admin only)
     const session = await getServerSession(authOptions);
@@ -95,7 +100,9 @@ export async function PATCH(req: NextRequest, context: { params: { id: string } 
   }
 }
 
-export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, 
+    context: { params: Promise<{ id: string }>
+ }) {
   try {
     // Check authentication (admin only)
     const session = await getServerSession(authOptions);

@@ -4,7 +4,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
+export async function POST(req: NextRequest, 
+    context: { params: Promise<{ id: string }> }) 
+     {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
@@ -85,7 +87,9 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
   }
 }
 
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
+export async function GET(
+    req: NextRequest, 
+    context: { params: Promise<{ id: string }> }) {
   try {
     const matchId = context.params.id;
     

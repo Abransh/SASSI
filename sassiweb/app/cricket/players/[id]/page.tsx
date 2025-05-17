@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatRole } from "@/lib/cricket/utils";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -232,10 +232,25 @@ export default async function PlayerProfilePage({ params }: Props) {
                         </div>
                         
                         {/* Batting Innings Table */}
-                          <div className="rounded-md border overflow-hidden"></div>                                const match = innings.innings.match;
+                        <div className="rounded-md border overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Match</TableHead>
+                                <TableHead>Against</TableHead>
+                                <TableHead className="text-right">Runs</TableHead>
+                                <TableHead className="text-right">Balls</TableHead>
+                                <TableHead className="text-right">4s</TableHead>
+                                <TableHead className="text-right">6s</TableHead>
+                                <TableHead className="text-right">SR</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {player.batting.map((innings) => {
+                                const match = innings.innings.match;
                                 const opponent = innings.innings.bowlingTeam;
                                 const strikeRate = innings.ballsFaced > 0 
-                                  ? (innings.runs / innings.ballsFaced) * 100).toFixed(2) 
+                                  ? ((innings.runs / innings.ballsFaced) * 100).toFixed(2) 
                                   : "0.00";
                                 
                                 return (

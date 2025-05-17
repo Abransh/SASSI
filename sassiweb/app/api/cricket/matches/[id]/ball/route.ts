@@ -167,7 +167,8 @@ export async function POST(req: NextRequest,
   }
 }
 
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
+export async function GET(req: NextRequest,
+     context: { params: Promise<{ id: string }> }) {
   try {
     const matchId = context.params.id;
     
