@@ -113,6 +113,8 @@ model Event {
   gallery         EventImage[]
   registrations   Registration[]
   payments        StripePayment[]
+ cricketMatches  CricketMatch[]  // Add this new relation, you can remove it later, actually please i will remove it later 
+
 }
 
 model Registration {
@@ -230,6 +232,174 @@ model ExclusiveMembership {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Cricket extension models - add to your schema.prisma file
+
+model CricketMatch {
+  id            String            @id @default(cuid())
+  title         String
+  description   String?
+  venue         String
+  matchDate     DateTime
+  status        MatchStatus       @default(UPCOMING)
+  teamAId       String
+  teamBId       String
+  winnerId      String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  eventId       String?           // Link to your existing Event model
+  teamA         CricketTeam       @relation("TeamAMatches", fields: [teamAId], references: [id])
+  teamB         CricketTeam       @relation("TeamBMatches", fields: [teamBId], references: [id])
+  winner        CricketTeam?      @relation("MatchWinner", fields: [winnerId], references: [id])
+  innings       CricketInnings[]
+  ballEvents    CricketBallEvent[]
+  event         Event?            @relation(fields: [eventId], references: [id])
+}
+
+model CricketTeam {
+  id            String            @id @default(cuid())
+  name          String
+  shortName     String
+  logoUrl       String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  players       CricketPlayer[]
+  teamAMatches  CricketMatch[]    @relation("TeamAMatches")
+  teamBMatches  CricketMatch[]    @relation("TeamBMatches")
+  wonMatches    CricketMatch[]    @relation("MatchWinner")
+  battingInnings CricketInnings[] @relation("BattingTeam")
+  bowlingInnings CricketInnings[] @relation("BowlingTeam")
+}
+
+model CricketPlayer {
+  id            String            @id @default(cuid())
+  name          String
+  role          PlayerRole
+  teamId        String
+  profileImageUrl String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  team          CricketTeam       @relation(fields: [teamId], references: [id])
+  batting       CricketBatting[]
+  bowling       CricketBowling[]
+  ballEvents    CricketBallEvent[] @relation("BatsmanOnStrike")
+  nonStrikerEvents CricketBallEvent[] @relation("BatsmanNonStriker")
+  bowlerEvents  CricketBallEvent[] @relation("Bowler")
+}
+
+model CricketInnings {
+  id            String            @id @default(cuid())
+  matchId       String
+  inningsNumber Int
+  battingTeamId String
+  bowlingTeamId String
+  totalRuns     Int               @default(0)
+  wickets       Int               @default(0)
+  overs         Float             @default(0)
+  extras        Int               @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  match         CricketMatch      @relation(fields: [matchId], references: [id])
+  battingTeam   CricketTeam       @relation("BattingTeam", fields: [battingTeamId], references: [id])
+  bowlingTeam   CricketTeam       @relation("BowlingTeam", fields: [bowlingTeamId], references: [id])
+  batting       CricketBatting[]
+  bowling       CricketBowling[]
+  ballEvents    CricketBallEvent[]
+}
+
+model CricketBatting {
+  id            String            @id @default(cuid())
+  inningsId     String
+  playerId      String
+  runs          Int               @default(0)
+  ballsFaced    Int               @default(0)
+  fours         Int               @default(0)
+  sixes         Int               @default(0)
+  isOut         Boolean           @default(false)
+  dismissalType DismissalType?
+  dismissalInfo String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  innings       CricketInnings    @relation(fields: [inningsId], references: [id])
+  player        CricketPlayer     @relation(fields: [playerId], references: [id])
+}
+
+model CricketBowling {
+  id            String            @id @default(cuid())
+  inningsId     String
+  playerId      String
+  overs         Float             @default(0)
+  maidens       Int               @default(0)
+  runs          Int               @default(0)
+  wickets       Int               @default(0)
+  noBalls       Int               @default(0)
+  wides         Int               @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  innings       CricketInnings    @relation(fields: [inningsId], references: [id])
+  player        CricketPlayer     @relation(fields: [playerId], references: [id])
+}
+
+model CricketBallEvent {
+  id            String            @id @default(cuid())
+  matchId       String
+  inningsId     String
+  over          Int
+  ballInOver    Int
+  batsmanOnStrikeId String
+  nonStrikerId  String
+  bowlerId      String
+  runs          Int               @default(0)
+  extras        Int               @default(0)
+  extrasType    ExtrasType?
+  isWicket      Boolean           @default(false)
+  wicketType    DismissalType?
+  comment       String?
+  timestamp     DateTime          @default(now())
+  match         CricketMatch      @relation(fields: [matchId], references: [id])
+  innings       CricketInnings    @relation(fields: [inningsId], references: [id])
+  batsmanOnStrike CricketPlayer   @relation("BatsmanOnStrike", fields: [batsmanOnStrikeId], references: [id])
+  nonStriker    CricketPlayer     @relation("BatsmanNonStriker", fields: [nonStrikerId], references: [id])
+  bowler        CricketPlayer     @relation("Bowler", fields: [bowlerId], references: [id])
+}
+
+// You also need to update your Event model to include this relation
+// Add the following field to your existing Event model:
+// cricketMatches CricketMatch[]
+
+enum MatchStatus {
+  UPCOMING
+  LIVE
+  COMPLETED
+  ABANDONED
+}
+
+enum PlayerRole {
+  BATSMAN
+  BOWLER
+  ALL_ROUNDER
+  WICKET_KEEPER
+}
+
+enum DismissalType {
+  BOWLED
+  CAUGHT
+  LBW
+  RUN_OUT
+  STUMPED
+  HIT_WICKET
+  RETIRED_HURT
+  OBSTRUCTING_FIELD
+  TIMED_OUT
+  HANDLED_BALL
+}
+
+enum ExtrasType {
+  WIDE
+  NO_BALL
+  BYE
+  LEG_BYE
 }
 
 enum Role {
