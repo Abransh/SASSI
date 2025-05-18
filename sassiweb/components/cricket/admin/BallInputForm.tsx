@@ -80,9 +80,13 @@ export default function BallInputForm({
     return <div>Invalid innings ID</div>;
   }
   
-  // Get teams
-  const battingTeam = currentInnings.battingTeam;
-  const bowlingTeam = currentInnings.bowlingTeam;
+  // Get teams with safety checks
+  const battingTeam = currentInnings.battingTeam || { players: [] };
+  const bowlingTeam = currentInnings.bowlingTeam || { players: [] };
+  
+  // Ensure players arrays exist
+  const battingPlayers = battingTeam.players || [];
+  const bowlingPlayers = bowlingTeam.players || [];
   
   // Form watch values
   const isExtra = form.watch("isExtra");
@@ -175,7 +179,7 @@ export default function BallInputForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {battingTeam.players.map((player) => (
+                      {battingPlayers.map((player) => (
                         <SelectItem key={player.id} value={player.id}>
                           {player.name}
                         </SelectItem>
@@ -203,7 +207,7 @@ export default function BallInputForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {battingTeam.players.map((player) => (
+                      {battingPlayers.map((player) => (
                         <SelectItem key={player.id} value={player.id}>
                           {player.name}
                         </SelectItem>
@@ -231,7 +235,7 @@ export default function BallInputForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {bowlingTeam.players.map((player) => (
+                      {bowlingPlayers.map((player) => (
                         <SelectItem key={player.id} value={player.id}>
                           {player.name}
                         </SelectItem>

@@ -136,7 +136,7 @@ export default function MatchCard({ match, isLive = false, isCompleted = false }
                     (teamBInnings.overs % 1) * 10)) / 6)}.${
                     (120 - (Math.floor(teamBInnings.overs) * 6 + 
                     (teamBInnings.overs % 1) * 10)) % 6} overs` :
-                  'Match in progress'
+                  '1st Innings is Playing'
               }
             </p>
             <p>
