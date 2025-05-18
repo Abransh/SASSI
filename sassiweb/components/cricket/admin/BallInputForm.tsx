@@ -58,8 +58,17 @@ export default function BallInputForm({
 }: BallInputFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastLegalDelivery, setLastLegalDelivery] = useState<{
+    batsmanOnStrikeId: string;
+    nonStrikerId: string;
+    bowlerId: string;
+    isNewOver: boolean;
+  } | null>(null);
   
-  // Initialize form before any conditional returns
+  // Get current innings data
+  const currentInnings = match.innings.find(inn => inn.id === currentInningsId);
+  
+  // Initialize form - always at the top level
   const form = useForm<z.infer<typeof ballFormSchema>>({
     resolver: zodResolver(ballFormSchema),
     defaultValues: {
@@ -74,25 +83,76 @@ export default function BallInputForm({
     },
   });
   
-  // Get current innings data
-  const currentInnings = match.innings.find(inn => inn.id === currentInningsId);
-  if (!currentInnings) {
-    return <div>Invalid innings ID</div>;
-  }
-  
-  // Get teams with safety checks
-  const battingTeam = currentInnings.battingTeam || { players: [] };
-  const bowlingTeam = currentInnings.bowlingTeam || { players: [] };
-  
-  // Ensure players arrays exist
-  const battingPlayers = battingTeam.players || [];
-  const bowlingPlayers = bowlingTeam.players || [];
-  
-  // Form watch values
+  // Form watch values - always at the top level
   const isExtra = form.watch("isExtra");
   const extrasType = form.watch("extrasType");
   const isWicket = form.watch("isWicket");
   const wicketType = form.watch("wicketType");
+  const runs = form.watch("runs");
+  
+  // Load previous ball data from the match - always at the top level
+  useEffect(() => {
+    if (!currentInnings) return; // Early return inside the hook is fine
+    
+    const fetchLastBallData = async () => {
+      try {
+        const response = await fetch(`/api/cricket/matches/${match.id}/ball?inningsId=${currentInningsId}&limit=10`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch ball data');
+        }
+        const balls = await response.json();
+        
+        // Filter to only legal deliveries (no wides/no-balls)
+        const legalBalls = balls.filter((ball: any) => 
+          !ball.extrasType || (ball.extrasType !== 'WIDE' && ball.extrasType !== 'NO_BALL')
+        );
+        
+        if (legalBalls.length > 0) {
+          const lastBall = legalBalls[0]; // Most recent ball is first
+          
+          // Determine if we need to change bowler (new over)
+          const isNewOver = currentBall === 1 && currentOver > 0;
+          
+          // For odd runs, batsmen swap positions
+          // For new over, batsmen also swap positions
+          if ((lastBall.runs % 2 === 1) !== isNewOver) {
+            // The logic here: swap if either odd runs OR new over, but not both (XOR)
+            setLastLegalDelivery({
+              batsmanOnStrikeId: lastBall.nonStrikerId,
+              nonStrikerId: lastBall.batsmanOnStrikeId,
+              bowlerId: isNewOver ? '' : lastBall.bowlerId, // Empty bowler for new over
+              isNewOver
+            });
+          } else {
+            setLastLegalDelivery({
+              batsmanOnStrikeId: lastBall.batsmanOnStrikeId,
+              nonStrikerId: lastBall.nonStrikerId,
+              bowlerId: isNewOver ? '' : lastBall.bowlerId,
+              isNewOver
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching ball data:', error);
+      }
+    };
+    
+    fetchLastBallData();
+  }, [match.id, currentInningsId, currentOver, currentBall, currentInnings]);
+  
+  // Set initial batsmen and bowler based on last delivery - always at the top level
+  useEffect(() => {
+    if (!lastLegalDelivery) return; // Early return inside the hook is fine
+    
+    // Set the striker and non-striker based on the last delivery
+    form.setValue('batsmanOnStrikeId', lastLegalDelivery.batsmanOnStrikeId);
+    form.setValue('nonStrikerId', lastLegalDelivery.nonStrikerId);
+    
+    // Set the bowler if it's not a new over
+    if (!lastLegalDelivery.isNewOver && lastLegalDelivery.bowlerId) {
+      form.setValue('bowlerId', lastLegalDelivery.bowlerId);
+    }
+  }, [lastLegalDelivery, form]);
   
   // Submit form handler
   async function onSubmit(values: z.infer<typeof ballFormSchema>) {
@@ -131,16 +191,64 @@ export default function BallInputForm({
       
       // Success
       toast.success("Ball event added successfully");
-      form.reset({
-        inningsId: currentInningsId,
-        batsmanOnStrikeId: values.batsmanOnStrikeId,
-        nonStrikerId: values.nonStrikerId,
-        bowlerId: values.bowlerId,
-        runs: 0,
-        isExtra: false,
-        extras: 0,
-        isWicket: false,
-      });
+      
+      // Auto-switch striker based on runs scored
+      const isLegalDelivery = !values.isExtra || 
+        (values.extrasType !== ExtrasType.WIDE && values.extrasType !== ExtrasType.NO_BALL);
+        
+      // Prepare for next ball
+      if (isLegalDelivery) {
+        const isOddRuns = values.runs % 2 === 1;
+        
+        if (isOddRuns) {
+          // Swap striker and non-striker for odd runs
+          form.setValue('batsmanOnStrikeId', values.nonStrikerId);
+          form.setValue('nonStrikerId', values.batsmanOnStrikeId);
+        }
+        
+        // Reset other fields but keep batsmen and bowler
+        form.setValue('runs', 0);
+        form.setValue('isExtra', false);
+        form.setValue('extras', 0);
+        form.setValue('isWicket', false);
+        form.setValue('comment', '');
+      } else {
+        // For extras, just reset the form but keep the players
+        const strikeId = form.getValues('batsmanOnStrikeId');
+        const nonStrikeId = form.getValues('nonStrikerId');
+        const bowlerId = form.getValues('bowlerId');
+        
+        form.reset({
+          inningsId: currentInningsId,
+          batsmanOnStrikeId: strikeId,
+          nonStrikerId: nonStrikeId,
+          bowlerId: bowlerId,
+          runs: 0,
+          isExtra: false,
+          extras: 0,
+          isWicket: false,
+        });
+      }
+      
+      // If wicket, don't clear the form to allow for new batsman selection
+      if (values.isWicket) {
+        // Keep bowler, clear striker (out batsman)
+        const bowlerId = form.getValues('bowlerId');
+        const nonStrikerId = form.getValues('nonStrikerId');
+        
+        form.reset({
+          inningsId: currentInningsId,
+          batsmanOnStrikeId: '', // Clear for new batsman
+          nonStrikerId: nonStrikerId,
+          bowlerId: bowlerId,
+          runs: 0,
+          isExtra: false,
+          extras: 0,
+          isWicket: false,
+        });
+        
+        toast.info("Select new batsman to replace the dismissed player");
+      }
       
       // Notify parent component
       onBallAdded();
@@ -152,6 +260,20 @@ export default function BallInputForm({
       setIsSubmitting(false);
     }
   }
+  
+  // Safe early return after all hooks
+  if (!currentInnings) {
+    return <div>Invalid innings ID</div>;
+  }
+  
+  // Get teams with safety checks after all hooks are defined
+  const battingTeam = currentInnings.battingTeam || { players: [] };
+  const bowlingTeam = currentInnings.bowlingTeam || { players: [] };
+  
+  // Ensure players arrays exist
+  const battingPlayers = battingTeam.players || [];
+  const bowlingPlayers = bowlingTeam.players || [];
+  
   
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -168,10 +290,10 @@ export default function BallInputForm({
               name="batsmanOnStrikeId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Batsman on Strike</FormLabel>
+                  <FormLabel>Batsman on Strike *</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -196,10 +318,10 @@ export default function BallInputForm({
               name="nonStrikerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Non-Striker</FormLabel>
+                  <FormLabel>Non-Striker *</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -224,10 +346,10 @@ export default function BallInputForm({
               name="bowlerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bowler</FormLabel>
+                  <FormLabel>Bowler *</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -301,7 +423,7 @@ export default function BallInputForm({
                       <FormItem>
                         <Select 
                           onValueChange={field.onChange} 
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -373,7 +495,7 @@ export default function BallInputForm({
                   <FormItem>
                     <Select 
                       onValueChange={field.onChange} 
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>

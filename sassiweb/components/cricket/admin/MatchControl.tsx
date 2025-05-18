@@ -155,15 +155,24 @@ export default function MatchControl({ match }: MatchControlProps) {
   // Handle ball added
   const handleBallAdded = () => {
     // Update current ball and over
+    const isOverComplete = currentBall >= 6;
+
     setCurrentBall((prev) => {
       if (prev >= 6) {
-        setCurrentOver((prevOver) => prevOver + 1);
+        setCurrentOver((prevOver) => {
+          if (prevOver % 2 === 1) {
+            // After odd-numbered overs, inform about bowler + batsmen change
+            toast.info("End of over! Batsmen switched automatically. Please select a new bowler.");
+          } else {
+            // After even-numbered overs, only inform about bowler change
+            toast.info("End of over! Please select a new bowler.");
+          }
+          return prevOver + 1;
+        });
         return 1;
       }
       return prev + 1;
     });
-    
-    // Refresh the page to get latest match data
     router.refresh();
   };
   

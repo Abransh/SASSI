@@ -14,6 +14,15 @@ interface ScoreboardProps {
 
 export default function Scoreboard({ match }: ScoreboardProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentBatsmen, setCurrentBatsmen] = useState<{
+    striker: { id: string; name: string } | null;
+    nonStriker: { id: string; name: string } | null;
+    bowler: { id: string; name: string } | null;
+  }>({
+    striker: null,
+    nonStriker: null,
+    bowler: null
+  });
   
   // Update the current time every second for live matches
   useEffect(() => {
@@ -25,6 +34,49 @@ export default function Scoreboard({ match }: ScoreboardProps) {
       return () => clearInterval(interval);
     }
   }, [match.status]);
+
+  // Get current innings and fetch current batsmen/bowler info
+  useEffect(() => {
+    if (match.status === "LIVE" && match.innings?.length > 0) {
+      const fetchCurrentPlayers = async () => {
+        try {
+          const currentInnings = match.innings[match.innings.length - 1];
+          const response = await fetch(`/api/cricket/matches/${match.id}/ball?inningsId=${currentInnings.id}&limit=1`);
+          
+          if (response.ok) {
+            const ballEvents = await response.json();
+            
+            if (ballEvents && ballEvents.length > 0) {
+              const lastBall = ballEvents[0];
+              
+              // Find player names from the IDs
+              const striker = currentInnings.battingTeam.players.find(
+                (p: any) => p.id === lastBall.batsmanOnStrikeId
+              );
+              
+              const nonStriker = currentInnings.battingTeam.players.find(
+                (p: any) => p.id === lastBall.nonStrikerId
+              );
+              
+              const bowler = currentInnings.bowlingTeam.players.find(
+                (p: any) => p.id === lastBall.bowlerId
+              );
+              
+              setCurrentBatsmen({
+                striker: striker ? { id: striker.id, name: striker.name } : null,
+                nonStriker: nonStriker ? { id: nonStriker.id, name: nonStriker.name } : null,
+                bowler: bowler ? { id: bowler.id, name: bowler.name } : null
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching current players:", error);
+        }
+      };
+      
+      fetchCurrentPlayers();
+    }
+  }, [match]);   
   
   // Get current innings
   const innings = match.innings || [];
@@ -85,6 +137,23 @@ export default function Scoreboard({ match }: ScoreboardProps) {
       </div>
     );
   }
+
+  const renderCurrentBatsmen = () => {
+    if (!currentBatsmen.striker || !currentBatsmen.nonStriker || !currentBatsmen.bowler) {
+      return null;
+    }
+
+    return (
+      <div className="mt-4 p-2 bg-gray-50 rounded-md">
+        <div className="text-sm">
+          <span className="font-medium">{currentBatsmen.striker.name}*</span> and <span>{currentBatsmen.nonStriker.name}</span>
+        </div>
+        <div className="text-sm">
+          <span className="font-medium">Bowler:</span> {currentBatsmen.bowler.name}
+        </div>
+      </div>
+    );
+  };
   
   return (
     <div className="bg-gray-50 border rounded-lg overflow-hidden">
@@ -157,7 +226,9 @@ export default function Scoreboard({ match }: ScoreboardProps) {
                 )}
               </div>
             </div>
-            
+             {/* Current batsmen and bowler - Add this! */}
+             {match.status === "LIVE" && renderCurrentBatsmen()}
+             
             {/* Target info */}
             {target && (
               <div className={`p-2 rounded-md text-sm ${

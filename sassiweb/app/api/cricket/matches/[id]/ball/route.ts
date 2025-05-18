@@ -49,6 +49,11 @@ export async function POST(req: NextRequest,
           wicketType: data.wicketType,
           comment: data.comment,
         },
+        include: {
+          batsmanOnStrike: true,
+          nonStriker: true,
+          bowler: true,
+        }
       });
       
       // 2. Get the current innings
