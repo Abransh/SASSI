@@ -1,4 +1,6 @@
 // app/cricket/page.tsx
+export const dynamic = "force-dynamic";
+
 import { Metadata } from "next";
 import Link from "next/link";
 import { getMatches } from "@/lib/cricket/api";
