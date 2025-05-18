@@ -104,21 +104,33 @@ export default function AdminPlayersPage() {
   // Fetch teams
   const fetchTeams = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch("/api/cricket/teams");
       if (!response.ok) {
-        throw new Error("Failed to fetch teams");
+        const errorText = await response.text();
+        console.error(`Failed to fetch teams: ${response.status}`, errorText);
+        throw new Error(`Failed to fetch teams: ${response.status}`);
       }
       const data = await response.json();
+      console.log("Teams fetched:", data); // Debug log
       setTeams(data);
     } catch (error) {
       console.error("Error fetching teams:", error);
       toast.error("Failed to load teams");
+    } finally {
+      setIsLoading(false);
     }
   };
   
   // Handle adding a new player
   const handleAddPlayer = async () => {
     try {
+      // Validate form data
+      if (!formData.name || !formData.role || !formData.teamId) {
+        toast.error("Name, role, and team are required");
+        return;
+      }
+      
       const response = await fetch("/api/cricket/players", {
         method: "POST",
         headers: {
@@ -128,18 +140,21 @@ export default function AdminPlayersPage() {
       });
       
       if (!response.ok) {
-        throw new Error("Failed to add player");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add player");
       }
-      
-      toast.success("Player added successfully");
-      setIsAddDialogOpen(false);
-      resetForm();
-      fetchPlayers();
-    } catch (error) {
-      console.error("Error adding player:", error);
-      toast.error("Failed to add player");
-    }
-  };
+      const newPlayer = await response.json();
+    toast.success("Player added successfully");
+    setIsAddDialogOpen(false);
+    resetForm();
+    
+    // Update players list without full refetch
+    setPlayers(prevPlayers => [...prevPlayers, newPlayer]);
+  } catch (error) {
+    console.error("Error adding player:", error);
+    toast.error(error instanceof Error ? error.message : "Failed to add player");
+  }
+};
   
   // Handle updating a player
   const handleUpdatePlayer = async () => {

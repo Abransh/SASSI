@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
         matchDate: new Date(data.matchDate),
         teamAId: data.teamAId,
         teamBId: data.teamBId,
-        eventId: data.eventId,
+       
       },
     });
     

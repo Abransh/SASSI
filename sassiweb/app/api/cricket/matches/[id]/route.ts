@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth/next"; // Add this import
 import { authOptions } from "@/lib/auth";
 
+
 export async function GET(req: NextRequest, 
     context: { params: Promise<{ id: string }>
  })
@@ -28,8 +29,16 @@ export async function GET(req: NextRequest,
         winner: true,
         innings: {
           include: {
-            battingTeam: true,
-            bowlingTeam: true,
+            battingTeam: {
+              include: {
+                players: true,
+              },
+            },
+            bowlingTeam: {
+              include: {
+                players: true,
+              },
+            },
             batting: {
               include: {
                 player: true,

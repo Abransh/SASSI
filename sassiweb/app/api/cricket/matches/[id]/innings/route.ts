@@ -70,6 +70,18 @@ export async function POST(req: NextRequest,
         battingTeamId: data.battingTeamId,
         bowlingTeamId: data.bowlingTeamId,
       },
+      include: {
+        battingTeam: {
+          include: {
+            players: true,
+          },
+        },
+        bowlingTeam: {
+          include: {
+            players: true,
+          },
+        },
+      },
     });
     
     // Update match status to LIVE
@@ -98,8 +110,16 @@ export async function GET(
     const innings = await prisma.cricketInnings.findMany({
       where: { matchId },
       include: {
-        battingTeam: true,
-        bowlingTeam: true,
+        battingTeam: {
+          include: {
+            players: true,
+          },
+        },
+        bowlingTeam: {
+          include: {
+            players: true,
+          },
+        },
         batting: {
           include: {
             player: true,
