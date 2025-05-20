@@ -23,8 +23,8 @@ export default function BallByBallFeed({
 }: BallByBallFeedProps) {
   // Construct API URL
   const apiUrl = `/api/cricket/matches/${matchId}/ball${
-    inningsId ? `?inningsId=${inningsId}` : ''
-  }&limit=${limit}`;
+    inningsId ? `?inningsId=${inningsId}&` : '?'
+  }limit=${limit}`;
   
   // Fetch ball events with SWR for auto-refresh
   const { data, error, isLoading, mutate } = useSWR(

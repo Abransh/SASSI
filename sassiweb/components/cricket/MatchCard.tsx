@@ -132,7 +132,7 @@ export default function MatchCard({ match, isLive = false, isCompleted = false }
               <span className="font-semibold">Required:</span> {
                 teamBInnings ? 
                   `${teamAInnings.totalRuns - teamBInnings.totalRuns + 1} runs from ${
-                    Math.floor((120 - (Math.floor(teamBInnings.overs) * 6 + 
+                    Math.floor((30 - (Math.floor(teamBInnings.overs) * 6 + 
                     (teamBInnings.overs % 1) * 10)) / 6)}.${
                     (120 - (Math.floor(teamBInnings.overs) * 6 + 
                     (teamBInnings.overs % 1) * 10)) % 6} overs` :

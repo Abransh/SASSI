@@ -15,7 +15,7 @@ const Footer = () => {
               SASSI
             </Link>
             <p className="mt-4 text-gray-400">
-              Supporting Indian students in Milan since 2023.
+              Supporting Indian students in Milan since 2025.
             </p>
             <div className="mt-6 flex space-x-4">
               <SocialIcons />

@@ -101,7 +101,7 @@ export default function Scoreboard({ match }: ScoreboardProps) {
     : null;
   
   const oversRemaining = currentInnings
-    ? 5 - currentInnings.overs // Assuming T20 format
+    ? 5 - currentInnings.overs // 5 overs
     : null;
   
   // Format time display
@@ -228,7 +228,7 @@ export default function Scoreboard({ match }: ScoreboardProps) {
             </div>
              {/* Current batsmen and bowler - Add this! */}
              {match.status === "LIVE" && renderCurrentBatsmen()}
-             
+
             {/* Target info */}
             {target && (
               <div className={`p-2 rounded-md text-sm ${
