@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     if (category === "batting") {
       // Get batting leaderboard
       const battingStats = await getBattingLeaderboard();
-      return NextRes    ponse.json(battingStats);
+      return NextResponse.json(battingStats);
     } else if (category === "bowling") {
       // Get bowling leaderboard
       const bowlingStats = await getBowlingLeaderboard();
