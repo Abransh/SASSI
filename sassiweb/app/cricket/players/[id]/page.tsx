@@ -265,7 +265,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                                         {match.title}
                                       </Link>
                                     </TableCell>
-                                    <TableCell>{opponent.name}</TableCell>
+                                    <TableCell>{opponent && opponent.name ? opponent.name: 'unknown'}</TableCell>
                                     <TableCell className="text-right font-medium">
                                       {innings.runs}
                                       {innings.isOut ? "" : "*"}
