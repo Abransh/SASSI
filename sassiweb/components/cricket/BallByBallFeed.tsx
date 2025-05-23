@@ -20,7 +20,8 @@ export default function BallByBallFeed({
   inningsId,
   limit = 30,
   autoRefresh = true
-}: BallByBallFeedProps) {
+}:
+ BallByBallFeedProps) {
   // Construct API URL
   const apiUrl = `/api/cricket/matches/${matchId}/ball${
     inningsId ? `?inningsId=${inningsId}&` : '?'

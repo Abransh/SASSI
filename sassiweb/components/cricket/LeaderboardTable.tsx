@@ -22,13 +22,13 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
   const [sortField, setSortField] = useState<string>("runs");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  
+
   // Fetch leaderboard data
   const { data, error, isLoading } = useSWR(
     `/api/cricket/leaderboard?category=${category}`,
     fetcher
   );
-  
+
   // Handle tab change
   const handleTabChange = (value: string) => {
     setCategory(value);
@@ -36,15 +36,15 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
     setSortField(value === "batting" ? "runs" : "wickets");
     setSortOrder("desc");
   };
-  
+
   // Sort data
   const sortData = (data: any[]) => {
     if (!data) return [];
-    
+
     const sorted = [...data].sort((a, b) => {
       let aValue = a[sortField];
       let bValue = b[sortField];
-      
+
       // Handle numeric strings
       if (typeof aValue === 'string' && !isNaN(parseFloat(aValue))) {
         aValue = parseFloat(aValue);
@@ -52,11 +52,11 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
       if (typeof bValue === 'string' && !isNaN(parseFloat(bValue))) {
         bValue = parseFloat(bValue);
       }
-      
+
       // Handle undefined or null
       if (aValue === undefined || aValue === null) return 1;
       if (bValue === undefined || bValue === null) return -1;
-      
+
       // Compare values
       if (sortOrder === "asc") {
         return aValue > bValue ? 1 : -1;
@@ -64,23 +64,23 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
         return aValue < bValue ? 1 : -1;
       }
     });
-    
+
     return sorted;
   };
-  
+
   // Filter data by search query
   const filterData = (data: any[]) => {
     if (!data || !searchQuery) return data;
-    
-    return data.filter(item => 
+
+    return data.filter(item =>
       item.player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.player.team.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
-  
+
   // Process data
   const processedData = filterData(sortData(data || []));
-  
+
   // Toggle sort order
   const toggleSort = (field: string) => {
     if (sortField === field) {
@@ -90,7 +90,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
       setSortOrder("desc");
     }
   };
-  
+
   return (
     <div className="space-y-4">
       {/* Search and filter */}
@@ -105,30 +105,30 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
           />
         </div>
       </div>
-      
+
       {/* Tab navigation */}
       <Tabs value={category} onValueChange={handleTabChange}>
         <TabsList className="w-full mb-4">
           <TabsTrigger value="batting" className="flex-1">Batting</TabsTrigger>
           <TabsTrigger value="bowling" className="flex-1">Bowling</TabsTrigger>
         </TabsList>
-        
+
         {/* Batting leaderboard */}
         <TabsContent value="batting">
           <div className="rounded-md border">
             <Table>
               <TableCaption>
-                {isLoading 
-                  ? "Loading batting statistics..." 
+                {isLoading
+                  ? "Loading batting statistics..."
                   : `Showing ${processedData.length} batsmen`
                 }
               </TableCaption>
-              
+
               <TableHeader>
                 <TableRow>
                   <TableHead>Player</TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("innings")}
                     >
@@ -139,7 +139,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                     </button>
                   </TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("runs")}
                     >
@@ -152,7 +152,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                   <TableHead className="w-[80px]">4s</TableHead>
                   <TableHead className="w-[80px]">6s</TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("average")}
                     >
@@ -163,7 +163,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                     </button>
                   </TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("strikeRate")}
                     >
@@ -175,7 +175,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              
+
               <TableBody>
                 {isLoading ? (
                   <TableRow>
@@ -203,7 +203,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                   processedData.map((item, index) => (
                     <TableRow key={item.player.id}>
                       <TableCell className="font-medium">
-                        <Link 
+                        <Link
                           href={`/cricket/players/${item.player.id}`}
                           className="hover:text-orange-600"
                         >
@@ -226,23 +226,23 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
             </Table>
           </div>
         </TabsContent>
-        
+
         {/* Bowling leaderboard */}
         <TabsContent value="bowling">
           <div className="rounded-md border">
             <Table>
               <TableCaption>
-                {isLoading 
-                  ? "Loading bowling statistics..." 
+                {isLoading
+                  ? "Loading bowling statistics..."
                   : `Showing ${processedData.length} bowlers`
                 }
               </TableCaption>
-              
+
               <TableHeader>
                 <TableRow>
                   <TableHead>Player</TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("innings")}
                     >
@@ -253,7 +253,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                     </button>
                   </TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("overs")}
                     >
@@ -265,7 +265,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                   </TableHead>
                   <TableHead className="w-[80px]">R</TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("wickets")}
                     >
@@ -276,7 +276,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                     </button>
                   </TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("economyRate")}
                     >
@@ -287,7 +287,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                     </button>
                   </TableHead>
                   <TableHead className="w-[80px]">
-                    <button 
+                    <button
                       className="flex items-center"
                       onClick={() => toggleSort("average")}
                     >
@@ -299,7 +299,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              
+
               <TableBody>
                 {isLoading ? (
                   <TableRow>
@@ -327,7 +327,7 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                   processedData.map((item, index) => (
                     <TableRow key={item.player.id}>
                       <TableCell className="font-medium">
-                        <Link 
+                        <Link
                           href={`/cricket/players/${item.player.id}`}
                           className="hover:text-orange-600"
                         >
@@ -338,7 +338,9 @@ export default function LeaderboardTable({ initialCategory = "batting" }: Leader
                         </Link>
                       </TableCell>
                       <TableCell>{item.innings}</TableCell>
-                      <TableCell>{item.overs.toFixed(1)}</TableCell>
+                      <TableCell>
+                        {typeof item.overs === 'number' ? item.overs.toFixed(1) : '0.0'}
+                      </TableCell>
                       <TableCell>{item.runs}</TableCell>
                       <TableCell>{item.wickets}</TableCell>
                       <TableCell>{item.economyRate}</TableCell>

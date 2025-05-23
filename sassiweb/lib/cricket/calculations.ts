@@ -59,7 +59,7 @@ export function calculateBowlingAverage(runs: number, wickets: number): number {
  */
 export function calculateOvers(currentOvers: number, ballsToAdd: number): number {
   const totalOvers = Math.floor(currentOvers);
-  const balls = Math.round((currentOvers - totalOvers) * 10) + ballsToAdd;
+  const balls = Math.round((currentOvers - totalOvers) * 6) + ballsToAdd;
   
   const newOvers = totalOvers + Math.floor(balls / 6);
   const remainingBalls = balls % 6;
