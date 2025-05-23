@@ -2,15 +2,39 @@
 import { BallEvent, Innings, BattingPerformance, BowlingPerformance } from "@/lib/cricket/types";
 
 /**
- * Calculate run rate (runs per over)
+ * Convert cricket overs format to actual balls
+ * In cricket: 2.3 overs = 2 complete overs + 3 balls = 15 balls total
  */
-export function calculateRunRate(runs: number, overs: number): number {
-  if (overs === 0) return 0;
-  return runs / overs;
+export function oversToActualBalls(overs: number): number {
+  const wholeOvers = Math.floor(overs);
+  const balls = Math.round((overs - wholeOvers) * 10); // Extract the decimal part as balls
+  return wholeOvers * 6 + balls;
 }
 
 /**
- * Calculate required run rate
+ * Convert actual balls back to cricket overs format
+ */
+export function ballsToOvers(balls: number): number {
+  const wholeOvers = Math.floor(balls / 6);
+  const remainingBalls = balls % 6;
+  return wholeOvers + (remainingBalls / 10); // Use /10 to represent balls in decimal format
+}
+
+/**
+ * Calculate run rate (runs per over) - FIXED for cricket format
+ */
+export function calculateRunRate(runs: number, overs: number): number {
+  if (overs === 0) return 0;
+  
+  // Convert cricket overs to actual balls, then to true overs
+  const actualBalls = oversToActualBalls(overs);
+  const trueOvers = actualBalls / 6;
+  
+  return runs / trueOvers;
+}
+
+/**
+ * Calculate required run rate - FIXED for cricket format
  */
 export function calculateRequiredRunRate(
   targetRuns: number,
@@ -19,7 +43,12 @@ export function calculateRequiredRunRate(
 ): number {
   const runsNeeded = targetRuns - currentRuns;
   if (runsNeeded <= 0 || oversLeft === 0) return 0;
-  return runsNeeded / oversLeft;
+  
+  // Convert cricket overs to actual balls, then to true overs
+  const actualBalls = oversToActualBalls(oversLeft);
+  const trueOvers = actualBalls / 6;
+  
+  return runsNeeded / trueOvers;
 }
 
 /**
@@ -31,11 +60,16 @@ export function calculateStrikeRate(runs: number, ballsFaced: number): number {
 }
 
 /**
- * Calculate economy rate (runs per over)
+ * Calculate economy rate (runs per over) - FIXED for cricket format
  */
 export function calculateEconomyRate(runs: number, overs: number): number {
   if (overs === 0) return 0;
-  return runs / overs;
+  
+  // Convert cricket overs to actual balls, then to true overs
+  const actualBalls = oversToActualBalls(overs);
+  const trueOvers = actualBalls / 6;
+  
+  return runs / trueOvers;
 }
 
 /**
@@ -55,26 +89,17 @@ export function calculateBowlingAverage(runs: number, wickets: number): number {
 }
 
 /**
- * Calculate overs (whole overs + balls/6)
+ * Calculate overs (whole overs + balls/10) - FIXED for cricket format
  */
 export function calculateOvers(currentOvers: number, ballsToAdd: number): number {
-  const totalOvers = Math.floor(currentOvers);
-  const balls = Math.round((currentOvers - totalOvers) * 6) + ballsToAdd;
+  // Convert current overs to actual balls
+  const currentBalls = oversToActualBalls(currentOvers);
   
-  const newOvers = totalOvers + Math.floor(balls / 6);
-  const remainingBalls = balls % 6;
+  // Add the new balls
+  const totalBalls = currentBalls + ballsToAdd;
   
-  return newOvers + (remainingBalls / 10);
-}
-
-/**
- * Convert overs to balls
- */
-export function oversToActualBalls(overs: number): number {
-  const wholeOvers = Math.floor(overs);
-  const balls = Math.round((overs - wholeOvers) * 10);
-  
-  return wholeOvers * 6 + balls;
+  // Convert back to cricket overs format
+  return ballsToOvers(totalBalls);
 }
 
 /**
@@ -120,7 +145,7 @@ export function determineFallOfWickets(
     return {
       wicketNumber: index + 1,
       runs: runsAtWicket,
-      overs: ball.over + ball.ballInOver / 6,
+      overs: ball.over + ball.ballInOver / 10, // Use /10 for cricket format
       playerId: ball.batsmanOnStrikeId,
     };
   });
@@ -167,7 +192,7 @@ export async function updateScorecardAfterBall(
         const isLegalDelivery = !ballEvent.extrasType || 
           (ballEvent.extrasType !== "WIDE" && ballEvent.extrasType !== "NO_BALL");
         
-        // Calculate updated overs
+        // Calculate updated overs using the fixed function
         let updatedOvers = innings.overs;
         if (isLegalDelivery) {
           updatedOvers = calculateOvers(innings.overs, 1);
@@ -185,7 +210,6 @@ export async function updateScorecardAfterBall(
         });
   
         // 3. Update batsman statistics
-        // First check if the batsman already has a record for this innings
         let battingRecord = await tx.cricketBatting.findFirst({
           where: {
             inningsId: ballEvent.inningsId,
@@ -230,7 +254,7 @@ export async function updateScorecardAfterBall(
           },
         });
   
-        // Calculate updated overs for bowler
+        // Calculate updated overs for bowler using the fixed function
         let bowlerOvers = 0;
         if (bowlingRecord) {
           bowlerOvers = bowlingRecord.overs;
@@ -238,7 +262,7 @@ export async function updateScorecardAfterBall(
             bowlerOvers = calculateOvers(bowlerOvers, 1);
           }
         } else if (isLegalDelivery) {
-          bowlerOvers = 0.1; // First legal delivery
+          bowlerOvers = 0.1; // First legal delivery in cricket format
         }
   
         if (bowlingRecord) {

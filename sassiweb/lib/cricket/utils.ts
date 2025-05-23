@@ -68,10 +68,20 @@ export function formatExtrasType(type: ExtrasType | string): string {
 }
 
 /**
- * Format overs (e.g., 4.3 means 4 overs and 3 balls)
+ * Format overs (e.g., 4.3 means 4 overs and 3 balls) - FIXED
+ * In cricket, the decimal part represents balls out of 6, not a true decimal
  */
 export function formatOvers(overs: number): string {
+  if (typeof overs !== 'number' || isNaN(overs)) {
+    return "0.0";
+  }
+  
   const wholeOvers = Math.floor(overs);
+  // Extract the decimal part and convert to balls (0.1 = 1 ball, 0.2 = 2 balls, etc.)
   const balls = Math.round((overs - wholeOvers) * 10);
-  return `${wholeOvers}.${balls}`;
+  
+  // Ensure balls don't exceed 5 (0-5 balls in an incomplete over)
+  const validBalls = Math.min(balls, 5);
+  
+  return `${wholeOvers}.${validBalls}`;
 }

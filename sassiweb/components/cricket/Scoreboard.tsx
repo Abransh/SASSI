@@ -1,8 +1,8 @@
-// components/cricket/Scoreboard.tsx
+// components/cricket/Scoreboard.tsx - Fixed with proper calculations
 "use client";
 
 import { Match, Innings } from "@/lib/cricket/types";
-import {  calculateRunRate, calculateRequiredRunRate } from "@/lib/cricket/calculations";
+import { calculateRunRate, calculateRequiredRunRate } from "@/lib/cricket/calculations";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -95,13 +95,14 @@ export default function Scoreboard({ match }: ScoreboardProps) {
     ? firstInnings.totalRuns + 1
     : null;
   
-  // Calculate runs needed & balls remaining (only if there's a target)
+  // Calculate runs needed & overs remaining (only if there's a target)
   const runsNeeded = target && currentInnings
     ? target - currentInnings.totalRuns
     : null;
   
+  // FIXED: Calculate overs remaining for 5-over match
   const oversRemaining = currentInnings
-    ? 5 - currentInnings.overs // 5 overs
+    ? 5 - currentInnings.overs // 5 overs total
     : null;
   
   // Format time display
@@ -205,7 +206,7 @@ export default function Scoreboard({ match }: ScoreboardProps) {
                 <div className="text-2xl font-bold">
                   {currentInnings.totalRuns}/{currentInnings.wickets}
                   <span className="text-sm text-gray-600 ml-2">
-                    ({formatOvers(currentInnings.overs)})
+                    ({formatOvers(currentInnings.overs)} ov)
                   </span>
                 </div>
               </div>
@@ -215,19 +216,20 @@ export default function Scoreboard({ match }: ScoreboardProps) {
                   CRR: {calculateRunRate(currentInnings.totalRuns, currentInnings.overs).toFixed(2)}
                 </div>
                 
-                {target && (
+                {target && oversRemaining && oversRemaining > 0 && (
                   <div className="text-sm text-gray-600">
                     RRR: {calculateRequiredRunRate(
                       target, 
                       currentInnings.totalRuns,
-                      oversRemaining || 0
+                      oversRemaining
                     ).toFixed(2)}
                   </div>
                 )}
               </div>
             </div>
-             {/* Current batsmen and bowler - Add this! */}
-             {match.status === "LIVE" && renderCurrentBatsmen()}
+            
+            {/* Current batsmen and bowler */}
+            {match.status === "LIVE" && renderCurrentBatsmen()}
 
             {/* Target info */}
             {target && (
@@ -253,7 +255,7 @@ export default function Scoreboard({ match }: ScoreboardProps) {
                   <span>
                     {firstInnings.totalRuns}/{firstInnings.wickets}
                     <span className="text-xs ml-1">
-                      ({formatOvers(firstInnings.overs)})
+                      ({formatOvers(firstInnings.overs)} ov)
                     </span>
                   </span>
                 </div>

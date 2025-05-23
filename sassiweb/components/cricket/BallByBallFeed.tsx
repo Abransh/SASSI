@@ -23,9 +23,15 @@ export default function BallByBallFeed({
 }:
  BallByBallFeedProps) {
   // Construct API URL
-  const apiUrl = `/api/cricket/matches/${matchId}/ball${
-    inningsId ? `?inningsId=${inningsId}&` : '?'
-  }limit=${limit}`;
+  const apiUrl = (() => {
+    const params = new URLSearchParams();
+    if (inningsId) {
+      params.set('inningsId', inningsId);
+    }
+    params.set('limit', limit.toString());
+    
+    return `/api/cricket/matches/${matchId}/ball?${params.toString()}`;
+  })();
   
   // Fetch ball events with SWR for auto-refresh
   const { data, error, isLoading, mutate } = useSWR(
@@ -48,6 +54,7 @@ export default function BallByBallFeed({
     return (
       <div className="p-6 bg-red-50 border border-red-200 rounded-md text-center">
         <p className="text-red-700">Error loading ball-by-ball data</p>
+        <p className="text-sm text-gray-600 mt-1">URL: {apiUrl}</p>
         <button 
           onClick={() => mutate()} 
           className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
@@ -128,9 +135,9 @@ function BallEventRow({ ball }: BallEventRowProps) {
       {/* Event content */}
       <div className="flex-1">
         <div className="flex items-center">
-          <span className="font-medium">{ball.batsmanOnStrike.name}</span>
+          <span className="font-medium">{ball.batsmanOnStrike?.name || "Unknown"}</span>
           <span className="mx-1 text-gray-400">to</span>
-          <span className="font-medium">{ball.bowler.name}</span>
+          <span className="font-medium">{ball.bowler?.name || "Unknown"}</span>
         </div>
         
         <div className="text-sm text-gray-600 mt-1 flex items-center">
@@ -199,6 +206,7 @@ function getEventColor(ball: BallEvent): string {
 
 function getDismissalDescription(ball: BallEvent): string {
   const batsman = ball.batsmanOnStrike.name;
+  const bowler = ball.bowler?.name || "Unknown";
   
   switch (ball.wicketType) {
     case DismissalType.BOWLED:
