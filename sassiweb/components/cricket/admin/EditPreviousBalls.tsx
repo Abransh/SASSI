@@ -1,4 +1,5 @@
-// components/cricket/admin/EditPreviousBalls.tsx
+
+// components/cricket/admin/EditPreviousBalls.tsx - Fixed with debug logs
 "use client";
 
 import { useState, useEffect } from "react";
@@ -63,10 +64,13 @@ interface BallEventWithPlayers extends BallEvent {
 }
 import useSWR from "swr";
 
+
+
+
 const editBallFormSchema = z.object({
-  batsmanOnStrikeId: z.string(),
-  nonStrikerId: z.string(),
-  bowlerId: z.string(),
+  batsmanOnStrikeId: z.string().min(1, "Batsman on strike is required"),
+  nonStrikerId: z.string().min(1, "Non-striker is required"),
+  bowlerId: z.string().min(1, "Bowler is required"),
   runs: z.number().min(0).max(6),
   isExtra: z.boolean(),
   extras: z.number().min(0).max(5).optional(),
@@ -92,14 +96,30 @@ export default function EditPreviousBalls({
   const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedBall, setSelectedBall] = useState<BallEvent | null>(null);
+  const [selectedBall, setSelectedBall] = useState<BallEventWithPlayers | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Add debug logging
+  console.log("EditPreviousBalls component loaded");
+  console.log("Match ID:", match.id);
+  console.log("Current Innings ID:", currentInningsId);
+
   // Fetch ball events for current innings
+  const apiUrl = `/api/cricket/matches/${match.id}/ball?inningsId=${currentInningsId}&limit=50`;
+  console.log("API URL:", apiUrl);
+
   const { data: ballEvents, error, isLoading, mutate } = useSWR(
-    `/api/cricket/matches/${match.id}/ball?inningsId=${currentInningsId}&limit=50`,
+    apiUrl,
     fetcher,
-    { refreshInterval: 5000 }
+    { 
+      refreshInterval: 5000,
+      onError: (error) => {
+        console.error("SWR Error:", error);
+      },
+      onSuccess: (data) => {
+        console.log("Ball events fetched successfully:", data);
+      }
+    }
   );
 
   // Get current innings data
@@ -124,11 +144,12 @@ export default function EditPreviousBalls({
   const isWicket = form.watch("isWicket");
 
   // Open edit dialog
-  const openEditDialog = (ball: BallEvent) => {
+  const openEditDialog = (ball: BallEventWithPlayers) => {
+    console.log("Opening edit dialog for ball:", ball);
     setSelectedBall(ball);
     
     // Populate form with current ball data
-    form.reset({
+    const formValues = {
       batsmanOnStrikeId: ball.batsmanOnStrikeId,
       nonStrikerId: ball.nonStrikerId,
       bowlerId: ball.bowlerId,
@@ -139,56 +160,90 @@ export default function EditPreviousBalls({
       isWicket: ball.isWicket,
       wicketType: ball.wicketType,
       comment: ball.comment || "",
-    });
+    };
+    
+    console.log("Setting form values:", formValues);
+    form.reset(formValues);
     
     setIsEditDialogOpen(true);
   };
 
   // Open delete dialog
-  const openDeleteDialog = (ball: BallEvent) => {
+  const openDeleteDialog = (ball: BallEventWithPlayers) => {
+    console.log("Opening delete dialog for ball:", ball);
     setSelectedBall(ball);
     setIsDeleteDialogOpen(true);
   };
 
   // Handle edit submission
   async function onEditSubmit(values: z.infer<typeof editBallFormSchema>) {
-    if (!selectedBall) return;
+    console.log("Form submitted with values:", values);
+    
+    if (!selectedBall) {
+      console.error("No selected ball");
+      toast.error("No ball selected");
+      return;
+    }
 
+    console.log("Selected ball:", selectedBall);
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`/api/cricket/matches/${match.id}/ball/${selectedBall.id}`, {
+      const updateData = {
+        batsmanOnStrikeId: values.batsmanOnStrikeId,
+        nonStrikerId: values.nonStrikerId,
+        bowlerId: values.bowlerId,
+        runs: values.runs,
+        extras: values.isExtra ? (values.extras || 0) : 0,
+        extrasType: values.isExtra ? values.extrasType : null,
+        isWicket: values.isWicket,
+        wicketType: values.isWicket ? values.wicketType : null,
+        comment: values.comment,
+      };
+
+      console.log("Update data:", updateData);
+
+      const url = `/api/cricket/matches/${match.id}/ball/${selectedBall.id}`;
+      console.log("Update URL:", url);
+
+      const response = await fetch(url, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          batsmanOnStrikeId: values.batsmanOnStrikeId,
-          nonStrikerId: values.nonStrikerId,
-          bowlerId: values.bowlerId,
-          runs: values.runs,
-          extras: values.isExtra ? (values.extras || 0) : 0,
-          extrasType: values.isExtra ? values.extrasType : null,
-          isWicket: values.isWicket,
-          wicketType: values.isWicket ? values.wicketType : null,
-          comment: values.comment,
-        }),
+        body: JSON.stringify(updateData),
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response headers:", response.headers);
+
+      const responseData = await response.text();
+      console.log("Response data:", responseData);
+
       if (!response.ok) {
-        throw new Error("Failed to update ball event");
+        let errorMessage = "Failed to update ball event";
+        try {
+          const errorData = JSON.parse(responseData);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error("Failed to parse error response:", e);
+        }
+        throw new Error(errorMessage);
       }
+
+      const result = JSON.parse(responseData);
+      console.log("Update successful:", result);
 
       toast.success("Ball event updated successfully");
       setIsEditDialogOpen(false);
       
       // Refresh data
-      mutate();
+      await mutate();
       onBallUpdated();
       
     } catch (error) {
       console.error("Error updating ball event:", error);
-      toast.error("Failed to update ball event");
+      toast.error(`Failed to update ball event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -196,24 +251,38 @@ export default function EditPreviousBalls({
 
   // Handle delete
   const handleDelete = async () => {
-    if (!selectedBall) return;
+    if (!selectedBall) {
+      console.error("No selected ball for deletion");
+      return;
+    }
 
+    console.log("Deleting ball:", selectedBall);
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`/api/cricket/matches/${match.id}/ball/${selectedBall.id}`, {
+      const url = `/api/cricket/matches/${match.id}/ball/${selectedBall.id}`;
+      console.log("Delete URL:", url);
+
+      const response = await fetch(url, {
         method: "DELETE",
       });
 
+      console.log("Delete response status:", response.status);
+
       if (!response.ok) {
+        const errorData = await response.text();
+        console.error("Delete error response:", errorData);
         throw new Error("Failed to delete ball event");
       }
+
+      const result = await response.json();
+      console.log("Delete successful:", result);
 
       toast.success("Ball event deleted successfully");
       setIsDeleteDialogOpen(false);
       
       // Refresh data
-      mutate();
+      await mutate();
       onBallUpdated();
       
     } catch (error) {
@@ -225,7 +294,7 @@ export default function EditPreviousBalls({
   };
 
   // Get event display text
-  const getEventDisplay = (ball: BallEvent) => {
+  const getEventDisplay = (ball: BallEventWithPlayers) => {
     if (ball.isWicket) {
       return <Badge variant="destructive">WICKET</Badge>;
     }
@@ -248,6 +317,7 @@ export default function EditPreviousBalls({
   };
 
   if (!currentInnings) {
+    console.error("No current innings found");
     return (
       <div className="p-4 text-center text-gray-500">
         No current innings found
@@ -258,6 +328,13 @@ export default function EditPreviousBalls({
   const battingPlayers = currentInnings.battingTeam?.players || [];
   const bowlingPlayers = currentInnings.bowlingTeam?.players || [];
 
+  console.log("Batting players:", battingPlayers);
+  console.log("Bowling players:", bowlingPlayers);
+
+  if (error) {
+    console.error("Error loading ball events:", error);
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -265,7 +342,10 @@ export default function EditPreviousBalls({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => mutate()}
+          onClick={() => {
+            console.log("Refreshing data...");
+            mutate();
+          }}
           disabled={isLoading}
         >
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -281,7 +361,7 @@ export default function EditPreviousBalls({
 
       {error && (
         <div className="p-4 bg-red-50 text-red-700 rounded-md">
-          Error loading ball events
+          Error loading ball events: {error.message || "Unknown error"}
         </div>
       )}
 
@@ -300,7 +380,7 @@ export default function EditPreviousBalls({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ballEvents.slice(0, 20).map((ball: BallEvent) => (
+              {ballEvents.slice(0, 20).map((ball: BallEventWithPlayers) => (
                 <TableRow key={ball.id}>
                   <TableCell className="font-medium">
                     {ball.over}.{ball.ballInOver}
@@ -320,7 +400,10 @@ export default function EditPreviousBalls({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => openEditDialog(ball)}
+                        onClick={() => {
+                          console.log("Edit button clicked for ball:", ball);
+                          openEditDialog(ball);
+                        }}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -328,7 +411,10 @@ export default function EditPreviousBalls({
                         variant="ghost"
                         size="sm"
                         className="text-red-500 hover:text-red-700"
-                        onClick={() => openDeleteDialog(ball)}
+                        onClick={() => {
+                          console.log("Delete button clicked for ball:", ball);
+                          openDeleteDialog(ball);
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -359,6 +445,11 @@ export default function EditPreviousBalls({
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-4">
+              {/* Debug info */}
+              <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
+                Debug: Ball ID: {selectedBall?.id}, Match ID: {match.id}
+              </div>
+
               {/* Players selection */}
               <div className="grid grid-cols-3 gap-4">
                 <FormField
@@ -447,7 +538,10 @@ export default function EditPreviousBalls({
                       type="button"
                       variant={form.getValues("runs") === run ? "default" : "outline"}
                       className="w-10 h-10 p-0"
-                      onClick={() => form.setValue("runs", run)}
+                      onClick={() => {
+                        console.log(`Setting runs to: ${run}`);
+                        form.setValue("runs", run);
+                      }}
                     >
                       {run}
                     </Button>
@@ -466,7 +560,10 @@ export default function EditPreviousBalls({
                         <FormControl>
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              console.log("Extras checkbox changed:", checked);
+                              field.onChange(checked);
+                            }}
                           />
                         </FormControl>
                         <FormLabel>Extras</FormLabel>
@@ -509,7 +606,11 @@ export default function EditPreviousBalls({
                                 type="number"
                                 placeholder="Extras"
                                 {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value) || 0;
+                                  console.log("Extras value changed:", value);
+                                  field.onChange(value);
+                                }}
                               />
                             </FormControl>
                           </FormItem>
@@ -529,7 +630,10 @@ export default function EditPreviousBalls({
                         <FormControl>
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              console.log("Wicket checkbox changed:", checked);
+                              field.onChange(checked);
+                            }}
                           />
                         </FormControl>
                         <FormLabel>Wicket</FormLabel>
@@ -577,6 +681,10 @@ export default function EditPreviousBalls({
                       <Input
                         placeholder="Add commentary for this ball"
                         {...field}
+                        onChange={(e) => {
+                          console.log("Comment changed:", e.target.value);
+                          field.onChange(e.target.value);
+                        }}
                       />
                     </FormControl>
                   </FormItem>
@@ -587,11 +695,22 @@ export default function EditPreviousBalls({
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => setIsEditDialogOpen(false)}
+                  onClick={() => {
+                    console.log("Cancel button clicked");
+                    setIsEditDialogOpen(false);
+                  }}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    console.log("Update button clicked");
+                    console.log("Form values:", form.getValues());
+                    console.log("Form errors:", form.formState.errors);
+                  }}
+                >
                   {isSubmitting ? "Updating..." : "Update Ball"}
                 </Button>
               </DialogFooter>

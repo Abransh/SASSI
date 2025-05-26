@@ -1,17 +1,25 @@
-// app/api/cricket/matches/[id]/ball/[ballId]/route.ts
+// Create this file: app/api/cricket/matches/[id]/ball/[ballId]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { ExtrasType } from "@/lib/cricket/types";
 
+// Add debug logging
+console.log("Ball edit API route loaded");
+
 // Helper function to recalculate all stats for an innings from ball events
 async function recalculateInningsStats(inningsId: string, tx: any) {
+  console.log("Starting recalculation for innings:", inningsId);
+  
   // Get all ball events for this innings
   const ballEvents = await tx.cricketBallEvent.findMany({
     where: { inningsId },
     orderBy: [{ over: 'asc' }, { ballInOver: 'asc' }],
   });
+
+  console.log("Found ball events:", ballEvents.length);
 
   // Reset innings stats
   await tx.cricketInnings.update({
@@ -104,6 +112,8 @@ async function recalculateInningsStats(inningsId: string, tx: any) {
   const remainingBalls = legalBalls % 6;
   const totalOvers = wholeOvers + (remainingBalls / 10);
 
+  console.log("Recalculated stats:", { totalRuns, totalWickets, totalOvers, totalExtras });
+
   // Update innings with recalculated stats
   await tx.cricketInnings.update({
     where: { id: inningsId },
@@ -134,6 +144,8 @@ async function recalculateInningsStats(inningsId: string, tx: any) {
       },
     });
   }
+
+  console.log("Recalculation complete");
 }
 
 // PATCH - Edit a ball event
@@ -141,27 +153,42 @@ export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ id: string; ballId: string }> }
 ) {
+  console.log("PATCH request received");
+  
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
+    console.log("Session:", session?.user);
+    
     if (!session || session.user.role !== "ADMIN") {
+      console.log("Unauthorized access attempt");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const params = await context.params;
     const matchId = params.id;
     const ballId = params.ballId;
+    
+    console.log("Match ID:", matchId);
+    console.log("Ball ID:", ballId);
+    
     const data = await req.json();
+    console.log("Request data:", data);
 
     return await prisma.$transaction(async (tx) => {
+      console.log("Starting transaction");
+      
       // Get the existing ball event
       const existingBall = await tx.cricketBallEvent.findUnique({
         where: { id: ballId },
       });
 
       if (!existingBall) {
+        console.log("Ball event not found:", ballId);
         throw new Error("Ball event not found");
       }
+
+      console.log("Existing ball:", existingBall);
 
       // Update the ball event
       const updatedBall = await tx.cricketBallEvent.update({
@@ -179,8 +206,12 @@ export async function PATCH(
         },
       });
 
+      console.log("Ball updated:", updatedBall);
+
       // Recalculate all stats for the innings
       await recalculateInningsStats(existingBall.inningsId, tx);
+
+      console.log("Transaction complete");
 
       return NextResponse.json({ 
         success: true, 
@@ -190,7 +221,7 @@ export async function PATCH(
   } catch (error) {
     console.error("Error editing ball event:", error);
     return NextResponse.json(
-      { error: "Failed to edit ball event" },
+      { error: `Failed to edit ball event: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     );
   }
@@ -201,15 +232,19 @@ export async function DELETE(
   req: NextRequest,
   context: { params: Promise<{ id: string; ballId: string }> }
 ) {
+  console.log("DELETE request received");
+  
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "ADMIN") {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const params = await context.params;
     const ballId = params.ballId;
+    
+    console.log("Deleting ball ID:", ballId);
 
     return await prisma.$transaction(async (tx) => {
       // Get the ball event before deletion
@@ -220,6 +255,8 @@ export async function DELETE(
       if (!ballEvent) {
         throw new Error("Ball event not found");
       }
+
+      console.log("Ball to delete:", ballEvent);
 
       // Delete the ball event
       await tx.cricketBallEvent.delete({
@@ -237,7 +274,7 @@ export async function DELETE(
   } catch (error) {
     console.error("Error deleting ball event:", error);
     return NextResponse.json(
-      { error: "Failed to delete ball event" },
+      { error: `Failed to delete ball event: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     );
   }
@@ -248,9 +285,13 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string; ballId: string }> }
 ) {
+  console.log("GET request received");
+  
   try {
     const params = await context.params;
     const ballId = params.ballId;
+
+    console.log("Fetching ball ID:", ballId);
 
     const ballEvent = await prisma.cricketBallEvent.findUnique({
       where: { id: ballId },
@@ -268,11 +309,13 @@ export async function GET(
       );
     }
 
+    console.log("Ball event found:", ballEvent);
+
     return NextResponse.json(ballEvent);
   } catch (error) {
     console.error("Error fetching ball event:", error);
     return NextResponse.json(
-      { error: "Failed to fetch ball event" },
+      { error: `Failed to fetch ball event: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     );
   }
