@@ -55,17 +55,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Pencil, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { DismissalType, ExtrasType, Match, BallEvent, PlayerRole } from "@/lib/cricket/types";
+import useSWR from "swr";
 
 // Add this interface at the top level
 interface BallEventWithPlayers extends BallEvent {
-  batsmanOnStrike: { id: string; name: string; role: PlayerRole; teamId: string };
-  nonStriker: { id: string; name: string; role: PlayerRole; teamId: string };
-  bowler: { id: string; name: string; role: PlayerRole; teamId: string };
-}
-import useSWR from "swr";
-
-
-
+    batsmanOnStrike: { id: string; name: string; role: PlayerRole; teamId: string };
+    nonStriker: { id: string; name: string; role: PlayerRole; teamId: string };
+    bowler: { id: string; name: string; role: PlayerRole; teamId: string };
+  }
 
 const editBallFormSchema = z.object({
   batsmanOnStrikeId: z.string().min(1, "Batsman on strike is required"),
@@ -74,10 +71,22 @@ const editBallFormSchema = z.object({
   runs: z.number().min(0).max(6),
   isExtra: z.boolean(),
   extras: z.number().min(0).max(5).optional(),
-  extrasType: z.nativeEnum(ExtrasType).optional(),
+  extrasType: z.nativeEnum(ExtrasType).nullable().optional(),
   isWicket: z.boolean(),
-  wicketType: z.nativeEnum(DismissalType).optional(),
+  wicketType: z.nativeEnum(DismissalType).nullable().optional(),
   comment: z.string().max(150).optional(),
+}).refine((data) => {
+  // If isExtra is true, extrasType should be provided
+  if (data.isExtra && !data.extrasType) {
+    return false;
+  }
+  // If isWicket is true, wicketType should be provided
+  if (data.isWicket && !data.wicketType) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please provide extras type when extras is selected, and wicket type when wicket is selected",
 });
 
 interface EditPreviousBallsProps {
@@ -135,13 +144,23 @@ export default function EditPreviousBalls({
       runs: 0,
       isExtra: false,
       extras: 0,
+      extrasType: null,
       isWicket: false,
+      wicketType: null,
+      comment: "",
     },
   });
 
   // Form watch values
   const isExtra = form.watch("isExtra");
   const isWicket = form.watch("isWicket");
+
+  // Trigger validation when checkbox states change
+  useEffect(() => {
+    if (isEditDialogOpen) {
+      form.trigger();
+    }
+  }, [isExtra, isWicket, isEditDialogOpen, form]);
 
   // Open edit dialog
   const openEditDialog = (ball: BallEventWithPlayers) => {
@@ -156,9 +175,9 @@ export default function EditPreviousBalls({
       runs: ball.runs,
       isExtra: !!ball.extrasType,
       extras: ball.extras || 0,
-      extrasType: ball.extrasType,
+      extrasType: ball.extrasType || null,
       isWicket: ball.isWicket,
-      wicketType: ball.wicketType,
+      wicketType: ball.wicketType || null,
       comment: ball.comment || "",
     };
     
@@ -198,7 +217,7 @@ export default function EditPreviousBalls({
         extrasType: values.isExtra ? values.extrasType : null,
         isWicket: values.isWicket,
         wicketType: values.isWicket ? values.wicketType : null,
-        comment: values.comment,
+        comment: values.comment || "",
       };
 
       console.log("Update data:", updateData);
@@ -243,7 +262,8 @@ export default function EditPreviousBalls({
       
     } catch (error) {
       console.error("Error updating ball event:", error);
-      toast.error(`Failed to update ball event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      toast.error(`Failed to update ball event: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -448,6 +468,7 @@ export default function EditPreviousBalls({
               {/* Debug info */}
               <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
                 Debug: Ball ID: {selectedBall?.id}, Match ID: {match.id}
+                <br />Form Errors: {Object.keys(form.formState.errors).length > 0 ? JSON.stringify(form.formState.errors) : "None"}
               </div>
 
               {/* Players selection */}
@@ -563,6 +584,11 @@ export default function EditPreviousBalls({
                             onCheckedChange={(checked) => {
                               console.log("Extras checkbox changed:", checked);
                               field.onChange(checked);
+                              // Clear extras-related fields when unchecked
+                              if (!checked) {
+                                form.setValue("extrasType", null);
+                                form.setValue("extras", 0);
+                              }
                             }}
                           />
                         </FormControl>
@@ -578,7 +604,10 @@ export default function EditPreviousBalls({
                         name="extrasType"
                         render={({ field }) => (
                           <FormItem>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select 
+                              onValueChange={field.onChange} 
+                              value={field.value || ""}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select extra type" />
@@ -592,6 +621,7 @@ export default function EditPreviousBalls({
                                 ))}
                               </SelectContent>
                             </Select>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -633,6 +663,10 @@ export default function EditPreviousBalls({
                             onCheckedChange={(checked) => {
                               console.log("Wicket checkbox changed:", checked);
                               field.onChange(checked);
+                              // Clear wicket type when unchecked
+                              if (!checked) {
+                                form.setValue("wicketType", null);
+                              }
                             }}
                           />
                         </FormControl>
@@ -648,7 +682,10 @@ export default function EditPreviousBalls({
                         name="wicketType"
                         render={({ field }) => (
                           <FormItem>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select 
+                              onValueChange={field.onChange} 
+                              value={field.value || ""}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select dismissal type" />
@@ -662,6 +699,7 @@ export default function EditPreviousBalls({
                                 ))}
                               </SelectContent>
                             </Select>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -687,9 +725,17 @@ export default function EditPreviousBalls({
                         }}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Global form errors */}
+              {form.formState.errors.root && (
+                <div className="text-red-500 text-sm">
+                  {form.formState.errors.root.message}
+                </div>
+              )}
 
               <DialogFooter>
                 <Button 
@@ -705,10 +751,21 @@ export default function EditPreviousBalls({
                 <Button 
                   type="submit" 
                   disabled={isSubmitting}
-                  onClick={() => {
+                  onClick={(e) => {
                     console.log("Update button clicked");
                     console.log("Form values:", form.getValues());
                     console.log("Form errors:", form.formState.errors);
+                    
+                    // Check if form is valid before submitting
+                    const isValid = form.formState.isValid;
+                    console.log("Form is valid:", isValid);
+                    
+                    if (!isValid) {
+                      e.preventDefault();
+                      console.log("Form validation failed, preventing submission");
+                      toast.error("Please fix form validation errors");
+                      return;
+                    }
                   }}
                 >
                   {isSubmitting ? "Updating..." : "Update Ball"}
