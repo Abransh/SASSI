@@ -455,7 +455,7 @@ export default function BallInputForm({
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           />
-                        </FormControl>
+                        </FormControl> 
                         <FormMessage />
                       </FormItem>
                     )}

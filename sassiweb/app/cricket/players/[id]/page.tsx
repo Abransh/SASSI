@@ -607,8 +607,8 @@ export default async function PlayerProfilePage({ params }: Props) {
                           </div>
                           
                           <div className="bg-gray-50 p-3 rounded-md text-center">
-                            <div className="text-sm text-gray-600">Average</div>
-                            <div className="text-xl font-bold">{stats?.battingAverage || "0.00"}</div>
+                            <div className="text-sm text-gray-600">Runs</div>
+                            <div className="text-xl font-bold">{stats?.totalRuns || 0}</div>
                           </div>
                         </>
                       )}
@@ -621,8 +621,8 @@ export default async function PlayerProfilePage({ params }: Props) {
                           </div>
                           
                           <div className="bg-gray-50 p-3 rounded-md text-center">
-                            <div className="text-sm text-gray-600">Economy</div>
-                            <div className="text-xl font-bold">{stats?.economyRate || "0.00"}</div>
+                            <div className="text-sm text-gray-600">Runs</div>
+                            <div className="text-xl font-bold">{stats?.totalRuns || 0}</div>
                           </div>
                         </>
                       )}
@@ -638,14 +638,14 @@ export default async function PlayerProfilePage({ params }: Props) {
                     <TabsTrigger 
                       value="batting" 
                       className="flex-1 rounded-none"
-                      disabled={player.role === 'BOWLER'}
+                      // disabled={player.role === 'BOWLER'}
                     >
                       Batting Stats
                     </TabsTrigger>
                     <TabsTrigger 
                       value="bowling" 
                       className="flex-1 rounded-none"
-                      disabled={player.role === 'BATSMAN' || player.role === 'WICKET_KEEPER'}
+                      // disabled={player.role === 'BATSMAN' || player.role === 'WICKET_KEEPER'}
                     >
                       Bowling Stats
                     </TabsTrigger>

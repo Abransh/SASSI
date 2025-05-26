@@ -1,4 +1,4 @@
-// components/cricket/admin/MatchControl.tsx
+// components/cricket/admin/MatchControl.tsx - Updated with Edit Previous Balls
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import BallInputForm from "@/components/cricket/admin/BallInputForm";
+import EditPreviousBalls from "@/components/cricket/admin/EditPreviousBalls";
 import { Match, Innings } from "@/lib/cricket/types";
 
 interface MatchControlProps {
@@ -152,8 +153,8 @@ export default function MatchControl({ match }: MatchControlProps) {
     }
   };
   
-  // Handle ball added
-  const handleBallAdded = () => {
+  // Handle ball added or updated
+  const handleBallUpdated = () => {
     // Update current ball and over
     const isOverComplete = currentBall >= 6;
 
@@ -188,8 +189,9 @@ export default function MatchControl({ match }: MatchControlProps) {
       </CardHeader>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-2">
+        <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="scoring">Ball-by-Ball Scoring</TabsTrigger>
+          <TabsTrigger value="edit-balls">Edit Previous Balls</TabsTrigger>
           <TabsTrigger value="management">Match Management</TabsTrigger>
         </TabsList>
         
@@ -212,7 +214,29 @@ export default function MatchControl({ match }: MatchControlProps) {
               currentInningsId={currentInnings.id}
               currentOver={currentOver}
               currentBall={currentBall}
-              onBallAdded={handleBallAdded}
+              onBallAdded={handleBallUpdated}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="edit-balls" className="space-y-4 p-4">
+          {isMatchCompleted ? (
+            <div className="p-4 bg-blue-50 text-blue-800 rounded-md">
+              This match is complete. No further edits are allowed.
+            </div>
+          ) : !isMatchInProgress ? (
+            <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md">
+              Please start the match first using the Match Management tab.
+            </div>
+          ) : !currentInnings ? (
+            <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md">
+              Please start an innings first using the Match Management tab.
+            </div>
+          ) : (
+            <EditPreviousBalls
+              match={match}
+              currentInningsId={currentInnings.id}
+              onBallUpdated={handleBallUpdated}
             />
           )}
         </TabsContent>
