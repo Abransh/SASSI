@@ -73,13 +73,14 @@ export async function sendEventRegistrationEmail(
         We truly appreciate your support in making this celebration a success.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p> 
         <p><strong>Event Time:</strong> 10:30PM onwards</p> 
+        <p>Dress Code: Comfortable attire. A Yoga Day T-shirt will be provided on-site.</p>
         <p> For Any Queries, Contact:
 Siddu – +39 349 238 5255
 Insha Murad lari– +39 392 677 7905
 We look forward to working with you and celebrating the spirit of yoga together!
                  </p>  
                  
-                 
+                 <p>Join our WhatsApp group for updates and coordination:</p>
                  <p style="margin: 20px 0;">
                 <a href="https://chat.whatsapp.com/KbbQwTyVt7eBMeQWQ7RUcS" 
              style="background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
