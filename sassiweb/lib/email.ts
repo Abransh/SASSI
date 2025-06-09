@@ -68,10 +68,24 @@ export async function sendEventRegistrationEmail(
         <h1>You're registered for ${eventTitle}!</h1>
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
+        <p>Thank you for registering as a volunteer for <strong>International Yoga Day 2025</strong>, organised by the <strong>Consulate General of India</strong> in Milan in collaboration with <strong>SASSI</strong>.
+
+        We truly appreciate your support in making this celebration a success.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p> 
         <p><strong>Event Time:</strong> 10:30PM onwards</p> 
-        <p> For any help contact the organiser +91 8667705914  (Shree Charan)
-                 </p>                
+        <p> For Any Queries, Contact:
+Siddu – +39 349 238 5255
+Insha Murad lari– +39 392 677 7905
+We look forward to working with you and celebrating the spirit of yoga together!
+                 </p>  
+                 
+                 
+                 <p style="margin: 20px 0;">
+                <a href="https://chat.whatsapp.com/KbbQwTyVt7eBMeQWQ7RUcS" 
+             style="background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+            Join WhatsApp Group
+          </a>
+        </p>
         
         <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
         <p>Best regards,<br>The SASSI Team</p>

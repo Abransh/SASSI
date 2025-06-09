@@ -378,6 +378,7 @@ export default function AdminPlayersPage() {
                                 </Button> */}
                               </div>
                             </TableCell>
+                      
                           </TableRow>
                         ))}
                       </TableBody>
