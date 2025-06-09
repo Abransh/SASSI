@@ -72,7 +72,7 @@ export async function sendEventRegistrationEmail(
 
         We truly appreciate your support in making this celebration a success.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p> 
-        <p><strong>Event Time:</strong> 10:30PM onwards</p> 
+        <p><strong>Event Time:</strong> 9:00-11:00</p> 
         <p>Dress Code: Comfortable attire. A Yoga Day T-shirt will be provided on-site.</p>
         <p> For Any Queries, Contact:
 Siddu – +39 349 238 5255
