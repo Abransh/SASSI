@@ -79,8 +79,8 @@ export async function sendEventRegistrationEmail(
          <p><strong>Role:</strong> Place yoga mats in lines, guide the participants to take their seat, manage the area where participants' bags are kept.</p>
 
         <p> For Any Queries, Contact:
-Siddu – +39 349 238 5255
-Insha Murad lari– +39 392 677 7905
+Siddu – +39 349 238 5255 <br>
+Insha Murad lari– +39 392 677 7905 <br>
 We look forward to working with you and celebrating the spirit of yoga together!
                  </p>  
                  
