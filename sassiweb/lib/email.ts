@@ -97,10 +97,11 @@ We look forward to working with you and celebrating the spirit of yoga together!
                 <a href="https://www.sassimilan.com" 
              style="background-color: #9999ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
             Our Website
-          </a>  <br><a href=" https://www.instagram.com/sassi.milan/" 
+          </a>  <br><br>
+          <a href=" https://www.instagram.com/sassi.milan/" 
              style="background-color: ##ff3300; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
            Follow us on Instagram
-          </a>  /p>
+          </a>  </p>
       `,
     });
 
