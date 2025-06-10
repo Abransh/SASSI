@@ -73,7 +73,11 @@ export async function sendEventRegistrationEmail(
         We truly appreciate your support in making this celebration a success.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p> 
         <p><strong>Event Time:</strong> 9:00-11:00</p> 
-        <p>Dress Code: Comfortable attire. A Yoga Day T-shirt will be provided on-site.</p>
+        <p><strong>Volunteer ReportingTime:</strong> 8:00 AM sharp</p>
+        <p>Dress Code: Comfortable attire. A Yoga Day T-shirt will be provided on-site.</p> <br>
+
+         <p><strong>Role:</strong> Place yoga mats in lines, guide the participants to take their seat, manage the area where participants' bags are kept.</p>
+
         <p> For Any Queries, Contact:
 Siddu – +39 349 238 5255
 Insha Murad lari– +39 392 677 7905
@@ -89,7 +93,14 @@ We look forward to working with you and celebrating the spirit of yoga together!
         </p>
         
         <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
-        <p>Best regards,<br>The SASSI Team</p>
+        <p>Best regards,<br>The SASSI Team <br> <p style="margin: 20px 0;">
+                <a href="https://www.sassimilan.com" 
+             style="background-color: #9999ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+            Our Website
+          </a>  <br><a href=" https://www.instagram.com/sassi.milan/<" 
+             style="background-color: ##ff3300; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+           Follow us on Instagram
+          </a>  /p>
       `,
     });
 
