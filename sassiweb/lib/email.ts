@@ -74,7 +74,7 @@ export async function sendEventRegistrationEmail(
         <p><strong>Event Date:</strong> ${formattedDate}</p> 
         <p><strong>Event Time:</strong> 9:00-11:00</p> 
         <p><strong>Volunteer ReportingTime:</strong> 8:00 AM sharp</p>
-        <p>Dress Code: Comfortable attire. A Yoga Day T-shirt will be provided on-site.</p> <br>
+        <p><strong>Dress Code:</strong> Comfortable attire. A Yoga Day T-shirt will be provided on-site.</p> <br>
 
          <p><strong>Role:</strong> Place yoga mats in lines, guide the participants to take their seat, manage the area where participants' bags are kept.</p>
 
