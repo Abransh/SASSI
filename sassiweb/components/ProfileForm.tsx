@@ -288,38 +288,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
 
       
 
-      <div className="border-b pb-6">
-        <h2 className="text-xl font-bold mb-4">Interests & Skills</h2>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="interests" className="text-sm font-medium">
-              Interests & Hobbies
-            </label>
-            <Textarea
-              id="interests"
-              name="interests"
-              value={formData.interests}
-              onChange={handleChange}
-              placeholder="Share your interests and hobbies"
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="skills" className="text-sm font-medium">
-              Skills
-            </label>
-            <Textarea
-              id="skills"
-              name="skills"
-              value={formData.skills}
-              onChange={handleChange}
-              placeholder="List your professional skills"
-              rows={2}
-            />
-          </div>
-        </div>
-      </div>
+     
 
       <div className="pb-4">
         <h2 className="text-xl font-bold mb-4">Privacy Settings</h2>
