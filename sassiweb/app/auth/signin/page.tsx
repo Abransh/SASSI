@@ -37,6 +37,7 @@ function SignInForm() {
       });
 
       if (!result?.ok) {
+        toast.error(result?.error || "Failed to sign in");
         throw new Error(result?.error || "Failed to sign in");
       }
 

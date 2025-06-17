@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,34 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Handle automatic scrolling to phone number field when redirected from event registration
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#phoneNumber') {
+      // Small delay to ensure the page has rendered
+      setTimeout(() => {
+        const phoneNumberField = document.getElementById('phoneNumber');
+        const phoneNumberContainer = document.getElementById('phoneNumber-container');
+        if (phoneNumberField && phoneNumberContainer) {
+          // Add highlighting
+          phoneNumberContainer.classList.add('ring-2', 'ring-orange-500', 'rounded-lg', 'p-2', 'bg-orange-50');
+          
+          phoneNumberField.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          
+          // Focus the field for better UX
+          phoneNumberField.focus();
+          
+          // Remove highlighting after 3 seconds
+          setTimeout(() => {
+            phoneNumberContainer.classList.remove('ring-2', 'ring-orange-500', 'rounded-lg', 'p-2', 'bg-orange-50');
+          }, 3000);
+        }
+      }, 100);
+    }
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -97,7 +125,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
 
           <div className="space-y-2">
             <label htmlFor="university" className="text-sm font-medium">
-              University in Milan
+              University in Milan <span className="text-red-500">*</span>
             </label>
             <Input
               id="university"
@@ -105,6 +133,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
               value={formData.university}
               onChange={handleChange}
               placeholder="e.g., Politecnico di Milano"
+              required
             />
           </div>
 
@@ -138,7 +167,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <label htmlFor="bio" className="text-sm font-medium">
+            {/* <label htmlFor="bio" className="text-sm font-medium">
               Bio
             </label>
             <Textarea
@@ -148,7 +177,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
               onChange={handleChange}
               placeholder="A brief introduction about yourself"
               rows={3}
-            />
+            /> */}
           </div>
         </div>
       </div>
@@ -156,9 +185,9 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
       <div className="border-b pb-6">
         <h2 className="text-xl font-bold mb-4">Contact Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2" id="phoneNumber-container">
             <label htmlFor="phoneNumber" className="text-sm font-medium">
-              Phone Number
+              Phone Number <span className="text-red-500">*</span>
             </label>
             <Input
               id="phoneNumber"
@@ -166,6 +195,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
               value={formData.phoneNumber}
               onChange={handleChange}
               placeholder="Your phone number with country code"
+              required
             />
             <div className="flex items-center space-x-2 pt-1">
               <Switch

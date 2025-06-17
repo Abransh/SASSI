@@ -99,7 +99,7 @@ export default function EventRegistrationButton({
         // Check if the error is about missing phone number
         if (errorData.requiresPhoneNumber) {
           toast.error("Please add your phone number to your profile before registering for events.");
-          router.push('/profile');
+          router.push('/profile#phoneNumber');
           return;
         }
         
