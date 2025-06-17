@@ -286,39 +286,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
         </div>
       </div>
 
-      <div className="border-b pb-6">
-        <h2 className="text-xl font-bold mb-4">Milan Experience</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label htmlFor="yearOfArrival" className="text-sm font-medium">
-              Year of Arrival in Milan
-            </label>
-            <Input
-              id="yearOfArrival"
-              name="yearOfArrival"
-              type="number"
-              value={formData.yearOfArrival}
-              onChange={handleChange}
-              placeholder="e.g., 2023"
-              min="2010"
-              max={new Date().getFullYear()}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="residenceArea" className="text-sm font-medium">
-              Area of Residence in Milan
-            </label>
-            <Input
-              id="residenceArea"
-              name="residenceArea"
-              value={formData.residenceArea}
-              onChange={handleChange}
-              placeholder="e.g., Città Studi, Navigli, etc."
-            />
-          </div>
-        </div>
-      </div>
+      
 
       <div className="border-b pb-6">
         <h2 className="text-xl font-bold mb-4">Interests & Skills</h2>
