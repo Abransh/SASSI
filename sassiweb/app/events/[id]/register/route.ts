@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
-import { sendEventRegistrationEmail } from "@/lib/email";
+import { sendEventRegistrationEmail, generateVerificationCode } from "@/lib/email";
 import { getStripeClient } from "@/lib/stripe";
 import crypto from "crypto";
 
@@ -16,6 +16,19 @@ export async function POST(request: any, context: any) {
       return NextResponse.json(
         { error: "You must be logged in to register for an event" },
         { status: 401 }
+      );
+    }
+
+    // Check if user has phone number
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { phoneNumber: true, name: true, email: true }
+    });
+
+    if (!user?.phoneNumber) {
+      return NextResponse.json(
+        { error: "Phone number required", requiresPhoneNumber: true },
+        { status: 400 }
       );
     }
     
@@ -107,6 +120,9 @@ export async function POST(request: any, context: any) {
     
     // For non-paid events, create registration immediately
     if (!requiresPayment) {
+      // Generate verification code
+      const verificationCode = generateVerificationCode();
+
       // Create new registration or update existing cancelled one
       const registration = existingRegistration 
         ? await prisma.registration.update({
@@ -115,6 +131,7 @@ export async function POST(request: any, context: any) {
               status: "CONFIRMED",
               paymentStatus: "PAID", // No payment needed
               expiresAt: null,
+              verificationCode: verificationCode,
             }
           })
         : await prisma.registration.create({
@@ -123,16 +140,18 @@ export async function POST(request: any, context: any) {
               userId: session.user.id,
               status: "CONFIRMED",
               paymentStatus: "PAID",
+              verificationCode: verificationCode,
             }
           });
 
-      // Send confirmation email
+      // Send confirmation email with verification code
       try {
         await sendEventRegistrationEmail(
-          session.user.email as string,
-          session.user.name as string,
+          user.email || session.user.email as string,
+          user.name || session.user.name as string,
           event.title,
           event.startDate,
+          verificationCode
         );
       } catch (emailError) {
         console.error("Error sending registration email:", emailError);
@@ -201,6 +220,9 @@ export async function POST(request: any, context: any) {
       data: { stripeSessionId: checkoutSession.id }
     });
 
+    // Generate verification code for paid events too
+    const verificationCode = generateVerificationCode();
+
     // Create a new registration or update an existing cancelled one
     if (existingRegistration) {
       // Update existing registration
@@ -211,6 +233,7 @@ export async function POST(request: any, context: any) {
           paymentStatus: "PENDING",
           paymentId: stripePayment.id,
           expiresAt: expiresAt,
+          verificationCode: verificationCode,
         },
       });
     } else {
@@ -223,6 +246,7 @@ export async function POST(request: any, context: any) {
           paymentStatus: "PENDING",
           paymentId: stripePayment.id,
           expiresAt: expiresAt,
+          verificationCode: verificationCode,
         },
       });
     }

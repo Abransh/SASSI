@@ -95,6 +95,14 @@ export default function EventRegistrationButton({
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Check if the error is about missing phone number
+        if (errorData.requiresPhoneNumber) {
+          toast.error("Please add your phone number to your profile before registering for events.");
+          router.push('/profile');
+          return;
+        }
+        
         throw new Error(errorData.error || 'Failed to register for event');
       }
 

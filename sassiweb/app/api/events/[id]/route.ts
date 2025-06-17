@@ -24,6 +24,11 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
+    const session = await getServerSession(authOptions);
+    
+    // For admin users, include all registrations with more details
+    const isAdmin = session?.user?.role === "ADMIN";
+    
     const event = await prisma.event.findUnique({
       where: {
         id: id
@@ -35,7 +40,24 @@ export async function GET(
           }
         },
         gallery: true,
-        registrations: {
+        registrations: isAdmin ? {
+          select: {
+            id: true,
+            status: true,
+            paymentStatus: true,
+            createdAt: true,
+            verificationCode: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true, 
+                university: true, 
+                course: true, 
+              }
+            }
+          }
+        } : {
           select: {
             id: true,
             status: true,

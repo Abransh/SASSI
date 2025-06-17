@@ -40,13 +40,21 @@ export async function sendContactFormEmail(
 }
 
 /**
- * Send email confirmation for event registration
+ * Generate a 6-digit verification code
+ */
+export function generateVerificationCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+/**
+ * Send email with verification code for event registration
  */
 export async function sendEventRegistrationEmail(
   userEmail: string,
   userName: string,
   eventTitle: string,
-  eventDate: Date
+  eventDate: Date,
+  verificationCode: string
 ) {
   try {
     const formattedDate = new Intl.DateTimeFormat('en-US', {
@@ -54,10 +62,10 @@ export async function sendEventRegistrationEmail(
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      // hour: 'numeric',
-      // minute: '2-digit',
-      // hour12: true, 
-      // timeZone: 'Europe/Rome'
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true, 
+      timeZone: 'Europe/Rome'
     }).format(eventDate);
 
     const { data, error } = await resend.emails.send({
@@ -68,40 +76,39 @@ export async function sendEventRegistrationEmail(
         <h1>You're registered for ${eventTitle}!</h1>
         <p>Hello ${userName},</p>
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
-        <p>Thank you for registering as a volunteer for <strong>International Yoga Day 2025</strong>, organised by the <strong>Consulate General of India</strong> in Milan in collaboration with <strong>SASSI</strong>.
-
-        We truly appreciate your support in making this celebration a success.</p>
-        <p><strong>Event Date:</strong> ${formattedDate}</p> 
-        <p><strong>Event Time:</strong> 9:00-11:00</p> 
-        <p><strong>Volunteer ReportingTime:</strong> 8:00 AM sharp</p>
-        <p><strong>Dress Code:</strong> Comfortable attire. A Yoga Day T-shirt will be provided on-site.</p> <br>
-
-         <p><strong>Role:</strong> Place yoga mats in lines, guide the participants to take their seat, manage the area where participants' bags are kept.</p>
-
-        <p> For Any Queries, Contact:
-Siddu – +39 349 238 5255 <br>
-Insha Murad lari– +39 392 677 7905 <br>
-We look forward to working with you and celebrating the spirit of yoga together!
-                 </p>  
-                 
-                 <p>Join our WhatsApp group for updates and coordination:</p>
-                 <p style="margin: 20px 0;">
-                <a href="https://chat.whatsapp.com/KbbQwTyVt7eBMeQWQ7RUcS" 
-             style="background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-            Join WhatsApp Group
-          </a>
-        </p>
         
-        <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
-        <p>Best regards,<br>The SASSI Team <br> <p style="margin: 20px 0;">
-                <a href="https://www.sassimilan.com" 
-             style="background-color: #9999ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        <div style="background-color: #f8f9fa; border: 2px solid #007bff; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+          <h2 style="color: #007bff; margin: 0 0 10px 0;">Your Verification Code</h2>
+          <div style="font-size: 32px; font-weight: bold; font-family: monospace; color: #007bff; letter-spacing: 8px;">
+            ${verificationCode}
+          </div>
+          <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">
+            Please save this code for event check-in
+          </p>
+        </div>
+        
+        <p><strong>Event Details:</strong></p>
+        <ul>
+          <li><strong>Date & Time:</strong> ${formattedDate}</li>
+          <li><strong>Event:</strong> ${eventTitle}</li>
+        </ul>
+        
+        <p>Please bring your verification code with you to the event. You may be asked to present it during check-in.</p>
+        
+        <p>If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
+        
+        <p>Best regards,<br>The SASSI Team</p>
+        
+        <div style="margin: 20px 0; text-align: center;">
+          <a href="https://www.sassimilan.com" 
+             style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 5px;">
             Our Website
-          </a>  <br><br>
-          <a href=" https://www.instagram.com/sassi.milan/" 
-             style="background-color: ##ff3300; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+          </a>
+          <a href="https://www.instagram.com/sassi.milan/" 
+             style="background-color: #e4405f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 5px;">
            Follow us on Instagram
-          </a>  </p>
+          </a>
+        </div>
       `,
     });
 

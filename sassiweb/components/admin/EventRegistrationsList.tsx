@@ -18,6 +18,7 @@ type Registration = {
   paymentStatus?: string;
   createdAt: string;
   name?: string;
+  verificationCode?: string;
   user: {
     id: string;
     name: string;
@@ -185,7 +186,7 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
   // Handle exporting registrations to CSV
   const exportToCSV = () => {
     // Generate CSV content
-    const headers = ["Name", "Email", "University", "Course/Program", "Registration Date", "Status", "Payment Status"];
+    const headers = ["Name", "Email", "University", "Course/Program", "Registration Date", "Status", "Payment Status", "Verification Code"];
     
     const rows = filteredRegistrations.map(reg => [
       reg.user?.name || "N/A",
@@ -194,7 +195,8 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
       reg.user?.course || "Not specified",
       reg.createdAt ? safeFormatDate(reg.createdAt, "yyyy-MM-dd HH:mm:ss", "N/A") : "N/A",
       reg.status || "N/A",
-      reg.paymentStatus || "N/A"
+      reg.paymentStatus || "N/A",
+      reg.verificationCode || "N/A"
     ]);
     
     const csvContent = [
@@ -503,6 +505,9 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
                     )}
                   </div>
                 </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Verification Code
+                </th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -543,6 +548,15 @@ export default function EventRegistrationsList({ eventId }: EventRegistrationsLi
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {renderStatusBadge(registration.status, registration.paymentStatus)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
+                    {registration.verificationCode ? (
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded border">
+                        {registration.verificationCode}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">Not generated</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button

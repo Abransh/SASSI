@@ -136,13 +136,23 @@ export async function POST(req: Request) {
                 },
               });
 
-              // Send confirmation email
+              // Get the updated registration to get the verification code
+              const registration = await txClient.registration.findFirst({
+                where: {
+                  eventId: payment.eventId,
+                  userId: payment.userId,
+                  paymentId: payment.id,
+                },
+              });
+
+              // Send confirmation email with verification code
               try {
                 await sendEventRegistrationEmail(
                   user.email,
                   user.name || "",
                   event.title,
-                  event.startDate
+                  event.startDate,
+                  registration?.verificationCode || ""
                 );
                 console.log(`Confirmation email sent to ${user.email}`);
               } catch (emailError) {

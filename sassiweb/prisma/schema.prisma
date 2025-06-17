@@ -116,19 +116,20 @@ model Event {
 }
 
 model Registration {
-  id            String             @id @default(cuid())
-  eventId       String
-  userId        String
-  status        RegistrationStatus @default(PENDING)
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  paymentId     String?
-  paymentStatus PaymentStatus      @default(UNPAID)
-  expiresAt     DateTime?
-  name          String?
-  event         Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  payment       StripePayment?     @relation(fields: [paymentId], references: [id])
-  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String             @id @default(cuid())
+  eventId          String
+  userId           String
+  status           RegistrationStatus @default(PENDING)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  paymentId        String?
+  paymentStatus    PaymentStatus      @default(UNPAID)
+  expiresAt        DateTime?
+  name             String?
+  verificationCode String?
+  event            Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  payment          StripePayment?     @relation(fields: [paymentId], references: [id])
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId])
 }
