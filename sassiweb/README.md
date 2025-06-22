@@ -37,3 +37,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 
 
+Milan, it’s time to TURN UP the Tadka!  Bollywood Night Like Never Before  Lights. Camera. Full-on Masala 
+Bigger moves. Louder beats. One epic night!  *Date: 5th July at 11:00 pm* 
+_SASSI fam_, listen up  We’ve got *30 exclusive tickets* at just *12 euros* and they’re going faster than SRK’s arms in a climax scene.  Here is the link:  [Link here]  Also, you will get the email in your registered email!
