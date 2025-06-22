@@ -83,10 +83,10 @@ export async function sendEventRegistrationEmail(
         <ul>
       
           <li><strong>Event:</strong> ${eventTitle}</li>
-          <li><strong>Location: <a style="color: #ff9c33;" href="https://maps.app.goo.gl/kKTA2jdVChw9eRiC6" target="_blank" rel="noopener"> Mad Club Milano </a></strong></li>
+          <li><strong>Location: <a style="color: ##0a0a0a;" href="https://maps.app.goo.gl/kKTA2jdVChw9eRiC6" target="_blank" rel="noopener"> Mad Club Milano </a></strong></li>
         </ul>
 
-        <a style="color: #ff9c33;" href="https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano" target="_blank" rel="noopener"> https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano </a>
+        <a style="color: ##0a0a0a;" href="https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano" target="_blank" rel="noopener"> https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano </a>
         
 
         
