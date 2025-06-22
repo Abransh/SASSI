@@ -51,3 +51,33 @@ _SASSI fam_, listen up  We’ve got *30 exclusive tickets* at just *12 euros
 <h2><strong>Participating Teams</strong> <br><br></h2>
 <div class="logo-grid teams-grid"><img src="../../assests/teams/Baapdimilano.svg" alt="Baap di Milano Logo"> <img src="../../assests/teams/IndianStrikers.svg" alt="Indian Strikers Logo"> <img src="../../assests/teams/LeccoLegends.svg" alt="Lecco Legends Logo"> <img src="../../assests/teams/MilanoMavericks.svg" alt="Milano Mavericks Logo"> <img src="../../assests/teams/OrangeArmy.svg" alt="Orange Army Logo"> <img src="../../assests/teams/Pavia.svg" alt="Pavia Logo"> <img src="../../assests/teams/Tridents.png" alt="Tridents Logo"> <img src="../../assests/teams/DurandoDemons.png" alt="Durando Demons Logo"></div>
 </div>
+
+
+
+    <li><strong>Date & Time:</strong> ${formattedDate}</li>
+
+
+
+
+<br>
+Milan, get ready to TURN UP the tadka. <br><br><b>Summer Bollywood Festival</b> is coming to <b>Mad Club Milano</b>, brought to you by <b>Bollywood Events Europe.</b><br><br>
+This isn’t just a party, — it’s a full-on Bollywood blockbuster.<br>Lights. Camera. Masala.<br><br>
+<b>Date: 5th July, 11:00 pm onwards.</b> <br><br>
+<b>SASSI members</b> — we’ve got <b>30 exclusive tickets *at just *€12</b><br><br>
+ They’re flying fast, so grab yours before it’s full-on filmy chaos.
+
+Limited tickets. Unlimited drama. <b>Book now!</b> 
+<a style="color: #ff9c33;" href="https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano" target="_blank" rel="noopener"> Click here </a>
+
+
+   <div style="background-color: #f8f9fa; border: 2px solid #007bff; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+          <h2 style="color: #007bff; margin: 0 0 10px 0;">Your Verification Code</h2>
+          <div style="font-size: 32px; font-weight: bold; font-family: monospace; color: #007bff; letter-spacing: 8px;">
+            ${verificationCode}
+          </div>
+          <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">
+            Please save this code for event check-in
+          </p>
+        </div>
+
+                <p>Please bring your verification code with you to the event. You may be asked to present it during check-in.</p>

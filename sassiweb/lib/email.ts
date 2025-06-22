@@ -71,29 +71,23 @@ export async function sendEventRegistrationEmail(
     const { data, error } = await resend.emails.send({
       from: 'SASSI Events <events@sassimilan.com>',
       to: userEmail,
-      subject: `Registration Confirmed: ${eventTitle}`,
+      subject: `Registration Pending: ${eventTitle}`,
       html: `
-        <h1>You're registered for ${eventTitle}!</h1>
+        <h1>Registeration Pending for ${eventTitle}!, Kindly </h1>
         <p>Hello ${userName},</p>
-        <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
+        <p>Your registration for <strong>${eventTitle}</strong> is Pending, Kindly pay with the link below to Confirm it.</p>
         
-        <div style="background-color: #f8f9fa; border: 2px solid #007bff; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
-          <h2 style="color: #007bff; margin: 0 0 10px 0;">Your Verification Code</h2>
-          <div style="font-size: 32px; font-weight: bold; font-family: monospace; color: #007bff; letter-spacing: 8px;">
-            ${verificationCode}
-          </div>
-          <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">
-            Please save this code for event check-in
-          </p>
-        </div>
+     
         
         <p><strong>Event Details:</strong></p>
         <ul>
-          <li><strong>Date & Time:</strong> ${formattedDate}</li>
+      
           <li><strong>Event:</strong> ${eventTitle}</li>
         </ul>
+
+        <a style="color: #ff9c33;" href="https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano" target="_blank" rel="noopener"> https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano </a>
         
-        <p>Please bring your verification code with you to the event. You may be asked to present it during check-in.</p>
+
         
         <p>If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
         
