@@ -1,3 +1,5 @@
+
+"use client";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
   },
 };
 
-"use client";
+
 
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
