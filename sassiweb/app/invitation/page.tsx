@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "🎉 You're Invited! | Epic Birthday Celebration",
-  description: "Join us for an unforgettable birthday journey through Milan! From Arco della Pace to Chinatown to an epic dinner finale. Because why not celebrate in style? 🎂✨",
+  title: "🎉 DAMM LOOKS COOL RIGHT",
+  description: "I am not writing big data so you reas on whatsapp please open it✨",
   keywords: "birthday invitation, Milan, party, celebration, interactive invitation, modern design",
-  authors: [{ name: "Birthday Host" }],
+  authors: [{ name: "Ab" }],
   openGraph: {
     title: "🎉 You're Invited to an Epic Birthday Celebration!",
     description: "An interactive birthday invitation with surprises! Journey through Milan: Arco della Pace → Soju in Chinatown → Epic dinner finale. Click to unlock secret features! 🎮",
     type: "website",
-    url: "https://sassiweb.vercel.app/invitation",
+    url: "https://www.sassimilan.com/invitation",
     siteName: "Epic Birthday Invitation",
     images: [
       {
