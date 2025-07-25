@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   keywords: "birthday invitation, Milan, party, celebration, interactive invitation, modern design",
   authors: [{ name: "Ab" }],
   openGraph: {
-    title: "🎉 You're Invited to an Epic Birthday Celebration!",
+    title: "🎉 OPEN THE LINK CUTIE",
     description: "I am not writing this big description please open the link",
     type: "website",
     url: "https://www.sassimilan.com/invitation",
