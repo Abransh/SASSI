@@ -591,7 +591,7 @@ const Invitation3 = () => {
           className="mt-32 text-center"
         >
           <p className="text-xs text-gray-700 tracking-widest">
-            WITH LOVE & MINIMAL EFFORT
+           DAMM I SHOULD STOP CODING EVERYTHING
           </p>
         </motion.footer>
       </div>
