@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "🎉 You're Invited!",
     description: "I am not writing this big description please open the link 🎂✨",
-    images: ["https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=1200&h=630&fit=crop&crop=center"],
+
   },
   robots: {
     index: false,
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   other: {
     "whatsapp:title": "🎉 I am not writing this big description please open the link",
     "whatsapp:description": "lmao",
-    "whatsapp:image": "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=400&fit=crop&crop=center",
+   
   },
 };
 
