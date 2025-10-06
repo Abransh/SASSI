@@ -42,35 +42,35 @@ export default function JoinUsModal({ isOpen, onClose }: JoinUsModalProps) {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", bounce: 0.3 }}
-              className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative"
+              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl relative"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors z-10 bg-white/80 backdrop-blur-sm"
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
                 aria-label="Close"
               >
                 <X size={20} className="text-gray-700" />
               </button>
 
-              <div className="p-6 sm:p-8 lg:p-10 text-center">
+              <div className="p-6 sm:p-8 text-center">
                 <div className="mb-6">
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                     Join SASSI
                   </h2>
-                  <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
-                    Choose how you&apos;d like to be part of our community. Join as a member to access resources and events, or apply to join our team to help make a difference.
+                  <p className="text-gray-600 text-sm sm:text-base">
+                    Choose how you&apos;d like to be part of our community.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {/* Join as Member Option */}
                   <motion.div
-                    className={`group relative rounded-2xl overflow-hidden border-2 transition-all duration-300 cursor-pointer ${
+                    className={`group relative rounded-xl border-2 transition-all duration-300 cursor-pointer ${
                       hoveredOption === "member"
-                        ? "border-orange-500 shadow-xl scale-105"
-                        : "border-gray-200 hover:border-orange-300 hover:shadow-lg"
+                        ? "border-orange-500 shadow-lg"
+                        : "border-gray-200 hover:border-orange-300"
                     }`}
                     onMouseEnter={() => setHoveredOption("member")}
                     onMouseLeave={() => setHoveredOption(null)}
@@ -78,27 +78,26 @@ export default function JoinUsModal({ isOpen, onClose }: JoinUsModalProps) {
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <div className="p-6 sm:p-8 flex flex-col items-center text-center">
-                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mb-4 transition-all duration-300 ${
-                        hoveredOption === "member" ? "bg-orange-500 scale-110" : "bg-orange-100"
+                    <div className="p-4 sm:p-6 flex flex-col items-center text-center">
+                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-3 transition-all duration-300 ${
+                        hoveredOption === "member" ? "bg-orange-500" : "bg-orange-100"
                       }`}>
                         <UserPlus
-                          size={28}
+                          size={20}
                           className={`transition-colors duration-300 ${
                             hoveredOption === "member" ? "text-white" : "text-orange-600"
                           }`}
                         />
                       </div>
-                      <h3 className="text-xl sm:text-2xl font-bold mb-3 text-gray-900">
+                      <h3 className="text-lg sm:text-xl font-bold mb-2 text-gray-900">
                         Join as Member
                       </h3>
-                      <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
-                        Register as an official member to access exclusive resources, receive support, and
-                        participate in all our events.
+                      <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-4">
+                        Access exclusive resources, receive support, and participate in events.
                       </p>
-                      <div className={`py-3 px-6 rounded-lg text-white transition-all duration-300 text-sm sm:text-base font-medium ${
+                      <div className={`py-2 px-4 rounded-lg text-white transition-all duration-300 text-sm font-medium ${
                         hoveredOption === "member"
-                          ? "bg-orange-600 shadow-lg transform scale-105"
+                          ? "bg-orange-600"
                           : "bg-gray-500 group-hover:bg-orange-500"
                       }`}>
                         Become a Member
@@ -108,10 +107,10 @@ export default function JoinUsModal({ isOpen, onClose }: JoinUsModalProps) {
 
                   {/* Join the Team Option */}
                   <motion.div
-                    className={`group relative rounded-2xl overflow-hidden border-2 transition-all duration-300 cursor-pointer ${
+                    className={`group relative rounded-xl border-2 transition-all duration-300 cursor-pointer ${
                       hoveredOption === "team"
-                        ? "border-blue-500 shadow-xl scale-105"
-                        : "border-gray-200 hover:border-blue-300 hover:shadow-lg"
+                        ? "border-blue-500 shadow-lg"
+                        : "border-gray-200 hover:border-blue-300"
                     }`}
                     onMouseEnter={() => setHoveredOption("team")}
                     onMouseLeave={() => setHoveredOption(null)}
@@ -119,27 +118,26 @@ export default function JoinUsModal({ isOpen, onClose }: JoinUsModalProps) {
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <div className="p-6 sm:p-8 flex flex-col items-center text-center">
-                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mb-4 transition-all duration-300 ${
-                        hoveredOption === "team" ? "bg-blue-500 scale-110" : "bg-blue-100"
+                    <div className="p-4 sm:p-6 flex flex-col items-center text-center">
+                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-3 transition-all duration-300 ${
+                        hoveredOption === "team" ? "bg-blue-500" : "bg-blue-100"
                       }`}>
                         <Users
-                          size={28}
+                          size={20}
                           className={`transition-colors duration-300 ${
                             hoveredOption === "team" ? "text-white" : "text-blue-600"
                           }`}
                         />
                       </div>
-                      <h3 className="text-xl sm:text-2xl font-bold mb-3 text-gray-900">
+                      <h3 className="text-lg sm:text-xl font-bold mb-2 text-gray-900">
                         Join the Team
                       </h3>
-                      <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
-                        Become an active part of our organizing team, help shape our initiatives,
-                        and make a difference in the community.
+                      <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-4">
+                        Help shape our initiatives and make a difference in the community.
                       </p>
-                      <div className={`py-3 px-6 rounded-lg text-white transition-all duration-300 text-sm sm:text-base font-medium ${
+                      <div className={`py-2 px-4 rounded-lg text-white transition-all duration-300 text-sm font-medium ${
                         hoveredOption === "team"
-                          ? "bg-blue-600 shadow-lg transform scale-105"
+                          ? "bg-blue-600"
                           : "bg-gray-500 group-hover:bg-blue-500"
                       }`}>
                         Apply to Join Team
