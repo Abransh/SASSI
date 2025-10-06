@@ -78,6 +78,7 @@ export async function sendEventRegistrationEmail(
         <p><strong>Event Date:</strong> ${formattedDate}</p> 
         <p><strong>Event Time:</strong> 1:00PM onwards</p> 
         <p><strong>Event Location:</strong> Parco Sempione</p>
+        <p><strong> For updates: Join our WhatsApp group </strong> <a href="https://chat.whatsapp.com/Fb9lWmN8KCdBVq1jGO4CoM">https://chat.whatsapp.com/Fb9lWmN8KCdBVq1jGO4CoM</a></p>
         <p> For any help or query, mail to support@sassimilan.com 
                  </p>    
                   <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
