@@ -152,7 +152,7 @@ export async function POST(req: Request) {
                   user.name || "",
                   event.title,
                   event.startDate,
-                  registration?.verificationCode || ""
+                 
                 );
                 console.log(`Confirmation email sent to ${user.email}`);
               } catch (emailError) {

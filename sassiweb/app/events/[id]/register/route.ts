@@ -151,7 +151,7 @@ export async function POST(request: any, context: any) {
           user.name || session.user.name as string,
           event.title,
           event.startDate,
-          verificationCode
+
         );
       } catch (emailError) {
         console.error("Error sending registration email:", emailError);
