@@ -269,7 +269,7 @@ export default function EventRegistrationButton({
       ) : (
         <Calendar className="mr-2 h-4 w-4" />
       )}
-      {isPaid ? `Register - €${price.toFixed(2)}` : 'Send me an Email with Registeration link'}
+      {isPaid ? `Register - €${price.toFixed(2)}` : 'Register '}
     </Button>
   );
 }
