@@ -77,6 +77,7 @@ export async function sendEventRegistrationEmail(
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p> 
         <p><strong>Event Time:</strong> 1:00PM onwards</p> 
+        <p><strong>Event Location:</strong> Parco Sempione</p>
         <p> For any help or query, mail to support@sassimilan.com 
                  </p>    
                   <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
