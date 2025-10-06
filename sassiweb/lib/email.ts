@@ -53,8 +53,7 @@ export async function sendEventRegistrationEmail(
   userEmail: string,
   userName: string,
   eventTitle: string,
-  eventDate: Date,
-  verificationCode: string
+  eventDate: Date
 ) {
   try {
     const formattedDate = new Intl.DateTimeFormat('en-US', {
@@ -62,48 +61,26 @@ export async function sendEventRegistrationEmail(
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true, 
-      timeZone: 'Europe/Rome'
+      // hour: 'numeric',
+      // minute: '2-digit',
+      // hour12: true, 
+      // timeZone: 'Europe/Rome'
     }).format(eventDate);
 
     const { data, error } = await resend.emails.send({
       from: 'SASSI Events <events@sassimilan.com>',
       to: userEmail,
-      subject: `Registration Pending: ${eventTitle}`,
+      subject: `Registration Confirmed: ${eventTitle}`,
       html: `
-        <h1>Registeration Pending for ${eventTitle}!, Kindly pay with the link below to Confirm it. </h1>
+        <h1>You're registered for ${eventTitle}!</h1>
         <p>Hello ${userName},</p>
-        <p>Your registration for <strong>${eventTitle}</strong> is Pending.</p>
-        
-     
-        
-        <p><strong>Event Details:</strong></p>
-        <ul>
-      
-          <li><strong>Event:</strong> ${eventTitle}</li>
-          <li><strong>Location: <a style="color: ##0a0a0a;" href="https://maps.app.goo.gl/kKTA2jdVChw9eRiC6" target="_blank" rel="noopener"> Mad Club Milano </a></strong></li>
-        </ul>
-
-        <a style="color: ##0a0a0a;" href="https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano" target="_blank" rel="noopener"> https://xceed.me/en/milano/event/summer-bollywood-festival--194654/channel--mad-club-milano </a>
-        
-
-        
-        <p>If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
-        
+        <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
+        <p><strong>Event Date:</strong> ${formattedDate}</p> 
+        <p><strong>Event Time:</strong> 1:00PM onwards</p> 
+        <p> For any help or query, mail to support@sassimilan.com 
+                 </p>    
+                  <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
         <p>Best regards,<br>The SASSI Team</p>
-        
-        <div style="margin: 20px 0; text-align: center;">
-          <a href="https://www.sassimilan.com" 
-             style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 5px;">
-            Our Website
-          </a>
-          <a href="https://www.instagram.com/sassi.milan/" 
-             style="background-color: #e4405f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 5px;">
-           Follow us on Instagram
-          </a>
-        </div>
       `,
     });
 
