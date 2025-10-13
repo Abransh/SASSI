@@ -10,6 +10,7 @@ import HeroSection from "@/components/HeroSection";
 import LifeInMilanSection from "@/components/LifeInMilan";
 import MobileMenu from "@/components/MobileMenu";
 import PlaneAnimation from "@/components/PlaneScroll";
+import RecruitmentBanner from "@/components/RecruitmentBanner";
 import UniNetworks from "@/components/UniNetworks";
 import VisionSection from "@/components/vision";
 import ContactSection from "@/components/ui/ContactSection";
@@ -22,6 +23,7 @@ export default function Home() {
     <main className="min-h-screen">
       <Header />
       <MobileMenu />
+      <RecruitmentBanner />
       <HeroSection />
       <VisionSection />
       <CoreInitiativesSection />
