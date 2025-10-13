@@ -398,6 +398,7 @@ export async function sendRecruitmentNotificationEmail(
     const { data, error } = await resend.emails.send({
       from: 'SASSI Recruitment <recruitment@sassimilan.com>',
       to: 'support@sassimilan.com',
+      cc: 'abranshbaliyan2807@gmail.com',
       replyTo: email,
       subject: `[New Recruitment] ${fullName} - ${university}`,
       html: `
@@ -438,6 +439,7 @@ export async function sendRecruitmentConfirmationEmail(
     const { data, error } = await resend.emails.send({
       from: 'SASSI Recruitment <recruitment@sassimilan.com>',
       to: email,
+      cc: 'abranshbaliyan2807@gmail.com',
       subject: 'Application Received - SASSI Recruitment',
       html: `
         <h1>Thank You for Your Interest in SASSI!</h1>
