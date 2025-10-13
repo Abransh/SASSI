@@ -81,7 +81,7 @@ export async function sendEventRegistrationEmail(
         <p><strong> For updates: Join our WhatsApp group </strong> <a href="https://chat.whatsapp.com/DOWLLi5kYr88hJoSY0w9fI?mode=ems_copy_t">https://chat.whatsapp.com/DOWLLi5kYr88hJoSY0w9fI?mode=ems_copy_t/a></p>
         <p> For any help or query, mail to support@sassimilan.com 
                  </p>    
-                  <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard">https://sassimilan.com/dashboard</a></p>
+                  <p>We look forward to seeing you there! If you have any questions, please contact us or log in to your dashboard for updates: <a href="https://sassimilan.com/dashboard"> https://sassimilan.com/dashboard</a></p>
         <p>Best regards,<br>The SASSI Team</p>
       `,
     });
@@ -379,6 +379,96 @@ export async function sendPasswordChangedEmail(
     });
   } catch (error) {
     console.error("Error sending password changed email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send recruitment application notification email to admins
+ */
+export async function sendRecruitmentNotificationEmail(
+  fullName: string,
+  email: string,
+  phoneNumber: string,
+  university: string,
+  interests: string,
+  message: string
+) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SASSI Recruitment <recruitment@sassimilan.com>',
+      to: 'support@sassimilan.com',
+      replyTo: email,
+      subject: `[New Recruitment] ${fullName} - ${university}`,
+      html: `
+        <h1>New Recruitment Application</h1>
+        <p><strong>From:</strong> ${fullName}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phoneNumber}</p>
+        <p><strong>University:</strong> ${university}</p>
+        <h2>Areas of Interest:</h2>
+        <p>${interests}</p>
+        <h2>Message:</h2>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+        <hr>
+        <p><small>This application was submitted through the SASSI recruitment form.</small></p>
+      `,
+    });
+
+    if (error) {
+      console.error('Error sending recruitment notification email:', error);
+      throw new Error('Failed to send email');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in sendRecruitmentNotificationEmail:', error);
+    throw error;
+  }
+}
+
+/**
+ * Send welcome email to recruitment applicant
+ */
+export async function sendRecruitmentConfirmationEmail(
+  email: string,
+  name: string
+) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SASSI Recruitment <recruitment@sassimilan.com>',
+      to: email,
+      subject: 'Application Received - SASSI Recruitment',
+      html: `
+        <h1>Thank You for Your Interest in SASSI!</h1>
+        <p>Hello ${name},</p>
+        <p>We've received your application to join the SASSI team. Thank you for your interest in contributing to our community!</p>
+        <h2>What happens next?</h2>
+        <ol>
+          <li>Our team will review your application within 3-5 business days.</li>
+          <li>We'll contact you via email or phone with the next steps.</li>
+          <li>If selected, you'll be invited to join our team communication channels.</li>
+          <li>You'll receive an orientation about your role and responsibilities.</li>
+        </ol>
+        <p>In the meantime, feel free to explore:</p>
+        <ul>
+          <li><a href="https://sassimilan.com/events">Our upcoming events</a></li>
+          <li><a href="https://sassimilan.com/resources">Resources for students in Milan</a></li>
+          <li><a href="https://sassimilan.com/members">Our community members</a></li>
+        </ul>
+        <p>If you have any questions, please don't hesitate to reach out to us at support@sassimilan.com.</p>
+        <p>Best regards,<br>The SASSI Team</p>
+      `,
+    });
+
+    if (error) {
+      console.error('Error sending recruitment confirmation email:', error);
+      throw new Error('Failed to send email');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in sendRecruitmentConfirmationEmail:', error);
     throw error;
   }
 }
