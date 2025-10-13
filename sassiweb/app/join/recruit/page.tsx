@@ -18,7 +18,8 @@ const UNIVERSITIES = [
   "Humanitas University",
   "IED Istituto Europeo di Design",
   "Istituto Marangoni",
-  "POLIMI GSOMI"
+  "POLIMI GSOMI", 
+  "Other University"
 ];
 
 const INTEREST_AREAS = [
