@@ -28,7 +28,7 @@ const INTEREST_AREAS = [
   { id: "social-media", label: "Social Media & Content", icon: "📱" },
   { id: "tech", label: "Tech & Website", icon: "💻" },
   { id: "partnerships", label: "Partnerships & Sponsorship", icon: "🤝" },
-  { id: "other", label: "Other", icon: "✨" }
+  { id: "other", label: "Other, Please tell us about it below", icon: "✨" }
 ];
 
 const recruitSchema = z.object({
