@@ -35,6 +35,7 @@ const recruitSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
   email: z.string().email("Invalid email address"),
   phoneNumber: z.string().min(10, "Valid phone number is required"),
+  whatsappNumber: z.string().min(10, "Valid WhatsApp number is required"),
   university: z.string().min(1, "University selection is required"),
   interests: z.array(z.string()).min(1, "Select at least one area of interest"),
   message: z.string().optional(),
@@ -50,6 +51,7 @@ export default function RecruitPage() {
     fullName: "",
     email: "",
     phoneNumber: "",
+    whatsappNumber: "",
     university: "",
     interests: [],
     message: "",
@@ -307,6 +309,25 @@ export default function RecruitPage() {
                         <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
                       )}
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="whatsappNumber" className="text-sm font-medium flex items-center">
+                      <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                      WhatsApp Number <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      id="whatsappNumber"
+                      name="whatsappNumber"
+                      type="tel"
+                      value={formData.whatsappNumber}
+                      onChange={handleChange}
+                      className={`w-full p-3 border rounded-md ${errors.whatsappNumber ? "border-red-500" : "border-gray-300"}`}
+                      placeholder="+39 123 456 7890"
+                    />
+                    {errors.whatsappNumber && (
+                      <p className="text-red-500 text-xs mt-1">{errors.whatsappNumber}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
