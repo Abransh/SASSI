@@ -208,10 +208,7 @@ export default function RecruitPage() {
               <p className="text-lg text-gray-600">
                 Help build and support the Indian student community in Milan. Join our team of passionate volunteers!
               </p>
-              <p className="text-sm text-gray-500 mt-2">
-                <Heart className="inline h-4 w-4 text-red-500 mr-1" />
-                Takes about 3 minutes
-              </p>
+              
             </div>
 
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
