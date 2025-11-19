@@ -99,7 +99,7 @@ model Event {
   content         String?
   location        String
   startDate       DateTime
-  endDate         DateTime
+  endDate         DateTime?
   imageUrl        String?
   maxAttendees    Int?
   createdAt       DateTime        @default(now())
