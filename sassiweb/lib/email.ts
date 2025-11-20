@@ -77,7 +77,7 @@ export async function sendEventRegistrationEmail(
         <p>Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
         <p><strong>Event Date:</strong> ${formattedDate}</p> 
         <p><strong>Event Time:</strong> 8:00PM onwards</p> 
-        <p><strong>Event Location:</strong> Parco Sempione</p>
+        <p><strong>Event Location:</strong> Bowling Milano,Via Francesco Cavezzali, 9/11, 20127 Milano MI</p>
         <p><strong> For updates: Join our WhatsApp group </strong> <a href="https://chat.whatsapp.com/EliM19BFkTZBS278gA3sqi?mode=hqrt3">https://chat.whatsapp.com/EliM19BFkTZBS278gA3sqi?mode=hqrt3 /a></p>
         <p> For any help or query, mail to support@sassimilan.com 
                  </p>    
